@@ -10,20 +10,18 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add DbContext with PostgreSQL/SQLite support
-var dbProvider = Environment.GetEnvironmentVariable("DB_PROVIDER");
-var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION")
-                     ?? builder.Configuration.GetConnectionString("DefaultConnection")
-                     ?? "Data Source=db.sqlite";
+var dbProvider = Environment.GetEnvironmentVariable("DB_PROVIDER") ?? "sqlite";
+var conn = Environment.GetEnvironmentVariable("DB_CONNECTION") ?? "Data Source=db.sqlite";
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    if (dbProvider == "pgsql" || connectionString.Contains("Host="))
+    if (dbProvider.Equals("pgsql", StringComparison.OrdinalIgnoreCase))
     {
-        options.UseNpgsql(connectionString);
+        options.UseNpgsql(conn);
     }
     else
     {
-        options.UseSqlite(connectionString);
+        options.UseSqlite(conn);
     }
 });
 
