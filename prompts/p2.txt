@@ -1,0 +1,17 @@
+Create EF Core models and DbContext for the following tables: app_user, client_profile, trainer_profile, consent_grant, media_asset, transcript, extraction_result, exercise, plan_template, plan_template_item, plan_proposal, plan_instance, exercise_instance, plan_item_acceptance, progress_event, adherence_week, gamification.
+
+
+Constraints:
+- Use snake_case naming convention.
+- Keep provider‑agnostic (avoid Postgres‑specific features).
+- Store times as DateTimeOffset UTC.
+- Seed: none yet
+
+
+Outputs:
+- Adaplio.Api/Domain/*.cs (entities)
+- Adaplio.Api/Data/AppDbContext.cs
+- Adaplio.Api/Data/DesignTimeFactory.cs
+- Update Program.cs to add DbContext with connection string from env `DB_CONNECTION` (default: SQLite file db.sqlite)
+- Create initial migration + update database
+- Add a `make migrate`/`dotnet ef` script in README

@@ -1,0 +1,21 @@
+You are my coding assistant inside a new GitHub repo for a .NET + Blazor project.
+Create the following structure:
+/src
+/Api (ASP.NET Core 9 minimal API)
+/Frontend (Blazor WASM PWA with MudBlazor)
+/Jobs (Azure Functions/Containers stubs for media pipeline)
+/Shared (shared DTOs/domain primitives)
+/infra
+docker-compose.yml (mailhog only for now)
+devcontainer.json + .devcontainer/Dockerfile
+/.github/workflows/ci.yml
+/README.md
+
+
+Include:
+- .editorconfig, .gitattributes, .gitignore (VS + node + python)
+- Solution file Adaplio.sln referencing all projects
+- Add MudBlazor to Frontend, set Poppins or system font, dark/light toggle
+- PWA enabled with service worker + offline cache for basic routes
+- In docker-compose: mailhog: latest, with ports exposed
+- README with quick start: `dotnet run` (SQLite), MailHog URL
