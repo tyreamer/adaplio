@@ -179,7 +179,7 @@ namespace Adaplio.Api.Migrations
 
                     b.HasIndex("Alias")
                         .IsUnique()
-                        .HasFilter("[alias] IS NOT NULL");
+                        .HasFilter("alias IS NOT NULL");
 
                     b.HasIndex("UserId")
                         .IsUnique();
@@ -230,7 +230,7 @@ namespace Adaplio.Api.Migrations
 
                     b.HasIndex("ClientProfileId", "TrainerProfileId", "Scope")
                         .IsUnique()
-                        .HasFilter("[revoked_at] IS NULL");
+                        .HasFilter("revoked_at IS NULL");
 
                     b.ToTable("consent_grant");
                 });
@@ -296,6 +296,10 @@ namespace Adaplio.Api.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("TEXT")
                         .HasColumnName("created_at");
+
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("day_of_week");
 
                     b.Property<int>("ExerciseId")
                         .HasColumnType("INTEGER")
@@ -770,6 +774,10 @@ namespace Adaplio.Api.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("responded_at");
 
+                    b.Property<DateOnly?>("StartsOn")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("starts_on");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -815,6 +823,10 @@ namespace Adaplio.Api.Migrations
                         .HasColumnType("INTEGER")
                         .HasColumnName("duration_weeks");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("is_deleted");
+
                     b.Property<bool>("IsPublic")
                         .HasColumnType("INTEGER")
                         .HasColumnName("is_public");
@@ -850,6 +862,11 @@ namespace Adaplio.Api.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("TEXT")
                         .HasColumnName("created_at");
+
+                    b.Property<string>("DaysOfWeek")
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("days_of_week");
 
                     b.Property<int>("ExerciseId")
                         .HasColumnType("INTEGER")

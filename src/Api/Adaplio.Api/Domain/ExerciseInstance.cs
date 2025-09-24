@@ -34,9 +34,12 @@ public class ExerciseInstance
     [Column("frequency_per_week")]
     public int? FrequencyPerWeek { get; set; }
 
+    [Column("day_of_week")]
+    public int DayOfWeek { get; set; } // 0=Sunday, 1=Monday, ..., 6=Saturday
+
     [Column("status")]
     [MaxLength(50)]
-    public string Status { get; set; } = "pending"; // pending, in_progress, completed, skipped
+    public string Status { get; set; } = "planned"; // planned, done, partial, skipped
 
     [Column("notes")]
     public string? Notes { get; set; }

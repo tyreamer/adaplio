@@ -536,7 +536,7 @@ namespace Adaplio.Api.Migrations
                 table: "client_profile",
                 column: "alias",
                 unique: true,
-                filter: "[alias] IS NOT NULL");
+                filter: "alias IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_client_profile_user_id",
@@ -549,7 +549,7 @@ namespace Adaplio.Api.Migrations
                 table: "consent_grant",
                 columns: new[] { "client_profile_id", "trainer_profile_id", "scope" },
                 unique: true,
-                filter: "[revoked_at] IS NULL");
+                filter: "revoked_at IS NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_consent_grant_trainer_profile_id",

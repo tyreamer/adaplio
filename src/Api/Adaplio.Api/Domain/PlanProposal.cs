@@ -43,6 +43,9 @@ public class PlanProposal
     [Column("custom_plan_json")]
     public string? CustomPlanJson { get; set; } // JSON blob for custom plan if not using template
 
+    [Column("starts_on")]
+    public DateOnly? StartsOn { get; set; } // When the plan should start (default: next Monday)
+
     // Navigation properties
     [ForeignKey(nameof(TrainerProfileId))]
     public TrainerProfile TrainerProfile { get; set; } = null!;

@@ -34,6 +34,10 @@ public class PlanTemplateItem
     [Column("notes")]
     public string? Notes { get; set; }
 
+    [Column("days_of_week")]
+    [MaxLength(20)]
+    public string? DaysOfWeek { get; set; } // JSON array like ["Monday", "Wednesday", "Friday"]
+
     [Column("created_at")]
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 

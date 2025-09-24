@@ -1,0 +1,26 @@
+Reference SPEC.md and ROADMAP.md.
+
+Task: Implement P5 (Progress & Adherence) for Adaplio.
+
+### Backend (Adaplio.Api)
+- Endpoints:
+  - POST /client/progress { exerciseInstanceId, status, notes? }
+    → insert ProgressEvent
+  - GET /client/progress/summary (per-week adherence %)
+  - GET /trainer/clients/{id}/adherence
+    → returns adherence % per week for that client (no raw logs)
+- Rules:
+  - Adherence = (# completed / # planned) per week
+  - Respect consent_grant scopes: trainers can only view summaries if client granted view_summary
+  - Use HOLD_FACTOR field in ProgressEvent to weight partial completion
+- Update DbContext, add migrations if needed.
+
+### Frontend (Adaplio.Frontend)
+- Client pages:
+  - "Log Progress" page → simple form to mark exercise complete/skip + notes
+  - "My Adherence" page → weekly chart with % (MudBlazor chart)
+- Trainer pages:
+  - Extend client list to show adherence % summary
+
+### Docs
+- Update README with curl examples for progress logging + adherence queries.

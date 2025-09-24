@@ -37,6 +37,9 @@ public class PlanTemplate
     [Column("updated_at")]
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 
+    [Column("is_deleted")]
+    public bool IsDeleted { get; set; } = false;
+
     // Navigation properties
     [ForeignKey(nameof(TrainerProfileId))]
     public TrainerProfile TrainerProfile { get; set; } = null!;

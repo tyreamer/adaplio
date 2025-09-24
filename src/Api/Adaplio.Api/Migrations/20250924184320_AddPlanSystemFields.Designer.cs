@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Adaplio.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250924142628_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250924184320_AddPlanSystemFields")]
+    partial class AddPlanSystemFields
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -300,6 +300,10 @@ namespace Adaplio.Api.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("created_at");
 
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("day_of_week");
+
                     b.Property<int>("ExerciseId")
                         .HasColumnType("INTEGER")
                         .HasColumnName("exercise_id");
@@ -470,6 +474,102 @@ namespace Adaplio.Api.Migrations
                         .IsUnique();
 
                     b.ToTable("gamification");
+                });
+
+            modelBuilder.Entity("Adaplio.Api.Domain.GrantCode", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("code");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("expires_at");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(45)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("ip_address");
+
+                    b.Property<int>("TrainerProfileId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("trainer_profile_id");
+
+                    b.Property<DateTimeOffset?>("UsedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("used_at");
+
+                    b.Property<int?>("UsedByClientProfileId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("used_by_client_profile_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("UsedByClientProfileId");
+
+                    b.HasIndex("TrainerProfileId", "CreatedAt");
+
+                    b.ToTable("grant_code");
+                });
+
+            modelBuilder.Entity("Adaplio.Api.Domain.MagicLink", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("code");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("email");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("expires_at");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(45)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("ip_address");
+
+                    b.Property<DateTimeOffset?>("UsedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("used_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("Email", "CreatedAt");
+
+                    b.ToTable("magic_link");
                 });
 
             modelBuilder.Entity("Adaplio.Api.Domain.MediaAsset", b =>
@@ -677,6 +777,10 @@ namespace Adaplio.Api.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("responded_at");
 
+                    b.Property<DateOnly?>("StartsOn")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("starts_on");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -722,6 +826,10 @@ namespace Adaplio.Api.Migrations
                         .HasColumnType("INTEGER")
                         .HasColumnName("duration_weeks");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("is_deleted");
+
                     b.Property<bool>("IsPublic")
                         .HasColumnType("INTEGER")
                         .HasColumnName("is_public");
@@ -757,6 +865,11 @@ namespace Adaplio.Api.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("TEXT")
                         .HasColumnName("created_at");
+
+                    b.Property<string>("DaysOfWeek")
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("days_of_week");
 
                     b.Property<int>("ExerciseId")
                         .HasColumnType("INTEGER")
@@ -1054,6 +1167,23 @@ namespace Adaplio.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("ClientProfile");
+                });
+
+            modelBuilder.Entity("Adaplio.Api.Domain.GrantCode", b =>
+                {
+                    b.HasOne("Adaplio.Api.Domain.TrainerProfile", "TrainerProfile")
+                        .WithMany()
+                        .HasForeignKey("TrainerProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Adaplio.Api.Domain.ClientProfile", "UsedByClientProfile")
+                        .WithMany()
+                        .HasForeignKey("UsedByClientProfileId");
+
+                    b.Navigation("TrainerProfile");
+
+                    b.Navigation("UsedByClientProfile");
                 });
 
             modelBuilder.Entity("Adaplio.Api.Domain.MediaAsset", b =>

@@ -142,6 +142,13 @@
                                                     No activity yet
                                                 </MudText>
                                             }
+                                            <MudButton Size="Size.Small"
+                                                       Variant="Variant.Text"
+                                                       Color="Color.Primary"
+                                                       OnClick="@(() => ViewClientAdherence(client.ClientAlias))"
+                                                       StartIcon="@Icons.Material.Filled.Analytics">
+                                                View Details
+                                            </MudButton>
                                         </div>
                                     </div>
                                 </MudListItem>
@@ -329,6 +336,34 @@
         }
     }
 
+    private async Task ViewClientAdherence(string clientAlias)
+    {
+        try
+        {
+            var response = await HttpClient.GetAsync($"/api/trainer/clients/{clientAlias}/adherence");
+            if (response.IsSuccessStatusCode)
+            {
+                var adherenceData = await response.Content.ReadFromJsonAsync<ClientAdherenceResponse>();
+                if (adherenceData != null)
+                {
+                    var message = $"Client: {adherenceData.ClientAlias}\n" +
+                                  $"Current Week: {adherenceData.CurrentWeekAdherence:F1}%\n" +
+                                  $"Overall: {adherenceData.OverallAdherence:F1}%\n" +
+                                  $"Recent weeks: {adherenceData.RecentWeeks.Length} weeks tracked";
+                    Snackbar.Add(message, Severity.Info, configure => { configure.VisibleStateDuration = 5000; });
+                }
+            }
+            else
+            {
+                Snackbar.Add("Failed to load client adherence details", Severity.Error);
+            }
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Network error loading adherence details", Severity.Error);
+        }
+    }
+
     public class ClientInfo
     {
         public string ClientAlias { get; set; } = "";
@@ -348,5 +383,23 @@
         public string GrantCode { get; set; } = "";
         public string Url { get; set; } = "";
         public DateTimeOffset ExpiresAt { get; set; }
+    }
+
+    public class ClientAdherenceResponse
+    {
+        public string ClientAlias { get; set; } = "";
+        public WeeklyAdherence[] RecentWeeks { get; set; } = Array.Empty<WeeklyAdherence>();
+        public decimal CurrentWeekAdherence { get; set; }
+        public decimal OverallAdherence { get; set; }
+    }
+
+    public class WeeklyAdherence
+    {
+        public int Year { get; set; }
+        public int WeekNumber { get; set; }
+        public DateOnly WeekStartDate { get; set; }
+        public decimal AdherencePercentage { get; set; }
+        public int CompletedCount { get; set; }
+        public int PlannedCount { get; set; }
     }
 }

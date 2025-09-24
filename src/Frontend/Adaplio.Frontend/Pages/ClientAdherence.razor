@@ -1,0 +1,306 @@
+@page "/adherence"
+@using System.Net.Http.Json
+@using System.Text.Json
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<PageTitle>My Adherence - Adaplio</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="my-8">
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <MudAlert Severity="Severity.Error" Class="mb-4">
+            @errorMessage
+        </MudAlert>
+    }
+
+    <MudText Typo="Typo.h4" GutterBottom="true">
+        <MudIcon Icon="@Icons.Material.Filled.Analytics" Class="mr-2" />
+        My Adherence Chart
+    </MudText>
+
+    <MudGrid>
+        <!-- Overall Stats -->
+        <MudItem xs="12">
+            <MudGrid>
+                <MudItem xs="12" sm="3">
+                    <MudCard>
+                        <MudCardContent Class="text-center">
+                            <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="Size.Large" Color="Color.Primary" />
+                            <MudText Typo="Typo.h4" Color="Color.Primary">
+                                @(adherenceSummary?.OverallAdherence.ToString("F1") ?? "0")%
+                            </MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">Overall Adherence</MudText>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+                <MudItem xs="12" sm="3">
+                    <MudCard>
+                        <MudCardContent Class="text-center">
+                            <MudIcon Icon="@Icons.Material.Filled.CalendarToday" Size="Size.Large" Color="Color.Info" />
+                            <MudText Typo="Typo.h4" Color="Color.Info">
+                                @(adherenceSummary?.WeeklyData.LastOrDefault()?.AdherencePercentage.ToString("F1") ?? "0")%
+                            </MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">This Week</MudText>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+                <MudItem xs="12" sm="3">
+                    <MudCard>
+                        <MudCardContent Class="text-center">
+                            <MudIcon Icon="@Icons.Material.Filled.Timeline" Size="Size.Large" Color="Color.Success" />
+                            <MudText Typo="Typo.h4" Color="Color.Success">
+                                @(adherenceSummary?.WeeklyData.Length ?? 0)
+                            </MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">Weeks Tracked</MudText>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+                <MudItem xs="12" sm="3">
+                    <MudCard>
+                        <MudCardContent Class="text-center">
+                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Large" Color="Color.Warning" />
+                            <MudText Typo="Typo.h4" Color="Color.Warning">
+                                @(adherenceSummary?.WeeklyData.Sum(w => w.CompletedCount) ?? 0)
+                            </MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">Total Completed</MudText>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            </MudGrid>
+        </MudItem>
+
+        <!-- Weekly Adherence Chart -->
+        <MudItem xs="12">
+            <MudCard>
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">
+                            <MudIcon Icon="@Icons.Material.Filled.ShowChart" Class="mr-2" />
+                            Weekly Adherence Trend
+                        </MudText>
+                    </CardHeaderContent>
+                    <CardHeaderActions>
+                        <MudIconButton Icon="@Icons.Material.Filled.Refresh"
+                                       Color="Color.Default"
+                                       OnClick="LoadAdherenceSummary"
+                                       Disabled="@isLoadingAdherence" />
+                    </CardHeaderActions>
+                </MudCardHeader>
+                <MudCardContent>
+                    @if (isLoadingAdherence)
+                    {
+                        <div class="d-flex justify-center pa-4">
+                            <MudProgressCircular Indeterminate="true" />
+                            <MudText Class="ml-3">Loading adherence data...</MudText>
+                        </div>
+                    }
+                    else if (adherenceSummary != null && adherenceSummary.WeeklyData.Any())
+                    {
+                        <div style="height: 400px;">
+                            <MudChart ChartType="ChartType.Line"
+                                      ChartSeries="@chartSeries"
+                                      XAxisLabels="@xAxisLabels"
+                                      Width="100%"
+                                      Height="350px"
+                                      ChartOptions="chartOptions">
+                            </MudChart>
+                        </div>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.body2" Color="Color.Secondary" Align="Align.Center" Class="py-8">
+                            No adherence data available yet. Start logging progress to see your weekly trends!
+                        </MudText>
+                    }
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <!-- Weekly Breakdown -->
+        <MudItem xs="12">
+            <MudCard>
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">
+                            <MudIcon Icon="@Icons.Material.Filled.ViewList" Class="mr-2" />
+                            Weekly Breakdown
+                        </MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    @if (adherenceSummary?.WeeklyData.Any() == true)
+                    {
+                        <MudTable Items="@adherenceSummary.WeeklyData.OrderByDescending(w => w.WeekStartDate)"
+                                  Hover="true"
+                                  Dense="true">
+                            <HeaderContent>
+                                <MudTh>Week</MudTh>
+                                <MudTh>Exercises Planned</MudTh>
+                                <MudTh>Exercises Completed</MudTh>
+                                <MudTh>Adherence %</MudTh>
+                                <MudTh>Progress</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="Week">
+                                    <MudText Typo="Typo.body2">
+                                        Week @context.WeekNumber, @context.Year
+                                    </MudText>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                        @context.WeekStartDate.ToString("MMM dd") - @context.WeekStartDate.AddDays(6).ToString("MMM dd")
+                                    </MudText>
+                                </MudTd>
+                                <MudTd DataLabel="Planned">@context.PlannedCount</MudTd>
+                                <MudTd DataLabel="Completed">@context.CompletedCount</MudTd>
+                                <MudTd DataLabel="Adherence">
+                                    <MudChip T="string"
+                                             Color="@GetAdherenceColor(context.AdherencePercentage)"
+                                             Size="Size.Small">
+                                        @context.AdherencePercentage.ToString("F1")%
+                                    </MudChip>
+                                </MudTd>
+                                <MudTd DataLabel="Progress">
+                                    <MudProgressLinear Color="@GetAdherenceColor(context.AdherencePercentage)"
+                                                       Size="Size.Medium"
+                                                       Value="@((int)context.AdherencePercentage)"
+                                                       Max="100" />
+                                </MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.body2" Color="Color.Secondary" Align="Align.Center" Class="py-4">
+                            No weekly data available yet
+                        </MudText>
+                    }
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    private AdherenceSummaryResponse? adherenceSummary;
+    private bool isLoadingAdherence = false;
+    private string errorMessage = "";
+
+    private List<ChartSeries> chartSeries = new();
+    private string[] xAxisLabels = Array.Empty<string>();
+    private ChartOptions chartOptions = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CheckAuthAndRedirect();
+        await LoadAdherenceSummary();
+        SetupChart();
+    }
+
+    private async Task CheckAuthAndRedirect()
+    {
+        try
+        {
+            var response = await HttpClient.GetAsync("/auth/me");
+            if (!response.IsSuccessStatusCode)
+            {
+                NavigationManager.NavigateTo("/auth/client/login");
+                return;
+            }
+
+            var userInfo = await response.Content.ReadFromJsonAsync<JsonElement>();
+            if (userInfo.GetProperty("userType").GetString() != "client")
+            {
+                NavigationManager.NavigateTo("/auth/client/login");
+            }
+        }
+        catch
+        {
+            NavigationManager.NavigateTo("/auth/client/login");
+        }
+    }
+
+    private async Task LoadAdherenceSummary()
+    {
+        isLoadingAdherence = true;
+        errorMessage = "";
+
+        try
+        {
+            var response = await HttpClient.GetAsync("/api/client/progress/summary");
+            if (response.IsSuccessStatusCode)
+            {
+                adherenceSummary = await response.Content.ReadFromJsonAsync<AdherenceSummaryResponse>();
+                SetupChart();
+            }
+            else
+            {
+                errorMessage = "Failed to load adherence data.";
+            }
+        }
+        catch (Exception)
+        {
+            errorMessage = "Network error while loading adherence data.";
+        }
+        finally
+        {
+            isLoadingAdherence = false;
+        }
+    }
+
+    private void SetupChart()
+    {
+        if (adherenceSummary?.WeeklyData.Any() != true) return;
+
+        var orderedData = adherenceSummary.WeeklyData.OrderBy(w => w.WeekStartDate).ToList();
+
+        chartSeries = new List<ChartSeries>
+        {
+            new ChartSeries
+            {
+                Name = "Adherence %",
+                Data = orderedData.Select(w => (double)w.AdherencePercentage).ToArray()
+            }
+        };
+
+        xAxisLabels = orderedData
+            .Select(w => $"W{w.WeekNumber}")
+            .ToArray();
+
+        chartOptions = new ChartOptions
+        {
+            YAxisTicks = 10,
+            MaxNumYAxisTicks = 11,
+            YAxisLines = true,
+            XAxisLines = true,
+            ChartPalette = new[] { "#2196F3" }
+        };
+    }
+
+    private Color GetAdherenceColor(decimal percentage)
+    {
+        return percentage switch
+        {
+            >= 90 => Color.Success,
+            >= 70 => Color.Warning,
+            _ => Color.Error
+        };
+    }
+
+    public class WeeklyAdherence
+    {
+        public int Year { get; set; }
+        public int WeekNumber { get; set; }
+        public DateOnly WeekStartDate { get; set; }
+        public decimal AdherencePercentage { get; set; }
+        public int CompletedCount { get; set; }
+        public int PlannedCount { get; set; }
+    }
+
+    public class AdherenceSummaryResponse
+    {
+        public string ClientAlias { get; set; } = "";
+        public WeeklyAdherence[] WeeklyData { get; set; } = Array.Empty<WeeklyAdherence>();
+        public decimal OverallAdherence { get; set; }
+    }
+}

@@ -1,5 +1,8 @@
 using Adaplio.Api.Auth;
 using Adaplio.Api.Data;
+using Adaplio.Api.Dev;
+using Adaplio.Api.Plans;
+using Adaplio.Api.Progress;
 using Adaplio.Api.Services;
 using AspNetCoreRateLimit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -29,6 +32,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IAliasService, AliasService>();
+builder.Services.AddScoped<IProgressService, ProgressService>();
+builder.Services.AddScoped<IPlanService, PlanService>();
 
 // Add JWT authentication
 var jwtSecret = builder.Configuration["Jwt:Secret"] ?? "your-256-bit-secret-key-here-make-it-long-enough-for-security";
@@ -149,6 +154,18 @@ app.MapAuthEndpoints();
 
 // Map consent endpoints
 app.MapConsentEndpoints();
+
+// Map progress endpoints
+app.MapProgressEndpoints();
+
+// Map plan endpoints
+app.MapPlanEndpoints();
+
+// Map development endpoints (only in development)
+if (app.Environment.IsDevelopment())
+{
+    app.MapDevEndpoints();
+}
 
 app.Run();
 

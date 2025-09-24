@@ -182,7 +182,7 @@ namespace Adaplio.Api.Migrations
 
                     b.HasIndex("Alias")
                         .IsUnique()
-                        .HasFilter("[alias] IS NOT NULL");
+                        .HasFilter("alias IS NOT NULL");
 
                     b.HasIndex("UserId")
                         .IsUnique();
@@ -233,7 +233,7 @@ namespace Adaplio.Api.Migrations
 
                     b.HasIndex("ClientProfileId", "TrainerProfileId", "Scope")
                         .IsUnique()
-                        .HasFilter("[revoked_at] IS NULL");
+                        .HasFilter("revoked_at IS NULL");
 
                     b.ToTable("consent_grant");
                 });
