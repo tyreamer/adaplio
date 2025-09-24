@@ -20,19 +20,12 @@ RUN dotnet publish src/Api/Adaplio.Api -c Release -o out
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 
-# Install SQLite (if needed for migrations or tools)
-RUN apt-get update && apt-get install -y sqlite3 && rm -rf /var/lib/apt/lists/*
-
 # Copy the built app from the build stage
 COPY --from=build /app/out .
-
-# Create directory for SQLite database
-RUN mkdir -p /app/data
 
 # Set environment variables
 ENV ASPNETCORE_ENVIRONMENT=Production
 ENV ASPNETCORE_URLS=http://+:$PORT
-ENV DB_CONNECTION="Data Source=/app/data/adaplio.db"
 
 # Expose the port that Render will use
 EXPOSE $PORT

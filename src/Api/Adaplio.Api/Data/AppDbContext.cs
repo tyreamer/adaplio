@@ -123,7 +123,7 @@ public class AppDbContext : DbContext
             .HasForeignKey<Transcript>(t => t.MediaAssetId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Configure DateOnly conversion for SQLite
+        // Configure DateOnly conversion for SQLite (PostgreSQL handles DateOnly natively)
         if (Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
         {
             modelBuilder.Entity<PlanInstance>()
