@@ -12,17 +12,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup .NET
+      - name: Setup .NET (8.x to match your project)
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: '8.0.x'
 
       - name: Install wasm-tools workload
         run: dotnet workload install wasm-tools
 
       - name: Publish Blazor
         run: |
-          dotnet publish src/Frontend/Adaplio.Frontend -c Release -o publish /p:StaticWebAssetBasePath=/adaplio
+          dotnet publish src/Frontend/Adaplio.Frontend -c Release -o publish
           ls -R publish
           sed -i 's|<base href="/" />|<base href="/adaplio/" />|' publish/wwwroot/index.html
 
