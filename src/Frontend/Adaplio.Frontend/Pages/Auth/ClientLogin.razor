@@ -1,0 +1,112 @@
+@page "/auth/client/login"
+@using System.ComponentModel.DataAnnotations
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<PageTitle>Client Login - Adaplio</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-16">
+    <MudPaper Class="pa-8">
+        <div class="d-flex flex-column align-center mb-6">
+            <MudIcon Icon="@Icons.Material.Filled.FitnessCenter" Size="Size.Large" Color="Color.Primary" />
+            <MudText Typo="Typo.h4" Class="mt-2">Welcome to Adaplio</MudText>
+            <MudText Typo="Typo.body1" Color="Color.Secondary">
+                Sign in with your email to access your therapy plans
+            </MudText>
+        </div>
+
+        <EditForm Model="@_model" OnValidSubmit="@SendMagicLink">
+            <DataAnnotationsValidator />
+
+            <MudStack Spacing="4">
+                <MudTextField @bind-Value="_model.Email"
+                              For="@(() => _model.Email)"
+                              Label="Email Address"
+                              Variant="Variant.Outlined"
+                              InputType="InputType.Email"
+                              Disabled="@_isLoading" />
+
+                <MudButton ButtonType="ButtonType.Submit"
+                           Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           Size="Size.Large"
+                           FullWidth="true"
+                           Loading="@_isLoading"
+                           LoadingText="Sending login code...">
+                    <MudIcon Icon="@Icons.Material.Filled.Email" Class="mr-2" />
+                    Send Login Code
+                </MudButton>
+            </MudStack>
+        </EditForm>
+
+        @if (_linkSent)
+        {
+            <MudAlert Severity="Severity.Success" Class="mt-4">
+                <MudText>Check your email for a 6-digit login code. The code expires in 15 minutes.</MudText>
+                <MudButton Variant="Variant.Text"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.ArrowForward"
+                           OnClick="@(() => Navigation.NavigateTo("/auth/verify"))"
+                           Class="mt-2">
+                    Enter Code
+                </MudButton>
+            </MudAlert>
+        }
+
+        <MudDivider Class="my-6" />
+
+        <div class="text-center">
+            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                Are you a physical therapist?
+            </MudText>
+            <MudButton Variant="Variant.Text"
+                       Color="Color.Primary"
+                       Href="/auth/trainer/login">
+                Sign in as Trainer
+            </MudButton>
+        </div>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private readonly LoginModel _model = new();
+    private bool _isLoading = false;
+    private bool _linkSent = false;
+
+    private async Task SendMagicLink()
+    {
+        _isLoading = true;
+        try
+        {
+            var response = await Http.PostAsJsonAsync("/auth/client/magic-link", _model);
+
+            if (response.IsSuccessStatusCode)
+            {
+                _linkSent = true;
+                Snackbar.Add("Login code sent! Check your email.", Severity.Success);
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                Snackbar.Add("Failed to send login code. Please try again.", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Network error. Please check your connection.", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    public class LoginModel
+    {
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Please enter a valid email address")]
+        public string Email { get; set; } = "";
+    }
+}

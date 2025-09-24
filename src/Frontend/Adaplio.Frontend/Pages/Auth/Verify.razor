@@ -1,0 +1,110 @@
+@page "/auth/verify"
+@using System.ComponentModel.DataAnnotations
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<PageTitle>Verify Code - Adaplio</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-16">
+    <MudPaper Class="pa-8">
+        <div class="d-flex flex-column align-center mb-6">
+            <MudIcon Icon="@Icons.Material.Filled.MarkEmailRead" Size="Size.Large" Color="Color.Primary" />
+            <MudText Typo="Typo.h4" Class="mt-2">Enter Your Code</MudText>
+            <MudText Typo="Typo.body1" Color="Color.Secondary" Align="Align.Center">
+                We sent a 6-digit code to your email. Enter it below to complete your sign in.
+            </MudText>
+        </div>
+
+        <EditForm Model="@_model" OnValidSubmit="@VerifyCode">
+            <DataAnnotationsValidator />
+
+            <MudStack Spacing="4">
+                <MudTextField @bind-Value="_model.Code"
+                              For="@(() => _model.Code)"
+                              Label="6-Digit Code"
+                              Variant="Variant.Outlined"
+                              InputType="InputType.Text"
+                              Disabled="@_isLoading"
+                              Placeholder="123456"
+                              Class="text-center"
+                              Style="font-size: 1.5rem; letter-spacing: 0.5rem;" />
+
+                <MudButton ButtonType="ButtonType.Submit"
+                           Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           Size="Size.Large"
+                           FullWidth="true"
+                           Loading="@_isLoading"
+                           LoadingText="Verifying...">
+                    <MudIcon Icon="@Icons.Material.Filled.Login" Class="mr-2" />
+                    Verify & Sign In
+                </MudButton>
+            </MudStack>
+        </EditForm>
+
+        <MudDivider Class="my-6" />
+
+        <div class="text-center">
+            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">
+                Didn't receive a code?
+            </MudText>
+            <MudButton Variant="Variant.Text"
+                       Color="Color.Primary"
+                       Href="/auth/client/login">
+                Request New Code
+            </MudButton>
+        </div>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private readonly VerifyModel _model = new();
+    private bool _isLoading = false;
+
+    private async Task VerifyCode()
+    {
+        _isLoading = true;
+        try
+        {
+            var response = await Http.PostAsJsonAsync("/auth/client/verify", _model);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<AuthResponse>();
+                Snackbar.Add($"Welcome {result?.Alias ?? "to Adaplio"}!", Severity.Success);
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                Snackbar.Add("Invalid or expired code. Please try again.", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Network error. Please check your connection.", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    public class VerifyModel
+    {
+        [Required(ErrorMessage = "Code is required")]
+        [StringLength(6, MinimumLength = 6, ErrorMessage = "Code must be exactly 6 digits")]
+        [RegularExpression(@"^\d{6}$", ErrorMessage = "Code must be 6 digits")]
+        public string Code { get; set; } = "";
+    }
+
+    public class AuthResponse
+    {
+        public string Message { get; set; } = "";
+        public string? UserType { get; set; }
+        public string? UserId { get; set; }
+        public string? Alias { get; set; }
+    }
+}

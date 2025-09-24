@@ -1,0 +1,25 @@
+﻿<MudNavMenu>
+    <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">
+        Home
+    </MudNavLink>
+    <MudNavLink Href="/plans" Icon="@Icons.Material.Filled.FitnessCenter">
+        My Plans
+    </MudNavLink>
+    <MudNavLink Href="/progress" Icon="@Icons.Material.Filled.TrendingUp">
+        Progress
+    </MudNavLink>
+    <MudNavLink Href="/profile" Icon="@Icons.Material.Filled.Person">
+        Profile
+    </MudNavLink>
+
+    <MudDivider Class="my-2" />
+
+    <MudNavGroup Text="Sign In" Icon="@Icons.Material.Filled.Login" Expandable="true">
+        <MudNavLink Href="/auth/client/login" Icon="@Icons.Material.Filled.Person">
+            Client Login
+        </MudNavLink>
+        <MudNavLink Href="/auth/trainer/login" Icon="@Icons.Material.Filled.LocalHospital">
+            Trainer Login
+        </MudNavLink>
+    </MudNavGroup>
+</MudNavMenu>

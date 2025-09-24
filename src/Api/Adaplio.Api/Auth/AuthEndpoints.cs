@@ -1,0 +1,304 @@
+using Adaplio.Api.Data;
+using Adaplio.Api.Domain;
+using Adaplio.Api.Services;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
+using System.Text;
+using BCrypt.Net;
+
+namespace Adaplio.Api.Auth;
+
+public static class AuthEndpoints
+{
+    public static void MapAuthEndpoints(this WebApplication app)
+    {
+        var authGroup = app.MapGroup("/auth").WithTags("Authentication");
+
+        // Client magic link endpoints
+        authGroup.MapPost("/client/magic-link", SendMagicLink);
+        authGroup.MapPost("/client/verify", VerifyMagicLink);
+
+        // Trainer auth endpoints
+        authGroup.MapPost("/trainer/register", RegisterTrainer);
+        authGroup.MapPost("/trainer/login", LoginTrainer);
+
+        // Logout endpoint
+        authGroup.MapPost("/logout", Logout);
+    }
+
+    private static async Task<IResult> SendMagicLink(
+        ClientMagicLinkRequest request,
+        AppDbContext context,
+        IEmailService emailService,
+        HttpContext httpContext)
+    {
+        try
+        {
+            // Generate 6-digit code
+            var code = GenerateSecureCode();
+            var expiresAt = DateTimeOffset.UtcNow.AddMinutes(15);
+
+            // Save magic link to database
+            var magicLink = new MagicLink
+            {
+                Email = request.Email.ToLowerInvariant(),
+                Code = code,
+                ExpiresAt = expiresAt,
+                IpAddress = httpContext.Connection.RemoteIpAddress?.ToString()
+            };
+
+            // Clean up old expired links for this email
+            var expiredLinks = await context.MagicLinks
+                .Where(ml => ml.Email == request.Email.ToLowerInvariant() && ml.ExpiresAt < DateTimeOffset.UtcNow)
+                .ToListAsync();
+
+            context.MagicLinks.RemoveRange(expiredLinks);
+            context.MagicLinks.Add(magicLink);
+            await context.SaveChangesAsync();
+
+            // Send email
+            await emailService.SendMagicLinkAsync(request.Email, code);
+
+            return Results.Ok(new ClientMagicLinkResponse(
+                "Magic link sent successfully. Please check your email.",
+                expiresAt));
+        }
+        catch (Exception ex)
+        {
+            return Results.Problem("Failed to send magic link. Please try again later.");
+        }
+    }
+
+    private static async Task<IResult> VerifyMagicLink(
+        ClientVerifyRequest request,
+        AppDbContext context,
+        IJwtService jwtService,
+        HttpContext httpContext)
+    {
+        try
+        {
+            // Find valid magic link
+            var magicLink = await context.MagicLinks
+                .FirstOrDefaultAsync(ml =>
+                    ml.Code == request.Code &&
+                    ml.ExpiresAt > DateTimeOffset.UtcNow &&
+                    ml.UsedAt == null);
+
+            if (magicLink == null)
+            {
+                return Results.BadRequest(new AuthResponse("Invalid or expired code."));
+            }
+
+            // Mark as used
+            magicLink.UsedAt = DateTimeOffset.UtcNow;
+
+            // Create or get user
+            var user = await context.AppUsers
+                .Include(u => u.ClientProfile)
+                .FirstOrDefaultAsync(u => u.Email == magicLink.Email);
+
+            if (user == null)
+            {
+                // Create new client user
+                user = new AppUser
+                {
+                    Email = magicLink.Email,
+                    UserType = "client",
+                    IsVerified = true
+                };
+
+                context.AppUsers.Add(user);
+                await context.SaveChangesAsync();
+
+                // Create client profile with alias
+                var clientProfile = new ClientProfile
+                {
+                    UserId = user.Id,
+                    Alias = GenerateClientAlias()
+                };
+
+                context.ClientProfiles.Add(clientProfile);
+                await context.SaveChangesAsync();
+
+                user.ClientProfile = clientProfile;
+            }
+            else
+            {
+                // Update existing user
+                user.IsVerified = true;
+                user.UpdatedAt = DateTimeOffset.UtcNow;
+            }
+
+            await context.SaveChangesAsync();
+
+            // Generate JWT
+            var claims = new JwtClaims(
+                UserId: user.Id.ToString(),
+                Email: user.Email,
+                UserType: user.UserType,
+                Alias: user.ClientProfile?.Alias
+            );
+
+            var token = jwtService.GenerateToken(claims);
+
+            // Set HttpOnly cookie
+            httpContext.Response.Cookies.Append("auth_token", token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTimeOffset.UtcNow.AddHours(24)
+            });
+
+            return Results.Ok(new AuthResponse(
+                "Login successful",
+                UserType: user.UserType,
+                UserId: user.Id.ToString(),
+                Alias: user.ClientProfile?.Alias
+            ));
+        }
+        catch (Exception ex)
+        {
+            return Results.Problem("Verification failed. Please try again.");
+        }
+    }
+
+    private static async Task<IResult> RegisterTrainer(
+        TrainerRegisterRequest request,
+        AppDbContext context)
+    {
+        try
+        {
+            // Check if email already exists
+            var existingUser = await context.AppUsers
+                .FirstOrDefaultAsync(u => u.Email == request.Email.ToLowerInvariant());
+
+            if (existingUser != null)
+            {
+                return Results.BadRequest(new AuthResponse("Email already registered."));
+            }
+
+            // Hash password
+            var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+
+            // Create trainer user
+            var user = new AppUser
+            {
+                Email = request.Email.ToLowerInvariant(),
+                UserType = "trainer",
+                PasswordHash = passwordHash,
+                IsVerified = true
+            };
+
+            context.AppUsers.Add(user);
+            await context.SaveChangesAsync();
+
+            // Create trainer profile
+            var trainerProfile = new TrainerProfile
+            {
+                UserId = user.Id,
+                FullName = request.FullName,
+                PracticeName = request.PracticeName
+            };
+
+            context.TrainerProfiles.Add(trainerProfile);
+            await context.SaveChangesAsync();
+
+            return Results.Ok(new AuthResponse("Trainer registered successfully."));
+        }
+        catch (Exception ex)
+        {
+            return Results.Problem("Registration failed. Please try again.");
+        }
+    }
+
+    private static async Task<IResult> LoginTrainer(
+        TrainerLoginRequest request,
+        AppDbContext context,
+        IJwtService jwtService,
+        HttpContext httpContext)
+    {
+        try
+        {
+            // Find trainer user
+            var user = await context.AppUsers
+                .Include(u => u.TrainerProfile)
+                .FirstOrDefaultAsync(u =>
+                    u.Email == request.Email.ToLowerInvariant() &&
+                    u.UserType == "trainer");
+
+            if (user == null || string.IsNullOrEmpty(user.PasswordHash))
+            {
+                return Results.BadRequest(new AuthResponse("Invalid email or password."));
+            }
+
+            // Verify password
+            if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+            {
+                return Results.BadRequest(new AuthResponse("Invalid email or password."));
+            }
+
+            // Generate JWT
+            var claims = new JwtClaims(
+                UserId: user.Id.ToString(),
+                Email: user.Email,
+                UserType: user.UserType
+            );
+
+            var token = jwtService.GenerateToken(claims);
+
+            // Set HttpOnly cookie
+            httpContext.Response.Cookies.Append("auth_token", token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTimeOffset.UtcNow.AddHours(24)
+            });
+
+            return Results.Ok(new AuthResponse(
+                "Login successful",
+                UserType: user.UserType,
+                UserId: user.Id.ToString()
+            ));
+        }
+        catch (Exception ex)
+        {
+            return Results.Problem("Login failed. Please try again.");
+        }
+    }
+
+    private static IResult Logout(HttpContext httpContext)
+    {
+        httpContext.Response.Cookies.Delete("auth_token");
+        return Results.Ok(new AuthResponse("Logged out successfully."));
+    }
+
+    private static string GenerateSecureCode()
+    {
+        using var rng = RandomNumberGenerator.Create();
+        var bytes = new byte[4];
+        rng.GetBytes(bytes);
+        var code = (BitConverter.ToUInt32(bytes, 0) % 900000) + 100000;
+        return code.ToString();
+    }
+
+    private static string GenerateClientAlias()
+    {
+        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        using var rng = RandomNumberGenerator.Create();
+        var bytes = new byte[4];
+        rng.GetBytes(bytes);
+
+        var result = new StringBuilder(6);
+        result.Append('C');
+        result.Append('-');
+
+        for (int i = 0; i < 4; i++)
+        {
+            result.Append(chars[bytes[i] % chars.Length]);
+        }
+
+        return result.ToString();
+    }
+}
