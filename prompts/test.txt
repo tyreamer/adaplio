@@ -1,0 +1,37 @@
+Run these step-by-step checks (curl or Postman). All should pass:
+
+1. Client Flow
+# Request a magic link
+curl -X POST http://localhost:5000/auth/client/magic-link \
+  -H "Content-Type: application/json" \
+  -d '{"email":"client@example.com"}'
+
+# Check MailHog UI → get 6-digit code.
+
+# Verify code
+curl -X POST http://localhost:5000/auth/client/verify \
+  -H "Content-Type: application/json" \
+  -d '{"code":"123456"}' \
+  -c cookies.txt
+
+
+➡️ Should return a JSON summary of client + set an HttpOnly cookie in cookies.txt.
+
+2. Trainer Flow
+# Register trainer
+curl -X POST http://localhost:5000/auth/trainer/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"trainer@example.com","password":"SuperSecret123"}'
+
+# Login trainer
+curl -X POST http://localhost:5000/auth/trainer/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"trainer@example.com","password":"SuperSecret123"}' \
+  -c trainer_cookies.txt
+
+
+➡️ Should return success + set HttpOnly cookie in trainer_cookies.txt.
+
+3. Rate Limit Test
+
+Run 15 magic-link requests in <1 min → the last few should be rejected with 429 Too Many Requests.

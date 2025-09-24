@@ -1,0 +1,13 @@
+Reference SPEC.md and ROADMAP.md in D:\Projects\adaplio\context
+
+Task: Implement P4 (Consent Grants & Pairing).
+- POST /trainer/grants → generates { grantCode, url, expiresAt }
+- POST /client/grants/accept { grantCode } → activates consent
+- GET /trainer/clients → list clients (alias, scope, adherence %, lastActivity)
+
+Rules:
+- On accept: create consent_grant(active) with default scopes: propose_plan, view_summary, message_client
+- Per-trainer alias: stable short hash from client_id+trainer_id
+- Add scope toggle + revoke endpoints for client
+- Update Blazor pages: trainer can see “invite client” screen, client can accept grant
+- Update README with examples of grant accept flow

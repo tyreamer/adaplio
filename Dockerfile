@@ -2,17 +2,16 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
 
-# Copy solution and project files
-COPY *.sln .
+# Copy only API-related project files for better caching
 COPY src/Api/Adaplio.Api/*.csproj src/Api/Adaplio.Api/
 COPY src/Shared/Adaplio.Shared/*.csproj src/Shared/Adaplio.Shared/
-COPY src/Jobs/Adaplio.Jobs/*.csproj src/Jobs/Adaplio.Jobs/
 
-# Restore dependencies
-RUN dotnet restore
+# Restore dependencies for API only
+RUN dotnet restore src/Api/Adaplio.Api/Adaplio.Api.csproj
 
-# Copy the rest of the source code
-COPY . .
+# Copy source code for API and shared libraries
+COPY src/Api/ src/Api/
+COPY src/Shared/ src/Shared/
 
 # Build the API project
 RUN dotnet publish src/Api/Adaplio.Api -c Release -o out
