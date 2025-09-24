@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "Adaplio.Frontend",
   "resources": {
-    "hash": "sha256-B+zgTIXq28BJExCiyz9WiwvJ/x2OWUyj83uujQZKjlk=",
+    "hash": "sha256-4i+9TT5vpyZnBwfSL5xuWiVuRO3bTKMHyP/b482AqY0=",
     "jsModuleNative": {
       "dotnet.native.8.0.20.bwjnt8csok.js": "sha256-TDmtXaFvwbeAHAr5TmWHOrhltcs8APSLfkeeT2fNlSo="
     },
@@ -17,7 +17,7 @@
       "icudt_no_CJK.dat": "sha256-L7sV7NEYP37/Qr2FPCePo5cJqRgTXRwGHuwF5Q+0Nfs="
     },
     "assembly": {
-      "Adaplio.Frontend.wasm": "sha256-DT0VfziKZN6uEZbW4b2SjjCdKF3+Ed/o+ZCunuUaK/o=",
+      "Adaplio.Frontend.wasm": "sha256-OTflrDEF0y3F2OAWhsF7MsVQ/MMq9bsebVtcbZq7wa4=",
       "Microsoft.AspNetCore.Components.Forms.wasm": "sha256-4yNtl0OoSBaKEclDc3INgdu+QTEjwAMDPCjTuTPpOoo=",
       "Microsoft.AspNetCore.Components.wasm": "sha256-+dCF4RI0OmNNVEs2TprknO5Lut1XK/4jKNxIq3vVkSc=",
       "Microsoft.AspNetCore.Components.Web.wasm": "sha256-blT8Mj6xdpCwLhEDtFiyx3oSvRMxh7zVJ71Uumr8SoE=",
