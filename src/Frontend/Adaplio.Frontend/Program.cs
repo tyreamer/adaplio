@@ -8,7 +8,7 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped(sp => new HttpClient {
-    BaseAddress = new Uri("https://localhost:5001") // API base URL
+    BaseAddress = new Uri("https://adaplio.onrender.com") // Production API URL
 });
 builder.Services.AddMudServices();
 

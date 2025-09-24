@@ -104,14 +104,14 @@
                                     </MudItem>
                                     <MudItem xs="12">
                                         <MudText Typo="Typo.caption" Class="mb-2">Days of week (select all that apply):</MudText>
-                                        <MudChipSet T="string" MultiSelection="true" @bind-SelectedValues="@GetSelectedDays(item)">
-                                            <MudChip T="string" Value="Monday">Mon</MudChip>
-                                            <MudChip T="string" Value="Tuesday">Tue</MudChip>
-                                            <MudChip T="string" Value="Wednesday">Wed</MudChip>
-                                            <MudChip T="string" Value="Thursday">Thu</MudChip>
-                                            <MudChip T="string" Value="Friday">Fri</MudChip>
-                                            <MudChip T="string" Value="Saturday">Sat</MudChip>
-                                            <MudChip T="string" Value="Sunday">Sun</MudChip>
+                                        <MudChipSet T="string" MultiSelection="true" SelectedValues="@GetSelectedDays(item)">
+                                            <MudChip T="string" Value="@("Monday")">Mon</MudChip>
+                                            <MudChip T="string" Value="@("Tuesday")">Tue</MudChip>
+                                            <MudChip T="string" Value="@("Wednesday")">Wed</MudChip>
+                                            <MudChip T="string" Value="@("Thursday")">Thu</MudChip>
+                                            <MudChip T="string" Value="@("Friday")">Fri</MudChip>
+                                            <MudChip T="string" Value="@("Saturday")">Sat</MudChip>
+                                            <MudChip T="string" Value="@("Sunday")">Sun</MudChip>
                                         </MudChipSet>
                                     </MudItem>
                                 </MudGrid>
@@ -140,7 +140,7 @@
 </MudDialog>
 
 @code {
-    [CascadingParameter] MudBlazor.MudDialogInstance MudDialog { get; set; } = null!;
+    [CascadingParameter] MudBlazor.IDialogReference MudDialog { get; set; } = null!;
     [Parameter] public TemplateResponse? Template { get; set; }
 
     private MudForm form = null!;
@@ -175,6 +175,11 @@
         return new HashSet<string>(item.Days ?? Array.Empty<string>());
     }
 
+    private void UpdateDays(TemplateItemRequest item, HashSet<string> selectedDays)
+    {
+        item.Days = selectedDays.ToArray();
+    }
+
     private void AddExercise()
     {
         request.Items.Add(new TemplateItemRequest
@@ -193,7 +198,7 @@
 
     private void Cancel()
     {
-        MudDialog.Cancel();
+        MudDialog.Close(DialogResult.Cancel());
     }
 
     private async Task Submit()
