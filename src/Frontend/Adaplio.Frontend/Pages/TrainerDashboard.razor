@@ -109,20 +109,20 @@
                     }
                     else
                     {
-                        <MudList>
+                        <MudList T="string">
                             @foreach (var client in clients)
                             {
-                                <MudListItem>
+                                <MudListItem T="string">
                                     <div class="d-flex justify-space-between align-center w-100">
                                         <div>
                                             <MudText Typo="Typo.subtitle1">@client.ClientAlias</MudText>
                                             <MudText Typo="Typo.caption" Color="Color.Secondary">
                                                 Connected: @client.GrantedAt.ToString("MMM dd, yyyy")
                                             </MudText>
-                                            <MudChipSet>
+                                            <MudChipSet T="string">
                                                 @foreach (var scope in client.Scopes)
                                                 {
-                                                    <MudChip Color="Color.Primary" Size="Size.Small">@scope</MudChip>
+                                                    <MudChip T="string" Color="Color.Primary" Size="Size.Small">@scope</MudChip>
                                                 }
                                             </MudChipSet>
                                         </div>

@@ -10,7 +10,7 @@
 
 <MudContainer MaxWidth="MaxWidth.Small" Class="my-16 px-8">
     <MudPaper Class="pa-8" Elevation="25">
-        <MudStack AlignItems="Center" Spacing="4">
+        <MudStack AlignItems="AlignItems.Center" Spacing="4">
             <MudIcon Icon="@Icons.Material.Filled.Link" Color="Color.Primary" Size="Size.Large" />
             <MudText Typo="Typo.h4" Align="Align.Center" GutterBottom="true">
                 Connect to Your Trainer
@@ -115,7 +115,7 @@
                        Color="Color.Primary"
                        Size="Size.Large"
                        FullWidth="true"
-                       OnClick="AcceptGrant"
+                       OnClick="AcceptGrantCode"
                        Disabled="@isAccepting">
                 @if (isAccepting)
                 {
@@ -215,7 +215,7 @@
                 showVerifyForm = false;
 
                 // Automatically attempt to accept the grant
-                await AcceptGrant();
+                await AcceptGrantCode();
             }
             else
             {
@@ -232,7 +232,7 @@
         }
     }
 
-    private async Task AcceptGrant()
+    private async Task AcceptGrantCode()
     {
         isAccepting = true;
         errorMessage = "";
