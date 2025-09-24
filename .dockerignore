@@ -1,0 +1,63 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+LICENSE
+*.md
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build output
+bin/
+obj/
+out/
+publish/
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Testing
+coverage/
+TestResults/
+
+# Database files (will be created in container)
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Development/testing files
+cookies.txt
+client_cookies.txt
+trainer_cookies.txt
+
+# Claude Code
+.claude/
+
+# GitHub
+.github/
+
+# DevContainer
+.devcontainer/

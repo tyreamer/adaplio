@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: adaplio-api
+    runtime: docker
+    plan: free
+    buildCommand: docker build .
+    startCommand: dotnet Adaplio.Api.dll
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_ISSUER
+        value: adaplio-api-render
+      - key: JWT_AUDIENCE
+        value: adaplio-frontend
+    healthCheckPath: /

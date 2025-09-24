@@ -91,6 +91,11 @@ using (var scope = app.Services.CreateScope())
     {
         context.Database.EnsureCreated();
     }
+    else
+    {
+        // In production, run migrations
+        context.Database.Migrate();
+    }
 }
 
 // Configure the HTTP request pipeline.
