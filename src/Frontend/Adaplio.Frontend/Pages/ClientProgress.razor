@@ -4,6 +4,8 @@
 @inject HttpClient HttpClient
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject IJSRuntime JSRuntime
 
 <PageTitle>My Progress - Adaplio</PageTitle>
 
@@ -346,7 +348,16 @@
 
             if (response.IsSuccessStatusCode)
             {
-                Snackbar.Add("Progress logged successfully!", Severity.Success);
+                var logResponse = await response.Content.ReadFromJsonAsync<LogProgressResponse>();
+
+                if (logResponse?.Celebration != null)
+                {
+                    await HandleCelebration(logResponse.Celebration);
+                }
+                else
+                {
+                    Snackbar.Add("Progress logged successfully!", Severity.Success);
+                }
 
                 // Reset form
                 selectedExerciseId = null;
@@ -368,6 +379,52 @@
         finally
         {
             isLoggingProgress = false;
+        }
+    }
+
+    private async Task HandleCelebration(CelebrationData celebration)
+    {
+        // Trigger confetti animation
+        await JSRuntime.InvokeVoidAsync("triggerConfetti");
+
+        // Show celebration snackbar
+        var message = $"🎉 +{celebration.XpAwarded} XP earned!";
+        if (celebration.LeveledUp && celebration.NewLevel.HasValue)
+        {
+            message += $" Level up to {celebration.NewLevel}! 🚀";
+        }
+        if (celebration.NewBadges.Any())
+        {
+            message += $" {celebration.NewBadges.Length} new badge(s) earned! 🏆";
+        }
+
+        Snackbar.Add(message, Severity.Success, config =>
+        {
+            config.VisibleStateDuration = 5000;
+            config.ShowTransitionDuration = 300;
+            config.HideTransitionDuration = 300;
+        });
+
+        // Show badge dialog if new badges were earned
+        if (celebration.NewBadges.Any())
+        {
+            var parameters = new DialogParameters
+            {
+                { nameof(BadgeCelebrationDialog.NewBadges), celebration.NewBadges },
+                { nameof(BadgeCelebrationDialog.XpAwarded), celebration.XpAwarded },
+                { nameof(BadgeCelebrationDialog.LeveledUp), celebration.LeveledUp },
+                { nameof(BadgeCelebrationDialog.NewLevel), celebration.NewLevel }
+            };
+
+            var options = new DialogOptions
+            {
+                CloseOnEscapeKey = true,
+                MaxWidth = MaxWidth.Small,
+                FullWidth = true,
+                CloseButton = false
+            };
+
+            await DialogService.ShowAsync<BadgeCelebrationDialog>("🎉 Achievement Unlocked!", parameters, options);
         }
     }
 
@@ -401,6 +458,33 @@
         public int PlannedCount { get; set; }
     }
 
+    public class LogProgressResponse
+    {
+        public string Message { get; set; } = "";
+        public int ProgressEventId { get; set; }
+        public CelebrationData? Celebration { get; set; }
+    }
+
+    public class CelebrationData
+    {
+        public int XpAwarded { get; set; }
+        public bool LeveledUp { get; set; }
+        public int? NewLevel { get; set; }
+        public BadgeDto[] NewBadges { get; set; } = Array.Empty<BadgeDto>();
+        public int CurrentStreak { get; set; }
+    }
+
+    public class BadgeDto
+    {
+        public string Id { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string Icon { get; set; } = "";
+        public string Color { get; set; } = "";
+        public string Rarity { get; set; } = "";
+        public DateTimeOffset EarnedAt { get; set; }
+    }
+
     public class AdherenceSummaryResponse
     {
         public string ClientAlias { get; set; } = "";
@@ -408,3 +492,41 @@
         public decimal OverallAdherence { get; set; }
     }
 }
+
+<script>
+    window.triggerConfetti = () => {
+        const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dda0dd', '#98d8c8'];
+
+        for (let i = 0; i < 50; i++) {
+            const confetti = document.createElement('div');
+            confetti.style.position = 'fixed';
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.top = '-10px';
+            confetti.style.width = '10px';
+            confetti.style.height = '10px';
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.borderRadius = '50%';
+            confetti.style.zIndex = '9999';
+            confetti.style.pointerEvents = 'none';
+            confetti.style.animation = `confetti-fall ${Math.random() * 3 + 2}s linear forwards`;
+
+            document.body.appendChild(confetti);
+
+            setTimeout(() => {
+                if (confetti.parentNode) {
+                    confetti.parentNode.removeChild(confetti);
+                }
+            }, 5000);
+        }
+    };
+
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes confetti-fall {
+            to {
+                transform: translateY(100vh) rotate(720deg);
+            }
+        }
+    `;
+    document.head.appendChild(style);
+</script>

@@ -79,6 +79,8 @@ var allowedOrigins = corsOrigins.Split(',', StringSplitOptions.RemoveEmptyEntrie
                                .Select(origin => origin.Trim())
                                .ToArray();
 
+Console.WriteLine($"CORS Origins: {string.Join(", ", allowedOrigins)}");
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -86,7 +88,8 @@ builder.Services.AddCors(options =>
         policy.WithOrigins(allowedOrigins)
               .AllowAnyMethod()
               .AllowAnyHeader()
-              .AllowCredentials();
+              .AllowCredentials()
+              .SetPreflightMaxAge(TimeSpan.FromMinutes(10));
     });
 });
 

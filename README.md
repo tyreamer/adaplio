@@ -676,10 +676,191 @@ The progress tracking system allows clients to log exercise completion and provi
 - ✅ Progress & adherence tracking system with weekly analytics
 - ✅ Plan authoring, proposal, acceptance & weekly board system
 
+- ✅ Gamification system (XP, streaks, badges, progress celebrations)
+
 ### Roadmap
-- 🔲 Gamification system (XP, streaks, badges)
 - 🔲 Media pipeline (upload, transcode, extract exercises)
 - 🔲 Push notifications and email recaps
+
+---
+
+## Gamification System (P6)
+
+### Overview
+
+The gamification system motivates clients through XP points, achievement badges, streaks, and progress celebrations. XP is awarded automatically when clients log progress, with different event types earning different amounts. The system includes level progression, streak tracking, and a comprehensive badge system.
+
+### Features
+
+- **XP System**: Automatic XP awards for progress logging (10 XP for sets, 25 XP for exercises, 50 XP for sessions)
+- **Level Progression**: Level = 1 + floor(sqrt(xp_total / 10))
+- **Streak Tracking**: Daily and weekly streak monitoring with streak-breaking logic
+- **Badge System**: 7 different badges with rarity levels (common, rare, epic, legendary)
+- **Progress Celebrations**: Confetti animations and dialog popups for new achievements
+- **Trainer Visibility**: Trainers can view client gamification summary with proper consent
+
+### Testing Gamification Flow
+
+#### Prerequisites
+1. Complete the Progress & Adherence flow setup
+2. Have active client authentication session
+
+#### Client Gamification Experience
+
+1. **Log Progress and Earn Rewards**
+   ```bash
+   # Login as client first
+   curl -X POST https://localhost:5001/auth/client/verify \
+   -H "Content-Type: application/json" \
+   -d '{"email": "client@example.com", "code": "123456"}' \
+   -c client-cookies.txt
+
+   # Log exercise (will automatically award XP and check for badges)
+   curl -X POST https://localhost:5001/api/client/progress \
+   -H "Content-Type: application/json" \
+   -d '{
+     "exerciseInstanceId": 1,
+     "eventType": "exercise_completed",
+     "setsCompleted": 3,
+     "repsCompleted": 10,
+     "difficultyRating": 7,
+     "painLevel": 2
+   }' \
+   -b client-cookies.txt
+   ```
+
+2. **View Gamification Data**
+   ```bash
+   # Get client's complete gamification profile
+   curl -X GET https://localhost:5001/api/client/gamification \
+   -b client-cookies.txt
+   ```
+
+#### Trainer Gamification Viewing
+
+1. **View Client Gamification Summary** (as trainer)
+   ```bash
+   # Login as trainer first
+   curl -X POST https://localhost:5001/auth/trainer/login \
+   -H "Content-Type: application/json" \
+   -d '{"email": "trainer@example.com", "password": "securepass123"}' \
+   -c cookies.txt
+
+   # View client's gamification summary (requires view_summary consent)
+   curl -X GET https://localhost:5001/api/trainer/clients/C-7Q2F/gamification \
+   -b cookies.txt
+   ```
+
+#### Frontend Testing
+
+- **Client Rewards Page**: Login as client, visit `/rewards`
+- **Client Progress Celebrations**: Login as client, log progress at `/progress` to see celebration animations
+- **Trainer Dashboard**: Login as trainer, visit `/trainer/dashboard` to see client gamification cards
+
+#### Response Examples
+
+**Client Gamification Response:**
+```json
+{
+  "clientAlias": "C-7Q2F",
+  "xpTotal": 150,
+  "level": 4,
+  "xpForNextLevel": 40,
+  "levelProgress": 0.6,
+  "currentStreakDays": 5,
+  "longestStreakDays": 12,
+  "weeklyStreakWeeks": 2,
+  "longestWeeklyStreak": 4,
+  "badges": [
+    {
+      "id": "first_steps",
+      "name": "First Steps",
+      "description": "Completed your first exercise",
+      "icon": "🌱",
+      "color": "#22C55E",
+      "rarity": "common",
+      "earnedAt": "2024-12-24T10:30:00Z"
+    }
+  ]
+}
+```
+
+**Progress Celebration Response:**
+```json
+{
+  "message": "Progress logged successfully",
+  "progressEventId": 123,
+  "celebration": {
+    "xpAwarded": 25,
+    "leveledUp": true,
+    "newLevel": 4,
+    "newBadges": [
+      {
+        "id": "streak_3",
+        "name": "On a Roll",
+        "description": "3 days in a row",
+        "icon": "🔥",
+        "color": "#F59E0B",
+        "rarity": "common",
+        "earnedAt": "2024-12-24T10:30:00Z"
+      }
+    ],
+    "currentStreak": 3
+  }
+}
+```
+
+**Trainer Client Gamification Response:**
+```json
+{
+  "clientAlias": "C-7Q2F",
+  "level": 4,
+  "xpTotal": 150,
+  "currentStreakDays": 5,
+  "totalBadges": 3,
+  "recentBadges": [
+    {
+      "id": "streak_3",
+      "name": "On a Roll",
+      "description": "3 days in a row",
+      "icon": "🔥",
+      "color": "#F59E0B",
+      "rarity": "common",
+      "earnedAt": "2024-12-24T10:30:00Z"
+    }
+  ]
+}
+```
+
+#### Available Badges
+
+| Badge ID | Name | Description | XP Requirement | Rarity |
+|----------|------|-------------|----------------|--------|
+| `first_steps` | First Steps | Completed your first exercise | 10+ XP | Common |
+| `streak_3` | On a Roll | 3 days in a row | 3-day streak | Common |
+| `streak_7` | Week Warrior | 7 days in a row | 7-day streak | Rare |
+| `streak_30` | Unstoppable | 30 days in a row | 30-day streak | Legendary |
+| `level_5` | Rising Star | Reached level 5 | Level 5+ | Rare |
+| `level_10` | Elite Performer | Reached level 10 | Level 10+ | Epic |
+| `pain_manager` | Pain Manager | Low pain + high difficulty | Special conditions | Epic |
+
+#### Key Features
+
+- **Idempotent XP Awards**: Each progress event can only award XP once (using unique constraint on progress_event_id)
+- **Automatic Streak Management**: Daily activity tracking with streak breaking for gaps > 1 day
+- **Level Formula**: Mathematical progression ensuring balanced advancement
+- **Badge Persistence**: JSON column storage with efficient badge checking
+- **Frontend Celebrations**: Confetti animations, snackbars, and modal dialogs for achievements
+- **Trainer Visibility**: Gamification summary cards in trainer dashboard (consent-gated)
+- **Unit Testing**: Comprehensive test suite covering idempotency, streaks, badges, and level progression
+
+#### Technical Implementation
+
+- **Database Tables**: `gamification` (user stats) and `xp_award` (idempotency tracking)
+- **Service Layer**: `GamificationService` handles all XP/badge/streak logic
+- **API Endpoints**: Client and trainer endpoints with proper authorization
+- **Frontend Integration**: Celebration handling in progress logging with confetti animations
+- **Badge Dialog**: Modal component showing new achievements with rarity-based styling
 
 ---
 

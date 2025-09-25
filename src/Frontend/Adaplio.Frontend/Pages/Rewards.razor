@@ -1,0 +1,438 @@
+@page "/rewards"
+@using System.Net.Http.Json
+@using System.Text.Json
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
+
+<PageTitle>My Rewards - Adaplio</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="my-8">
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <MudAlert Severity="Severity.Error" Class="mb-4">
+            @errorMessage
+        </MudAlert>
+    }
+
+    <MudText Typo="Typo.h4" GutterBottom="true">
+        <MudIcon Icon="@Icons.Material.Filled.EmojiEvents" Class="mr-2" />
+        My Rewards & Achievements
+    </MudText>
+
+    @if (isLoading)
+    {
+        <div class="d-flex justify-center pa-8">
+            <MudProgressCircular Indeterminate="true" Size="Size.Large" />
+            <MudText Class="ml-3">Loading your achievements...</MudText>
+        </div>
+    }
+    else if (gamificationData != null)
+    {
+        <MudGrid>
+            <!-- Level & Progress Stats -->
+            <MudItem xs="12">
+                <MudGrid>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudCard Class="level-card">
+                            <MudCardContent Class="text-center">
+                                <div class="level-badge">
+                                    <MudText Typo="Typo.h3" Color="Color.Primary">@gamificationData.Level</MudText>
+                                </div>
+                                <MudText Typo="Typo.h6" Class="mt-2">Current Level</MudText>
+                                <MudProgressLinear
+                                    Value="@((int)(gamificationData.LevelProgress * 100))"
+                                    Color="Color.Primary"
+                                    Size="Size.Medium"
+                                    Class="mt-2" />
+                                <MudText Typo="Typo.caption" Class="mt-1">
+                                    @gamificationData.XpForNextLevel XP to next level
+                                </MudText>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudCard>
+                            <MudCardContent Class="text-center">
+                                <MudIcon Icon="@Icons.Material.Filled.Stars" Size="Size.Large" Color="Color.Secondary" />
+                                <MudText Typo="Typo.h4" Color="Color.Secondary">
+                                    @gamificationData.XpTotal
+                                </MudText>
+                                <MudText Typo="Typo.body2">Total XP</MudText>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudCard>
+                            <MudCardContent Class="text-center">
+                                <MudIcon Icon="@Icons.Material.Filled.LocalFireDepartment" Size="Size.Large" Color="Color.Warning" />
+                                <MudText Typo="Typo.h4" Color="Color.Warning">
+                                    @gamificationData.CurrentStreakDays
+                                </MudText>
+                                <MudText Typo="Typo.body2">Current Streak</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                    Best: @gamificationData.LongestStreakDays days
+                                </MudText>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudCard>
+                            <MudCardContent Class="text-center">
+                                <MudIcon Icon="@Icons.Material.Filled.EmojiEvents" Size="Size.Large" Color="Color.Success" />
+                                <MudText Typo="Typo.h4" Color="Color.Success">
+                                    @gamificationData.Badges.Length
+                                </MudText>
+                                <MudText Typo="Typo.body2">Badges Earned</MudText>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+                </MudGrid>
+            </MudItem>
+
+            <!-- Weekly Streak Info -->
+            <MudItem xs="12">
+                <MudCard>
+                    <MudCardContent>
+                        <MudGrid AlignItems="AlignItems.Center">
+                            <MudItem xs="12" md="6">
+                                <MudText Typo="Typo.h6" GutterBottom="true">
+                                    <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Class="mr-2" />
+                                    Weekly Performance
+                                </MudText>
+                                <MudText Typo="Typo.body1">
+                                    You've maintained consistency for <strong>@gamificationData.WeeklyStreakWeeks weeks</strong>
+                                </MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                    Personal best: @gamificationData.LongestWeeklyStreak weeks
+                                </MudText>
+                            </MudItem>
+                            <MudItem xs="12" md="6" Class="text-center">
+                                <MudButton
+                                    StartIcon="@Icons.Material.Filled.Celebration"
+                                    Color="Color.Primary"
+                                    Variant="Variant.Filled"
+                                    OnClick="TriggerCelebration"
+                                    Class="celebration-button">
+                                    Celebrate Progress!
+                                </MudButton>
+                            </MudItem>
+                        </MudGrid>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+
+            <!-- Badges Section -->
+            <MudItem xs="12">
+                <MudCard>
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">
+                                <MudIcon Icon="@Icons.Material.Filled.WorkspacePremium" Class="mr-2" />
+                                Achievement Badges (@gamificationData.Badges.Length)
+                            </MudText>
+                        </CardHeaderContent>
+                        <CardHeaderActions>
+                            <MudIconButton
+                                Icon="@Icons.Material.Filled.Refresh"
+                                Color="Color.Default"
+                                OnClick="LoadGamificationData"
+                                Disabled="@isLoading" />
+                        </CardHeaderActions>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        @if (gamificationData.Badges.Any())
+                        {
+                            <MudGrid>
+                                @foreach (var badge in gamificationData.Badges.OrderByDescending(b => b.EarnedAt))
+                                {
+                                    <MudItem xs="12" sm="6" md="4" lg="3">
+                                        <MudCard Class="badge-card @GetRarityClass(badge.Rarity)" Elevation="2">
+                                            <MudCardContent Class="text-center">
+                                                <div class="badge-icon" style="color: @badge.Color">
+                                                    @badge.Icon
+                                                </div>
+                                                <MudText Typo="Typo.h6" Class="badge-name">@badge.Name</MudText>
+                                                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="badge-description">
+                                                    @badge.Description
+                                                </MudText>
+                                                <MudChip
+                                                    T="string"
+                                                    Color="@GetRarityColor(badge.Rarity)"
+                                                    Size="Size.Small"
+                                                    Class="mt-2">
+                                                    @badge.Rarity.ToUpperInvariant()
+                                                </MudChip>
+                                                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-1">
+                                                    Earned @badge.EarnedAt.ToString("MMM dd, yyyy")
+                                                </MudText>
+                                            </MudCardContent>
+                                        </MudCard>
+                                    </MudItem>
+                                }
+                            </MudGrid>
+                        }
+                        else
+                        {
+                            <div class="text-center py-8">
+                                <MudIcon Icon="@Icons.Material.Filled.EmojiEvents" Size="Size.Large" Color="Color.Secondary" />
+                                <MudText Typo="Typo.h6" Color="Color.Secondary" Class="mt-2">No badges yet!</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                    Keep logging your exercises to earn your first achievement badge.
+                                </MudText>
+                                <MudButton
+                                    StartIcon="@Icons.Material.Filled.TrendingUp"
+                                    Color="Color.Primary"
+                                    Variant="Variant.Outlined"
+                                    Class="mt-3"
+                                    OnClick="() => NavigationManager.NavigateTo(\"/progress\")">
+                                    Log Progress
+                                </MudButton>
+                            </div>
+                        }
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+    }
+    else
+    {
+        <MudText Typo="Typo.body1" Align="Align.Center" Class="py-8">
+            Unable to load reward data. Please try refreshing the page.
+        </MudText>
+    }
+</MudContainer>
+
+<div id="confetti-container"></div>
+
+<style>
+.level-card {
+    background: linear-gradient(135deg, var(--mud-palette-primary-lighten) 0%, var(--mud-palette-primary) 100%);
+    color: var(--mud-palette-primary-contrast-text);
+}
+
+.level-badge {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--mud-palette-background-default);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    box-shadow: var(--elevation-3);
+}
+
+.badge-card {
+    transition: all 0.3s ease;
+    border-top: 4px solid transparent;
+}
+
+.badge-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--elevation-4);
+}
+
+.badge-card.rarity-common {
+    border-top-color: #9E9E9E;
+}
+
+.badge-card.rarity-rare {
+    border-top-color: #2196F3;
+}
+
+.badge-card.rarity-epic {
+    border-top-color: #9C27B0;
+}
+
+.badge-card.rarity-legendary {
+    border-top-color: #FF9800;
+}
+
+.badge-icon {
+    font-size: 3rem;
+    line-height: 1;
+    margin-bottom: 8px;
+}
+
+.badge-name {
+    font-weight: 600;
+    margin: 8px 0 4px 0;
+}
+
+.badge-description {
+    min-height: 2.4em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 4px 0;
+}
+
+.celebration-button {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+#confetti-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+}
+
+.confetti {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: #f0f;
+    animation: confetti-fall 3s linear forwards;
+}
+
+@keyframes confetti-fall {
+    to {
+        transform: translateY(100vh) rotate(720deg);
+    }
+}
+</style>
+
+@code {
+    private ClientGamificationResponse? gamificationData;
+    private bool isLoading = false;
+    private string errorMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CheckAuthAndRedirect();
+        await LoadGamificationData();
+    }
+
+    private async Task CheckAuthAndRedirect()
+    {
+        try
+        {
+            var response = await HttpClient.GetAsync("/auth/me");
+            if (!response.IsSuccessStatusCode)
+            {
+                NavigationManager.NavigateTo("/auth/client/login");
+                return;
+            }
+
+            var userInfo = await response.Content.ReadFromJsonAsync<JsonElement>();
+            if (userInfo.GetProperty("userType").GetString() != "client")
+            {
+                NavigationManager.NavigateTo("/auth/client/login");
+            }
+        }
+        catch
+        {
+            NavigationManager.NavigateTo("/auth/client/login");
+        }
+    }
+
+    private async Task LoadGamificationData()
+    {
+        isLoading = true;
+        errorMessage = "";
+
+        try
+        {
+            var response = await HttpClient.GetAsync("/api/client/gamification");
+            if (response.IsSuccessStatusCode)
+            {
+                gamificationData = await response.Content.ReadFromJsonAsync<ClientGamificationResponse>();
+            }
+            else
+            {
+                errorMessage = "Failed to load rewards data.";
+            }
+        }
+        catch (Exception)
+        {
+            errorMessage = "Network error while loading rewards data.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task TriggerCelebration()
+    {
+        await JSRuntime.InvokeVoidAsync("triggerConfetti");
+        Snackbar.Add("🎉 Keep up the amazing work!", Severity.Success);
+    }
+
+    private string GetRarityClass(string rarity)
+    {
+        return $"rarity-{rarity.ToLower()}";
+    }
+
+    private Color GetRarityColor(string rarity)
+    {
+        return rarity.ToLower() switch
+        {
+            "common" => Color.Default,
+            "rare" => Color.Primary,
+            "epic" => Color.Secondary,
+            "legendary" => Color.Warning,
+            _ => Color.Default
+        };
+    }
+
+    public class BadgeDto
+    {
+        public string Id { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string Icon { get; set; } = "";
+        public string Color { get; set; } = "";
+        public string Rarity { get; set; } = "";
+        public DateTimeOffset EarnedAt { get; set; }
+    }
+
+    public class ClientGamificationResponse
+    {
+        public string ClientAlias { get; set; } = "";
+        public int XpTotal { get; set; }
+        public int Level { get; set; }
+        public int XpForNextLevel { get; set; }
+        public double LevelProgress { get; set; }
+        public int CurrentStreakDays { get; set; }
+        public int LongestStreakDays { get; set; }
+        public int WeeklyStreakWeeks { get; set; }
+        public int LongestWeeklyStreak { get; set; }
+        public BadgeDto[] Badges { get; set; } = Array.Empty<BadgeDto>();
+    }
+}
+
+<script>
+    window.triggerConfetti = () => {
+        const container = document.getElementById('confetti-container');
+        const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dda0dd', '#98d8c8'];
+
+        for (let i = 0; i < 100; i++) {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.animationDelay = Math.random() * 3 + 's';
+            confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+            container.appendChild(confetti);
+
+            setTimeout(() => {
+                if (confetti.parentNode) {
+                    confetti.parentNode.removeChild(confetti);
+                }
+            }, 5000);
+        }
+    };
+</script>

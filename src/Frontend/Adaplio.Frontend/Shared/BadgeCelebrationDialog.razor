@@ -1,0 +1,350 @@
+@inject IJSRuntime JSRuntime
+
+<MudDialog>
+    <DialogContent>
+        <div class="text-center celebration-dialog">
+            <!-- Celebration Header -->
+            <div class="celebration-header">
+                <MudText Typo="Typo.h4" Class="celebration-title">
+                    🎉 Achievement Unlocked! 🎉
+                </MudText>
+                @if (LeveledUp && NewLevel.HasValue)
+                {
+                    <MudText Typo="Typo.h6" Color="Color.Primary" Class="level-up-text">
+                        🚀 Level Up to @NewLevel! 🚀
+                    </MudText>
+                }
+                <MudText Typo="Typo.body1" Class="xp-text">
+                    +@XpAwarded XP Earned
+                </MudText>
+            </div>
+
+            <!-- Badges Display -->
+            <div class="badges-container">
+                <MudGrid Justify="Justify.Center">
+                    @foreach (var badge in NewBadges)
+                    {
+                        <MudItem xs="12" sm="6" md="@(NewBadges.Length == 1 ? 12 : 6)">
+                            <MudCard Class="badge-celebration-card @GetRarityClass(badge.Rarity)" Elevation="6">
+                                <MudCardContent Class="text-center">
+                                    <div class="badge-icon-large" style="color: @badge.Color">
+                                        @badge.Icon
+                                    </div>
+                                    <MudText Typo="Typo.h5" Class="badge-name-large">
+                                        @badge.Name
+                                    </MudText>
+                                    <MudText Typo="Typo.body1" Color="Color.Secondary" Class="badge-description">
+                                        @badge.Description
+                                    </MudText>
+                                    <MudChip
+                                        T="string"
+                                        Color="@GetRarityColor(badge.Rarity)"
+                                        Size="Size.Medium"
+                                        Class="mt-2 rarity-chip">
+                                        @badge.Rarity.ToUpperInvariant()
+                                    </MudChip>
+                                </MudCardContent>
+                            </MudCard>
+                        </MudItem>
+                    }
+                </MudGrid>
+            </div>
+
+            <!-- Motivational Message -->
+            <div class="motivation-section">
+                <MudText Typo="Typo.body1" Color="Color.Primary" Class="motivation-text">
+                    @GetMotivationalMessage()
+                </MudText>
+            </div>
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton
+            Color="Color.Primary"
+            Variant="Variant.Filled"
+            StartIcon="@Icons.Material.Filled.EmojiEvents"
+            OnClick="ViewRewards"
+            Class="view-rewards-button">
+            View All Rewards
+        </MudButton>
+        <MudButton
+            Color="Color.Default"
+            Variant="Variant.Text"
+            OnClick="Close">
+            Continue
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+<style>
+.celebration-dialog {
+    min-height: 300px;
+}
+
+.celebration-header {
+    margin-bottom: 24px;
+    animation: celebration-bounce 0.6s ease-out;
+}
+
+.celebration-title {
+    background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
+    background-size: 200% 200%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradient-shift 2s ease-in-out infinite;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.level-up-text {
+    animation: level-up-glow 1.5s ease-in-out infinite alternate;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.xp-text {
+    color: var(--mud-palette-success);
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.badges-container {
+    margin: 32px 0;
+}
+
+.badge-celebration-card {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    animation: badge-appear 0.8s ease-out;
+}
+
+.badge-celebration-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    animation: shimmer 2s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.badge-celebration-card.rarity-common {
+    border: 3px solid #9E9E9E;
+    box-shadow: 0 4px 20px rgba(158, 158, 158, 0.3);
+}
+
+.badge-celebration-card.rarity-rare {
+    border: 3px solid #2196F3;
+    box-shadow: 0 4px 20px rgba(33, 150, 243, 0.3);
+}
+
+.badge-celebration-card.rarity-epic {
+    border: 3px solid #9C27B0;
+    box-shadow: 0 4px 20px rgba(156, 39, 176, 0.3);
+}
+
+.badge-celebration-card.rarity-legendary {
+    border: 3px solid #FF9800;
+    box-shadow: 0 4px 20px rgba(255, 152, 0, 0.3);
+    animation: legendary-glow 1.5s ease-in-out infinite alternate;
+}
+
+.badge-icon-large {
+    font-size: 4rem;
+    line-height: 1;
+    margin-bottom: 16px;
+    animation: icon-bounce 2s ease-in-out infinite;
+}
+
+.badge-name-large {
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.badge-description {
+    margin-bottom: 16px;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rarity-chip {
+    font-weight: 600;
+}
+
+.motivation-section {
+    margin-top: 24px;
+    padding: 16px;
+    background: var(--mud-palette-background-grey);
+    border-radius: 8px;
+    border-left: 4px solid var(--mud-palette-primary);
+}
+
+.motivation-text {
+    font-style: italic;
+    font-weight: 500;
+}
+
+.view-rewards-button {
+    animation: button-pulse 2s ease-in-out infinite;
+}
+
+@keyframes celebration-bounce {
+    0% { transform: scale(0.8) translateY(-20px); opacity: 0; }
+    60% { transform: scale(1.1) translateY(5px); opacity: 1; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+@keyframes gradient-shift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+@keyframes level-up-glow {
+    0% { text-shadow: 0 0 5px var(--mud-palette-primary); }
+    100% { text-shadow: 0 0 20px var(--mud-palette-primary), 0 0 30px var(--mud-palette-primary); }
+}
+
+@keyframes badge-appear {
+    0% { transform: scale(0.5) rotate(-180deg); opacity: 0; }
+    60% { transform: scale(1.1) rotate(10deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%) translateY(-100%); }
+    100% { transform: translateX(100%) translateY(100%); }
+}
+
+@keyframes legendary-glow {
+    0% { box-shadow: 0 4px 20px rgba(255, 152, 0, 0.3); }
+    100% { box-shadow: 0 8px 40px rgba(255, 152, 0, 0.6), 0 0 60px rgba(255, 152, 0, 0.2); }
+}
+
+@keyframes icon-bounce {
+    0%, 20%, 60%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-10px); }
+    80% { transform: translateY(-5px); }
+}
+
+@keyframes button-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+</style>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public BadgeDto[] NewBadges { get; set; } = Array.Empty<BadgeDto>();
+    [Parameter] public int XpAwarded { get; set; }
+    [Parameter] public bool LeveledUp { get; set; }
+    [Parameter] public int? NewLevel { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Trigger confetti when dialog opens
+        await Task.Delay(300);
+        await JSRuntime.InvokeVoidAsync("triggerDialogConfetti");
+    }
+
+    private void Close() => MudDialog.Close();
+
+    private void ViewRewards()
+    {
+        MudDialog.Close();
+        // This would navigate to rewards page
+        // For now, we'll assume navigation is handled elsewhere
+    }
+
+    private string GetRarityClass(string rarity)
+    {
+        return $"rarity-{rarity.ToLower()}";
+    }
+
+    private Color GetRarityColor(string rarity)
+    {
+        return rarity.ToLower() switch
+        {
+            "common" => Color.Default,
+            "rare" => Color.Primary,
+            "epic" => Color.Secondary,
+            "legendary" => Color.Warning,
+            _ => Color.Default
+        };
+    }
+
+    private string GetMotivationalMessage()
+    {
+        var messages = new[]
+        {
+            "Outstanding progress! Your dedication is paying off! 💪",
+            "You're building incredible momentum! Keep it going! 🌟",
+            "Every step forward is a victory worth celebrating! 🎯",
+            "Your commitment to recovery is truly inspiring! ✨",
+            "You're not just healing—you're becoming stronger! 🚀",
+            "Consistency is your superpower! Amazing work! 🔥"
+        };
+
+        return messages[DateTime.Now.Millisecond % messages.Length];
+    }
+
+    public class BadgeDto
+    {
+        public string Id { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string Icon { get; set; } = "";
+        public string Color { get; set; } = "";
+        public string Rarity { get; set; } = "";
+        public DateTimeOffset EarnedAt { get; set; }
+    }
+}
+
+<script>
+    window.triggerDialogConfetti = () => {
+        const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dda0dd', '#98d8c8', '#ff9f43', '#10ac84'];
+
+        for (let i = 0; i < 100; i++) {
+            const confetti = document.createElement('div');
+            confetti.style.position = 'fixed';
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.top = '-10px';
+            confetti.style.width = Math.random() * 8 + 6 + 'px';
+            confetti.style.height = Math.random() * 8 + 6 + 'px';
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0%';
+            confetti.style.zIndex = '10000';
+            confetti.style.pointerEvents = 'none';
+            confetti.style.animation = `confetti-celebration ${Math.random() * 3 + 2}s linear forwards`;
+
+            document.body.appendChild(confetti);
+
+            setTimeout(() => {
+                if (confetti.parentNode) {
+                    confetti.parentNode.removeChild(confetti);
+                }
+            }, 5000);
+        }
+    };
+
+    if (!document.querySelector('#celebration-styles')) {
+        const style = document.createElement('style');
+        style.id = 'celebration-styles';
+        style.textContent = `
+            @keyframes confetti-celebration {
+                to {
+                    transform: translateY(100vh) rotateZ(720deg);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+</script>

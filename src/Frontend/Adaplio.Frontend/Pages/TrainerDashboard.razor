@@ -114,41 +114,115 @@
                             {
                                 <MudListItem T="string">
                                     <div class="d-flex justify-space-between align-center w-100">
-                                        <div>
-                                            <MudText Typo="Typo.subtitle1">@client.ClientAlias</MudText>
-                                            <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                                Connected: @client.GrantedAt.ToString("MMM dd, yyyy")
-                                            </MudText>
-                                            <MudChipSet T="string">
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex justify-space-between align-center">
+                                                <div>
+                                                    <MudText Typo="Typo.subtitle1">@client.ClientAlias</MudText>
+                                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                                        Connected: @client.GrantedAt.ToString("MMM dd, yyyy")
+                                                    </MudText>
+                                                </div>
+                                                <div class="text-right">
+                                                    <MudButton Size="Size.Small"
+                                                               Variant="Variant.Text"
+                                                               Color="Color.Primary"
+                                                               OnClick="@(() => ViewClientDetails(client.ClientAlias))"
+                                                               StartIcon="@Icons.Material.Filled.Analytics">
+                                                        View Details
+                                                    </MudButton>
+                                                </div>
+                                            </div>
+
+                                            <!-- Gamification Summary (if available) -->
+                                            @if (client.GamificationData != null)
+                                            {
+                                                <div class="gamification-summary mt-2">
+                                                    <MudGrid AlignItems="AlignItems.Center" Spacing="2">
+                                                        <MudItem xs="3">
+                                                            <div class="text-center">
+                                                                <MudText Typo="Typo.caption" Color="Color.Secondary">Level</MudText>
+                                                                <MudText Typo="Typo.body2" Color="Color.Primary">
+                                                                    <MudIcon Icon="@Icons.Material.Filled.Stars" Size="Size.Small" />
+                                                                    @client.GamificationData.Level
+                                                                </MudText>
+                                                            </div>
+                                                        </MudItem>
+                                                        <MudItem xs="3">
+                                                            <div class="text-center">
+                                                                <MudText Typo="Typo.caption" Color="Color.Secondary">XP</MudText>
+                                                                <MudText Typo="Typo.body2" Color="Color.Info">@client.GamificationData.XpTotal</MudText>
+                                                            </div>
+                                                        </MudItem>
+                                                        <MudItem xs="3">
+                                                            <div class="text-center">
+                                                                <MudText Typo="Typo.caption" Color="Color.Secondary">Streak</MudText>
+                                                                <MudText Typo="Typo.body2" Color="Color.Warning">
+                                                                    <MudIcon Icon="@Icons.Material.Filled.LocalFireDepartment" Size="Size.Small" />
+                                                                    @client.GamificationData.CurrentStreakDays
+                                                                </MudText>
+                                                            </div>
+                                                        </MudItem>
+                                                        <MudItem xs="3">
+                                                            <div class="text-center">
+                                                                <MudText Typo="Typo.caption" Color="Color.Secondary">Badges</MudText>
+                                                                <MudText Typo="Typo.body2" Color="Color.Success">
+                                                                    <MudIcon Icon="@Icons.Material.Filled.EmojiEvents" Size="Size.Small" />
+                                                                    @client.GamificationData.TotalBadges
+                                                                </MudText>
+                                                            </div>
+                                                        </MudItem>
+                                                    </MudGrid>
+
+                                                    @if (client.GamificationData.RecentBadges.Any())
+                                                    {
+                                                        <div class="recent-badges mt-2">
+                                                            <MudText Typo="Typo.caption" Color="Color.Secondary">Recent Badges:</MudText>
+                                                            <div class="d-flex gap-1 mt-1">
+                                                                @foreach (var badge in client.GamificationData.RecentBadges.Take(3))
+                                                                {
+                                                                    <MudTooltip Text="@($"{badge.Name}: {badge.Description}")">
+                                                                        <div class="badge-mini" style="color: @badge.Color">
+                                                                            @badge.Icon
+                                                                        </div>
+                                                                    </MudTooltip>
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-2">
+                                                    Gamification data not available
+                                                </MudText>
+                                            }
+
+                                            <!-- Adherence & Scopes -->
+                                            <div class="mt-2">
+                                                <MudText Typo="Typo.body2">
+                                                    Adherence: @client.AdherencePct.ToString("F1")%
+                                                </MudText>
+                                                @if (client.LastActivity.HasValue)
+                                                {
+                                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                                        Last active: @client.LastActivity.Value.ToString("MMM dd")
+                                                    </MudText>
+                                                }
+                                                else
+                                                {
+                                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                                        No activity yet
+                                                    </MudText>
+                                                }
+                                            </div>
+
+                                            <MudChipSet T="string" Class="mt-1">
                                                 @foreach (var scope in client.Scopes)
                                                 {
                                                     <MudChip T="string" Color="Color.Primary" Size="Size.Small">@scope</MudChip>
                                                 }
                                             </MudChipSet>
-                                        </div>
-                                        <div class="text-right">
-                                            <MudText Typo="Typo.body2">
-                                                Adherence: @client.AdherencePct.ToString("F1")%
-                                            </MudText>
-                                            @if (client.LastActivity.HasValue)
-                                            {
-                                                <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                                    Last active: @client.LastActivity.Value.ToString("MMM dd")
-                                                </MudText>
-                                            }
-                                            else
-                                            {
-                                                <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                                    No activity yet
-                                                </MudText>
-                                            }
-                                            <MudButton Size="Size.Small"
-                                                       Variant="Variant.Text"
-                                                       Color="Color.Primary"
-                                                       OnClick="@(() => ViewClientAdherence(client.ClientAlias))"
-                                                       StartIcon="@Icons.Material.Filled.Analytics">
-                                                View Details
-                                            </MudButton>
                                         </div>
                                     </div>
                                 </MudListItem>
@@ -211,6 +285,41 @@
     </MudGrid>
 </MudContainer>
 
+<style>
+.gamification-summary {
+    background: var(--mud-palette-background-grey);
+    border-radius: 8px;
+    padding: 12px;
+    border-left: 4px solid var(--mud-palette-primary);
+}
+
+.badge-mini {
+    display: inline-block;
+    font-size: 1.2em;
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    text-align: center;
+    border-radius: 50%;
+    background: var(--mud-palette-background-default);
+    box-shadow: var(--elevation-1);
+    transition: transform 0.2s ease;
+}
+
+.badge-mini:hover {
+    transform: scale(1.2);
+}
+
+.recent-badges {
+    padding-top: 8px;
+    border-top: 1px solid var(--mud-palette-divider);
+}
+
+.gap-1 {
+    gap: 4px;
+}
+</style>
+
 @code {
     private List<ClientInfo> clients = new();
     private bool isLoadingClients = false;
@@ -262,7 +371,7 @@
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadFromJsonAsync<ClientsResponse>();
-                clients = result?.Clients?.Select(c => new ClientInfo
+                var clientList = result?.Clients?.Select(c => new ClientInfo
                 {
                     ClientAlias = c.ClientAlias,
                     Scopes = c.Scopes,
@@ -270,6 +379,25 @@
                     LastActivity = c.LastActivity,
                     GrantedAt = c.GrantedAt
                 }).ToList() ?? new List<ClientInfo>();
+
+                // Load gamification data for each client (if they have view_summary consent)
+                foreach (var client in clientList.Where(c => c.Scopes.Contains("view_summary")))
+                {
+                    try
+                    {
+                        var gamificationResponse = await HttpClient.GetAsync($"/api/trainer/clients/{client.ClientAlias}/gamification");
+                        if (gamificationResponse.IsSuccessStatusCode)
+                        {
+                            client.GamificationData = await gamificationResponse.Content.ReadFromJsonAsync<TrainerClientGamificationResponse>();
+                        }
+                    }
+                    catch
+                    {
+                        // Silently fail for individual clients
+                    }
+                }
+
+                clients = clientList;
             }
             else
             {
@@ -336,31 +464,48 @@
         }
     }
 
-    private async Task ViewClientAdherence(string clientAlias)
+    private async Task ViewClientDetails(string clientAlias)
     {
         try
         {
-            var response = await HttpClient.GetAsync($"/api/trainer/clients/{clientAlias}/adherence");
-            if (response.IsSuccessStatusCode)
+            // Load both adherence and gamification data
+            var adherenceTask = HttpClient.GetAsync($"/api/trainer/clients/{clientAlias}/adherence");
+            var gamificationTask = HttpClient.GetAsync($"/api/trainer/clients/{clientAlias}/gamification");
+
+            await Task.WhenAll(adherenceTask, gamificationTask);
+
+            var adherenceResponse = await adherenceTask;
+            var gamificationResponse = await gamificationTask;
+
+            var message = $"Client: {clientAlias}\n";
+
+            if (adherenceResponse.IsSuccessStatusCode)
             {
-                var adherenceData = await response.Content.ReadFromJsonAsync<ClientAdherenceResponse>();
+                var adherenceData = await adherenceResponse.Content.ReadFromJsonAsync<ClientAdherenceResponse>();
                 if (adherenceData != null)
                 {
-                    var message = $"Client: {adherenceData.ClientAlias}\n" +
-                                  $"Current Week: {adherenceData.CurrentWeekAdherence:F1}%\n" +
-                                  $"Overall: {adherenceData.OverallAdherence:F1}%\n" +
-                                  $"Recent weeks: {adherenceData.RecentWeeks.Length} weeks tracked";
-                    Snackbar.Add(message, Severity.Info, configure => { configure.VisibleStateDuration = 5000; });
+                    message += $"Current Week: {adherenceData.CurrentWeekAdherence:F1}%\n" +
+                              $"Overall: {adherenceData.OverallAdherence:F1}%\n" +
+                              $"Recent weeks: {adherenceData.RecentWeeks.Length} weeks tracked\n";
                 }
             }
-            else
+
+            if (gamificationResponse.IsSuccessStatusCode)
             {
-                Snackbar.Add("Failed to load client adherence details", Severity.Error);
+                var gamificationData = await gamificationResponse.Content.ReadFromJsonAsync<TrainerClientGamificationResponse>();
+                if (gamificationData != null)
+                {
+                    message += $"Level {gamificationData.Level} ({gamificationData.XpTotal} XP)\n" +
+                              $"Current Streak: {gamificationData.CurrentStreakDays} days\n" +
+                              $"Badges Earned: {gamificationData.TotalBadges}";
+                }
             }
+
+            Snackbar.Add(message, Severity.Info, configure => { configure.VisibleStateDuration = 5000; });
         }
         catch (Exception)
         {
-            Snackbar.Add("Network error loading adherence details", Severity.Error);
+            Snackbar.Add("Network error loading client details", Severity.Error);
         }
     }
 
@@ -371,6 +516,7 @@
         public decimal AdherencePct { get; set; }
         public DateTimeOffset? LastActivity { get; set; }
         public DateTimeOffset GrantedAt { get; set; }
+        public TrainerClientGamificationResponse? GamificationData { get; set; }
     }
 
     public class ClientsResponse
@@ -401,5 +547,26 @@
         public decimal AdherencePercentage { get; set; }
         public int CompletedCount { get; set; }
         public int PlannedCount { get; set; }
+    }
+
+    public class TrainerClientGamificationResponse
+    {
+        public string ClientAlias { get; set; } = "";
+        public int Level { get; set; }
+        public int XpTotal { get; set; }
+        public int CurrentStreakDays { get; set; }
+        public int TotalBadges { get; set; }
+        public BadgeDto[] RecentBadges { get; set; } = Array.Empty<BadgeDto>();
+    }
+
+    public class BadgeDto
+    {
+        public string Id { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string Icon { get; set; } = "";
+        public string Color { get; set; } = "";
+        public string Rarity { get; set; } = "";
+        public DateTimeOffset EarnedAt { get; set; }
     }
 }
