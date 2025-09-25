@@ -224,7 +224,7 @@ public static class AuthEndpoints
             };
 
             context.TrainerProfiles.Add(trainerProfile);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(); 
 
             Console.WriteLine($"Created trainer profile for user: {user.Id}");
 
