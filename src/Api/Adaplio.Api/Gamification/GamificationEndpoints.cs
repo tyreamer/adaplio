@@ -39,9 +39,14 @@ public static class GamificationEndpoints
                 return Results.Forbid();
             }
 
+            if (!int.TryParse(userId, out var parsedUserId))
+            {
+                return Results.Forbid();
+            }
+
             // Get client profile
             var clientProfile = await context.ClientProfiles
-                .FirstOrDefaultAsync(cp => cp.UserId == int.Parse(userId));
+                .FirstOrDefaultAsync(cp => cp.UserId == parsedUserId);
 
             if (clientProfile == null)
             {
@@ -109,9 +114,14 @@ public static class GamificationEndpoints
                 return Results.Forbid();
             }
 
+            if (!int.TryParse(userId, out var parsedUserId))
+            {
+                return Results.Forbid();
+            }
+
             // Get trainer profile
             var trainerProfile = await context.TrainerProfiles
-                .FirstOrDefaultAsync(tp => tp.UserId == int.Parse(userId));
+                .FirstOrDefaultAsync(tp => tp.UserId == parsedUserId);
 
             if (trainerProfile == null)
             {

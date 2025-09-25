@@ -8,59 +8,79 @@ namespace Adaplio.Api.Domain;
 public class Gamification
 {
     [Key]
-    [Column("user_id")]
-    public int UserId { get; set; }
+    [Column("id")]
+    public int Id { get; set; }
 
-    [Column("xp_total")]
-    public int XpTotal { get; set; } = 0;
+    [Column("client_profile_id")]
+    public int ClientProfileId { get; set; }
 
-    [Column("current_streak_days")]
-    public int CurrentStreakDays { get; set; } = 0;
+    [Column("total_xp")]
+    public int TotalXp { get; set; } = 0;
 
-    [Column("longest_streak_days")]
-    public int LongestStreakDays { get; set; } = 0;
+    [Column("current_level")]
+    public int CurrentLevelStored { get; set; } = 1;
 
-    [Column("weekly_streak_weeks")]
-    public int WeeklyStreakWeeks { get; set; } = 0;
+    [Column("current_streak")]
+    public int CurrentStreak { get; set; } = 0;
+
+    [Column("longest_streak")]
+    public int LongestStreak { get; set; } = 0;
+
+    [Column("weekly_streaks")]
+    public int WeeklyStreaks { get; set; } = 0;
 
     [Column("longest_weekly_streak")]
     public int LongestWeeklyStreak { get; set; } = 0;
 
     [Column("last_activity_date")]
-    public DateOnly? LastActivityDate { get; set; }
+    public DateTime? LastActivityDate { get; set; }
 
-    [Column("badges_json")]
-    public string BadgesJson { get; set; } = "[]";
+    [Column("badges_earned")]
+    public string BadgesEarned { get; set; } = "[]";
+
+    [Column("created_at")]
+    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 
     [Column("updated_at")]
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 
-    // Navigation property (using UserId as FK to client_profile.id)
-    [ForeignKey(nameof(UserId))]
+    // Navigation property
+    [ForeignKey(nameof(ClientProfileId))]
     public ClientProfile ClientProfile { get; set; } = null!;
 
     // Convenience property for working with badges
     [NotMapped]
     public List<Badge> Badges
     {
-        get => string.IsNullOrEmpty(BadgesJson) || BadgesJson == "[]"
-            ? new List<Badge>()
-            : JsonSerializer.Deserialize<List<Badge>>(BadgesJson) ?? new List<Badge>();
-        set => BadgesJson = JsonSerializer.Serialize(value);
+        get
+        {
+            try
+            {
+                return string.IsNullOrEmpty(BadgesEarned) || BadgesEarned == "[]"
+                    ? new List<Badge>()
+                    : JsonSerializer.Deserialize<List<Badge>>(BadgesEarned) ?? new List<Badge>();
+            }
+            catch (JsonException)
+            {
+                return new List<Badge>();
+            }
+        }
+        set => BadgesEarned = JsonSerializer.Serialize(value);
     }
 
     // Calculated level based on XP (1 + floor(sqrt(xp_total / 10)))
     [NotMapped]
-    public int Level => 1 + (int)Math.Floor(Math.Sqrt(XpTotal / 10.0));
+    public int Level => 1 + (int)Math.Floor(Math.Sqrt(TotalXp / 10.0));
 
-    // XP needed for next level
+    // XP needed for next level (additional XP, not total)
     [NotMapped]
     public int XpForNextLevel
     {
         get
         {
             var nextLevel = Level + 1;
-            return (nextLevel - 1) * (nextLevel - 1) * 10;
+            var nextLevelTotalXp = (nextLevel - 1) * (nextLevel - 1) * 10;
+            return nextLevelTotalXp - TotalXp;
         }
     }
 
@@ -71,12 +91,26 @@ public class Gamification
         get
         {
             var currentLevelXp = (Level - 1) * (Level - 1) * 10;
-            var nextLevelXp = XpForNextLevel;
-            var progressXp = XpTotal - currentLevelXp;
+            var nextLevel = Level + 1;
+            var nextLevelXp = (nextLevel - 1) * (nextLevel - 1) * 10;
+            var progressXp = TotalXp - currentLevelXp;
             var levelRangeXp = nextLevelXp - currentLevelXp;
             return levelRangeXp > 0 ? (double)progressXp / levelRangeXp : 1.0;
         }
     }
+
+    // Alias properties for backwards compatibility with frontend
+    [NotMapped]
+    public int XpTotal => TotalXp;
+
+    [NotMapped]
+    public int CurrentStreakDays => CurrentStreak;
+
+    [NotMapped]
+    public int LongestStreakDays => LongestStreak;
+
+    [NotMapped]
+    public int WeeklyStreakWeeks => WeeklyStreaks;
 }
 
 [Table("xp_award")]

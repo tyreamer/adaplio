@@ -1,4 +1,5 @@
 @inject IJSRuntime JSRuntime
+@using MudBlazor
 
 <MudDialog>
     <DialogContent>
@@ -25,7 +26,7 @@
                     @foreach (var badge in NewBadges)
                     {
                         <MudItem xs="12" sm="6" md="@(NewBadges.Length == 1 ? 12 : 6)">
-                            <MudCard Class="badge-celebration-card @GetRarityClass(badge.Rarity)" Elevation="6">
+                            <MudCard Class="@($"badge-celebration-card {GetRarityClass(badge.Rarity)}")" Elevation="6">
                                 <MudCardContent Class="text-center">
                                     <div class="badge-icon-large" style="color: @badge.Color">
                                         @badge.Icon

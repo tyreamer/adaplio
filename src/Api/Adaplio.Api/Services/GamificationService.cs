@@ -22,93 +22,110 @@ public class GamificationService : IGamificationService
 
     public async Task<GamificationResult> AwardXpForProgressAsync(int progressEventId, int clientProfileId)
     {
-        // Check if XP has already been awarded for this progress event (idempotency)
-        var existingAward = await _context.XpAwards
-            .FirstOrDefaultAsync(xa => xa.ProgressEventId == progressEventId);
-
-        if (existingAward != null)
+        if (progressEventId <= 0 || clientProfileId <= 0)
         {
-            // Already awarded, return existing result
-            var existingGamification = await GetOrCreateGamificationAsync(clientProfileId);
+            throw new ArgumentException("Invalid progressEventId or clientProfileId");
+        }
+
+        // Use a transaction to ensure idempotency
+        using var transaction = await _context.Database.BeginTransactionAsync();
+
+        try
+        {
+            // Check if XP has already been awarded for this progress event (idempotency)
+            var existingAward = await _context.XpAwards
+                .FirstOrDefaultAsync(xa => xa.ProgressEventId == progressEventId);
+
+            if (existingAward != null)
+            {
+                // Already awarded, return existing result
+                var existingGamification = await GetOrCreateGamificationAsync(clientProfileId);
+                return new GamificationResult
+                {
+                    XpAwarded = 0,
+                    NewBadges = new List<Badge>(),
+                    LeveledUp = false,
+                    CurrentLevel = existingGamification.Level,
+                    TotalXp = existingGamification.TotalXp,
+                    CurrentStreak = existingGamification.CurrentStreak,
+                    AlreadyAwarded = true
+                };
+            }
+
+            // Get the progress event to determine XP amount
+            var progressEvent = await _context.ProgressEvents
+                .FirstOrDefaultAsync(pe => pe.Id == progressEventId);
+
+            if (progressEvent == null)
+            {
+                throw new ArgumentException($"Progress event {progressEventId} not found");
+            }
+
+            // Calculate XP based on event type
+            var xpAwarded = CalculateXpForEvent(progressEvent);
+
+            // Get or create gamification record
+            var gamification = await GetOrCreateGamificationAsync(clientProfileId);
+            var previousLevel = gamification.Level;
+
+            // Update streaks
+            UpdateStreaks(gamification, DateOnly.FromDateTime(progressEvent.LoggedAt.Date));
+
+            // Add XP
+            gamification.TotalXp += xpAwarded;
+            gamification.UpdatedAt = DateTimeOffset.UtcNow;
+
+            // Check for new badges
+            var newBadges = CheckForNewBadges(gamification, progressEvent);
+
+            // Add new badges to the collection
+            var allBadges = gamification.Badges;
+            foreach (var newBadge in newBadges)
+            {
+                allBadges.Add(newBadge);
+            }
+            gamification.Badges = allBadges;
+
+            // Record the XP award
+            var xpAward = new XpAward
+            {
+                ProgressEventId = progressEventId,
+                UserId = clientProfileId,
+                XpAwarded = xpAwarded
+            };
+            _context.XpAwards.Add(xpAward);
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
             return new GamificationResult
             {
-                XpAwarded = 0,
-                NewBadges = new List<Badge>(),
-                LeveledUp = false,
-                CurrentLevel = existingGamification.Level,
-                TotalXp = existingGamification.XpTotal,
-                CurrentStreak = existingGamification.CurrentStreakDays,
-                AlreadyAwarded = true
+                XpAwarded = xpAwarded,
+                NewBadges = newBadges,
+                LeveledUp = gamification.Level > previousLevel,
+                CurrentLevel = gamification.Level,
+                TotalXp = gamification.TotalXp,
+                CurrentStreak = gamification.CurrentStreak,
+                AlreadyAwarded = false
             };
         }
-
-        // Get the progress event to determine XP amount
-        var progressEvent = await _context.ProgressEvents
-            .FirstOrDefaultAsync(pe => pe.Id == progressEventId);
-
-        if (progressEvent == null)
+        catch
         {
-            throw new ArgumentException($"Progress event {progressEventId} not found");
+            await transaction.RollbackAsync();
+            throw;
         }
-
-        // Calculate XP based on event type
-        var xpAwarded = CalculateXpForEvent(progressEvent);
-
-        // Get or create gamification record
-        var gamification = await GetOrCreateGamificationAsync(clientProfileId);
-        var previousLevel = gamification.Level;
-
-        // Update streaks
-        UpdateStreaks(gamification, DateOnly.FromDateTime(progressEvent.LoggedAt.Date));
-
-        // Add XP
-        gamification.XpTotal += xpAwarded;
-        gamification.UpdatedAt = DateTimeOffset.UtcNow;
-
-        // Check for new badges
-        var newBadges = CheckForNewBadges(gamification, progressEvent);
-
-        // Add new badges to the collection
-        var allBadges = gamification.Badges;
-        foreach (var newBadge in newBadges)
-        {
-            allBadges.Add(newBadge);
-        }
-        gamification.Badges = allBadges;
-
-        // Record the XP award
-        var xpAward = new XpAward
-        {
-            ProgressEventId = progressEventId,
-            UserId = clientProfileId,
-            XpAwarded = xpAwarded
-        };
-        _context.XpAwards.Add(xpAward);
-
-        await _context.SaveChangesAsync();
-
-        return new GamificationResult
-        {
-            XpAwarded = xpAwarded,
-            NewBadges = newBadges,
-            LeveledUp = gamification.Level > previousLevel,
-            CurrentLevel = gamification.Level,
-            TotalXp = gamification.XpTotal,
-            CurrentStreak = gamification.CurrentStreakDays,
-            AlreadyAwarded = false
-        };
     }
 
     public async Task<Domain.Gamification> GetOrCreateGamificationAsync(int clientProfileId)
     {
         var gamification = await _context.Gamifications
-            .FirstOrDefaultAsync(g => g.UserId == clientProfileId);
+            .FirstOrDefaultAsync(g => g.ClientProfileId == clientProfileId);
 
         if (gamification == null)
         {
             gamification = new Domain.Gamification
             {
-                UserId = clientProfileId
+                ClientProfileId = clientProfileId
             };
             _context.Gamifications.Add(gamification);
             await _context.SaveChangesAsync();
@@ -120,7 +137,7 @@ public class GamificationService : IGamificationService
     public async Task<Domain.Gamification?> GetGamificationAsync(int clientProfileId)
     {
         return await _context.Gamifications
-            .FirstOrDefaultAsync(g => g.UserId == clientProfileId);
+            .FirstOrDefaultAsync(g => g.ClientProfileId == clientProfileId);
     }
 
     private static int CalculateXpForEvent(ProgressEvent progressEvent)
@@ -141,18 +158,18 @@ public class GamificationService : IGamificationService
         if (gamification.LastActivityDate == null)
         {
             // First activity
-            gamification.CurrentStreakDays = 1;
-            gamification.WeeklyStreakWeeks = IsStartOfWeek(eventDate) ? 1 : 0;
+            gamification.CurrentStreak = 1;
+            gamification.WeeklyStreaks = IsStartOfWeek(eventDate) ? 1 : 0;
         }
         else
         {
-            var lastActivity = gamification.LastActivityDate.Value;
+            var lastActivity = DateOnly.FromDateTime(gamification.LastActivityDate.Value);
             var daysDiff = eventDate.DayNumber - lastActivity.DayNumber;
 
             if (daysDiff == 1)
             {
                 // Consecutive day
-                gamification.CurrentStreakDays++;
+                gamification.CurrentStreak++;
             }
             else if (daysDiff == 0)
             {
@@ -162,28 +179,28 @@ public class GamificationService : IGamificationService
             else
             {
                 // Streak broken
-                gamification.CurrentStreakDays = 1;
+                gamification.CurrentStreak = 1;
             }
 
             // Update weekly streak
-            if (IsStartOfWeek(eventDate) && gamification.CurrentStreakDays >= 7)
+            if (IsStartOfWeek(eventDate) && gamification.CurrentStreak >= 7)
             {
-                gamification.WeeklyStreakWeeks++;
+                gamification.WeeklyStreaks++;
             }
         }
 
         // Update longest streaks
-        if (gamification.CurrentStreakDays > gamification.LongestStreakDays)
+        if (gamification.CurrentStreak > gamification.LongestStreak)
         {
-            gamification.LongestStreakDays = gamification.CurrentStreakDays;
+            gamification.LongestStreak = gamification.CurrentStreak;
         }
 
-        if (gamification.WeeklyStreakWeeks > gamification.LongestWeeklyStreak)
+        if (gamification.WeeklyStreaks > gamification.LongestWeeklyStreak)
         {
-            gamification.LongestWeeklyStreak = gamification.WeeklyStreakWeeks;
+            gamification.LongestWeeklyStreak = gamification.WeeklyStreaks;
         }
 
-        gamification.LastActivityDate = eventDate;
+        gamification.LastActivityDate = eventDate.ToDateTime(TimeOnly.MinValue);
     }
 
     private static bool IsStartOfWeek(DateOnly date)
@@ -197,7 +214,7 @@ public class GamificationService : IGamificationService
         var existingBadgeIds = gamification.Badges.Select(b => b.Id).ToHashSet();
 
         // First Steps Badge
-        if (gamification.XpTotal >= 10 && !existingBadgeIds.Contains("first_steps"))
+        if (gamification.TotalXp >= 10 && !existingBadgeIds.Contains("first_steps"))
         {
             newBadges.Add(new Badge
             {
@@ -211,7 +228,7 @@ public class GamificationService : IGamificationService
         }
 
         // Streak Badges
-        if (gamification.CurrentStreakDays >= 3 && !existingBadgeIds.Contains("streak_3"))
+        if (gamification.CurrentStreak >= 3 && !existingBadgeIds.Contains("streak_3"))
         {
             newBadges.Add(new Badge
             {
@@ -224,7 +241,7 @@ public class GamificationService : IGamificationService
             });
         }
 
-        if (gamification.CurrentStreakDays >= 7 && !existingBadgeIds.Contains("streak_7"))
+        if (gamification.CurrentStreak >= 7 && !existingBadgeIds.Contains("streak_7"))
         {
             newBadges.Add(new Badge
             {
@@ -237,7 +254,7 @@ public class GamificationService : IGamificationService
             });
         }
 
-        if (gamification.CurrentStreakDays >= 30 && !existingBadgeIds.Contains("streak_30"))
+        if (gamification.CurrentStreak >= 30 && !existingBadgeIds.Contains("streak_30"))
         {
             newBadges.Add(new Badge
             {
