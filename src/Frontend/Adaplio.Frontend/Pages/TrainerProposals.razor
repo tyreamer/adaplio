@@ -1,0 +1,265 @@
+@page "/trainer/proposals"
+@using System.Net.Http.Json
+@using System.Text.Json
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<PageTitle>Proposals - Adaplio</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="my-8">
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <MudAlert Severity="Severity.Error" Class="mb-4">
+            @errorMessage
+        </MudAlert>
+    }
+
+    <MudStack Spacing="4">
+        <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+            <MudText Typo="Typo.h4">
+                <MudIcon Icon="@Icons.Material.Filled.Send" Class="mr-2" />
+                Proposals
+            </MudText>
+            <MudButton
+                Color="Color.Primary"
+                Variant="Variant.Filled"
+                StartIcon="@Icons.Material.Filled.Add"
+                OnClick="CreateProposal">
+                New Proposal
+            </MudButton>
+        </MudStack>
+
+        @if (isLoading)
+        {
+            <div class="d-flex justify-center pa-8">
+                <MudProgressCircular Indeterminate="true" Size="Size.Large" />
+                <MudText Class="ml-3">Loading proposals...</MudText>
+            </div>
+        }
+        else if (proposals.Any())
+        {
+            <MudGrid>
+                @foreach (var proposal in proposals)
+                {
+                    <MudItem xs="12" md="6" lg="4">
+                        <MudCard Class="proposal-card">
+                            <MudCardHeader>
+                                <CardHeaderContent>
+                                    <MudText Typo="Typo.h6">@proposal.ClientName</MudText>
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                        @proposal.CreatedAt.ToString("MMM dd, yyyy")
+                                    </MudText>
+                                </CardHeaderContent>
+                                <CardHeaderActions>
+                                    <MudChip
+                                        T="string"
+                                        Color="@GetStatusColor(proposal.Status)"
+                                        Size="Size.Small">
+                                        @proposal.Status
+                                    </MudChip>
+                                </CardHeaderActions>
+                            </MudCardHeader>
+                            <MudCardContent>
+                                <MudText Typo="Typo.body2" Class="mb-2">
+                                    @proposal.Description
+                                </MudText>
+                                <MudStack Row Spacing="2" AlignItems="AlignItems.Center">
+                                    <MudIcon Icon="@Icons.Material.Filled.Schedule" Size="Size.Small" />
+                                    <MudText Typo="Typo.caption">
+                                        @proposal.EstimatedDuration weeks
+                                    </MudText>
+                                </MudStack>
+                            </MudCardContent>
+                            <MudCardActions>
+                                <MudButton
+                                    Size="Size.Small"
+                                    Color="Color.Primary"
+                                    OnClick="@(() => ViewProposal(proposal.Id))">
+                                    View Details
+                                </MudButton>
+                                @if (proposal.Status == "Draft")
+                                {
+                                    <MudButton
+                                        Size="Size.Small"
+                                        Color="Color.Secondary"
+                                        OnClick="@(() => SendProposal(proposal.Id))">
+                                        Send
+                                    </MudButton>
+                                }
+                            </MudCardActions>
+                        </MudCard>
+                    </MudItem>
+                }
+            </MudGrid>
+        }
+        else
+        {
+            <div class="text-center py-8">
+                <MudIcon Icon="@Icons.Material.Filled.Send" Size="Size.Large" Color="Color.Secondary" />
+                <MudText Typo="Typo.h6" Color="Color.Secondary" Class="mt-2">No proposals yet</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    Create your first proposal to get started.
+                </MudText>
+                <MudButton
+                    StartIcon="@Icons.Material.Filled.Add"
+                    Color="Color.Primary"
+                    Variant="Variant.Outlined"
+                    Class="mt-3"
+                    OnClick="CreateProposal">
+                    Create Proposal
+                </MudButton>
+            </div>
+        }
+    </MudStack>
+</MudContainer>
+
+<style>
+.proposal-card {
+    transition: transform 0.2s ease;
+}
+
+.proposal-card:hover {
+    transform: translateY(-2px);
+}
+</style>
+
+@code {
+    private List<ProposalDto> proposals = new();
+    private bool isLoading = false;
+    private string errorMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CheckAuthAndRedirect();
+        await LoadProposalsAsync();
+    }
+
+    private async Task CheckAuthAndRedirect()
+    {
+        try
+        {
+            var response = await HttpClient.GetAsync("/auth/me");
+            if (!response.IsSuccessStatusCode)
+            {
+                NavigationManager.NavigateTo("/auth/trainer/login");
+                return;
+            }
+
+            var userInfo = await response.Content.ReadFromJsonAsync<JsonElement>();
+            if (userInfo.GetProperty("userType").GetString() != "trainer")
+            {
+                NavigationManager.NavigateTo("/auth/trainer/login");
+            }
+        }
+        catch
+        {
+            NavigationManager.NavigateTo("/auth/trainer/login");
+        }
+    }
+
+    private async Task LoadProposalsAsync()
+    {
+        isLoading = true;
+        errorMessage = "";
+
+        try
+        {
+            // For now, using mock data since the API endpoint may not exist yet
+            proposals = GetMockProposals();
+
+            // Uncomment when API endpoint is available:
+            // var response = await HttpClient.GetAsync("/api/trainer/proposals");
+            // if (response.IsSuccessStatusCode)
+            // {
+            //     proposals = await response.Content.ReadFromJsonAsync<List<ProposalDto>>() ?? new();
+            // }
+            // else
+            // {
+            //     errorMessage = "Failed to load proposals.";
+            // }
+        }
+        catch (Exception)
+        {
+            errorMessage = "Network error while loading proposals.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private List<ProposalDto> GetMockProposals()
+    {
+        return new List<ProposalDto>
+        {
+            new ProposalDto
+            {
+                Id = "1",
+                ClientName = "John Doe",
+                Description = "8-week strength training program focusing on compound movements",
+                Status = "Draft",
+                EstimatedDuration = 8,
+                CreatedAt = DateTimeOffset.Now.AddDays(-2)
+            },
+            new ProposalDto
+            {
+                Id = "2",
+                ClientName = "Sarah Johnson",
+                Description = "12-week rehabilitation program for knee recovery",
+                Status = "Sent",
+                EstimatedDuration = 12,
+                CreatedAt = DateTimeOffset.Now.AddDays(-5)
+            },
+            new ProposalDto
+            {
+                Id = "3",
+                ClientName = "Mike Wilson",
+                Description = "6-week HIIT program for cardiovascular improvement",
+                Status = "Accepted",
+                EstimatedDuration = 6,
+                CreatedAt = DateTimeOffset.Now.AddDays(-10)
+            }
+        };
+    }
+
+    private Color GetStatusColor(string status) => status switch
+    {
+        "Draft" => Color.Default,
+        "Sent" => Color.Warning,
+        "Accepted" => Color.Success,
+        "Rejected" => Color.Error,
+        _ => Color.Default
+    };
+
+    private void CreateProposal()
+    {
+        Snackbar.Add("Create proposal functionality coming soon", Severity.Info);
+    }
+
+    private void ViewProposal(string proposalId)
+    {
+        Snackbar.Add($"View proposal {proposalId} functionality coming soon", Severity.Info);
+    }
+
+    private async Task SendProposal(string proposalId)
+    {
+        var proposal = proposals.FirstOrDefault(p => p.Id == proposalId);
+        if (proposal != null)
+        {
+            proposal.Status = "Sent";
+            Snackbar.Add("Proposal sent successfully", Severity.Success);
+            StateHasChanged();
+        }
+    }
+
+    public class ProposalDto
+    {
+        public string Id { get; set; } = "";
+        public string ClientName { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string Status { get; set; } = "";
+        public int EstimatedDuration { get; set; }
+        public DateTimeOffset CreatedAt { get; set; }
+    }
+}
