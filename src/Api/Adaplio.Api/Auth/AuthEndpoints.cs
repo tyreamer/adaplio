@@ -50,12 +50,8 @@ public static class AuthEndpoints
                 IpAddress = httpContext.Connection.RemoteIpAddress?.ToString()
             };
 
-            // Clean up old expired links for this email
-            var expiredLinks = await context.MagicLinks
-                .Where(ml => ml.Email == request.Email.ToLowerInvariant() && ml.ExpiresAt < DateTimeOffset.UtcNow)
-                .ToListAsync();
-
-            context.MagicLinks.RemoveRange(expiredLinks);
+            // Skip cleanup for now to avoid PostgreSQL type conversion issues
+            // TODO: Fix timestamp column types in database schema
             context.MagicLinks.Add(magicLink);
             await context.SaveChangesAsync();
 
@@ -80,12 +76,17 @@ public static class AuthEndpoints
     {
         try
         {
-            // Find valid magic link
+            // Find valid magic link (avoid timestamp comparison due to PostgreSQL type issues)
             var magicLink = await context.MagicLinks
                 .FirstOrDefaultAsync(ml =>
                     ml.Code == request.Code &&
-                    ml.ExpiresAt > DateTimeOffset.UtcNow &&
                     ml.UsedAt == null);
+
+            // Check expiration on the client side to avoid PostgreSQL type conversion issues
+            if (magicLink != null && magicLink.ExpiresAt <= DateTimeOffset.UtcNow)
+            {
+                magicLink = null;
+            }
 
             if (magicLink == null)
             {

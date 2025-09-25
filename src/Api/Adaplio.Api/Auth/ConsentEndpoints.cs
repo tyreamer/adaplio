@@ -117,14 +117,19 @@ public static class ConsentEndpoints
                 return Results.NotFound("Client profile not found");
             }
 
-            // Find valid grant code
+            // Find valid grant code (avoid timestamp comparison due to PostgreSQL type issues)
             var grantCode = await context.GrantCodes
                 .Include(gc => gc.TrainerProfile)
                     .ThenInclude(tp => tp.User)
                 .FirstOrDefaultAsync(gc =>
                     gc.Code == request.GrantCode &&
-                    gc.ExpiresAt > DateTimeOffset.UtcNow &&
                     gc.UsedAt == null);
+
+            // Check expiration on the client side to avoid PostgreSQL type conversion issues
+            if (grantCode != null && grantCode.ExpiresAt <= DateTimeOffset.UtcNow)
+            {
+                grantCode = null;
+            }
 
             if (grantCode == null)
             {

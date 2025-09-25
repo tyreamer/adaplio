@@ -35,12 +35,38 @@ public class AppDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Configure PostgreSQL boolean/integer mapping for is_verified column
+        // Configure PostgreSQL type conversions
         if (Database.ProviderName == "Npgsql.EntityFrameworkCore.PostgreSQL")
         {
+            // Boolean to integer conversion for is_verified column
             modelBuilder.Entity<AppUser>()
                 .Property(u => u.IsVerified)
                 .HasConversion<int>();
+
+            // Handle text to timestamp conversions for columns that might be stored as text
+            modelBuilder.Entity<MagicLink>()
+                .Property(ml => ml.ExpiresAt)
+                .HasColumnType("timestamp with time zone");
+
+            modelBuilder.Entity<MagicLink>()
+                .Property(ml => ml.UsedAt)
+                .HasColumnType("timestamp with time zone");
+
+            modelBuilder.Entity<MagicLink>()
+                .Property(ml => ml.CreatedAt)
+                .HasColumnType("timestamp with time zone");
+
+            modelBuilder.Entity<GrantCode>()
+                .Property(gc => gc.ExpiresAt)
+                .HasColumnType("timestamp with time zone");
+
+            modelBuilder.Entity<GrantCode>()
+                .Property(gc => gc.UsedAt)
+                .HasColumnType("timestamp with time zone");
+
+            modelBuilder.Entity<GrantCode>()
+                .Property(gc => gc.CreatedAt)
+                .HasColumnType("timestamp with time zone");
         }
 
         // Configure unique constraints
