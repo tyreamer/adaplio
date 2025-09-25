@@ -57,120 +57,25 @@
         <a class="dismiss">🗙</a>
     </div>
     <script>
-        // Comprehensive error tracking and debugging
-        console.log('[DEBUG] Starting comprehensive event listener debugging');
-
-        // Track all event listener operations
-        const eventListenerLog = [];
-
-        // Override addEventListener with comprehensive debugging
+        // Fix for "handleEvent is not callable" error
         (function() {
             const originalAddEventListener = EventTarget.prototype.addEventListener;
             EventTarget.prototype.addEventListener = function(type, listener, options) {
-                const debugInfo = {
-                    timestamp: Date.now(),
-                    element: this.tagName || this.constructor.name,
-                    eventType: type,
-                    listenerType: typeof listener,
-                    hasHandleEvent: listener && typeof listener === 'object' && typeof listener.handleEvent === 'function',
-                    listener: listener
-                };
-
-                eventListenerLog.push(debugInfo);
-                console.log('[EVENT LISTENER]', debugInfo);
-
-                // Check for problematic listeners
                 if (listener && typeof listener === 'object' && typeof listener.handleEvent !== 'function') {
-                    console.error('[HANDLEVENT ERROR] Invalid event listener detected:', {
-                        element: this.tagName || this.constructor.name,
-                        eventType: type,
-                        listener: listener,
-                        listenerKeys: Object.keys(listener),
-                        stack: new Error().stack
-                    });
-
-                    // Replace with safe dummy function
-                    listener = function() {
-                        console.log('[DUMMY LISTENER] Called for', type, 'on', this.tagName || this.constructor.name);
-                    };
+                    listener = function() {}; // Replace with dummy function
                 }
-
                 return originalAddEventListener.call(this, type, listener, options);
             };
         })();
 
-        // Override dispatchEvent to catch handleEvent calls
-        (function() {
-            const originalDispatchEvent = EventTarget.prototype.dispatchEvent;
-            EventTarget.prototype.dispatchEvent = function(event) {
-                console.log('[EVENT DISPATCH]', {
-                    element: this.tagName || this.constructor.name,
-                    eventType: event.type,
-                    timestamp: Date.now()
-                });
-
-                try {
-                    return originalDispatchEvent.call(this, event);
-                } catch (error) {
-                    console.error('[EVENT DISPATCH ERROR]', {
-                        element: this.tagName || this.constructor.name,
-                        eventType: event.type,
-                        error: error.message,
-                        stack: error.stack
-                    });
-                    throw error;
-                }
-            };
-        })();
-
-        // Global error handler for uncaught errors
-        window.addEventListener('error', function(event) {
-            if (event.message && event.message.includes('handleEvent')) {
-                console.error('[GLOBAL HANDLEVENT ERROR]', {
-                    message: event.message,
-                    filename: event.filename,
-                    lineno: event.lineno,
-                    colno: event.colno,
-                    stack: event.error ? event.error.stack : 'No stack trace',
-                    eventListenerLog: eventListenerLog.slice(-10) // Last 10 listener operations
-                });
-            }
-        });
-
-        // Unhandled promise rejection handler
-        window.addEventListener('unhandledrejection', function(event) {
-            if (event.reason && event.reason.message && event.reason.message.includes('handleEvent')) {
-                console.error('[PROMISE HANDLEVENT ERROR]', {
-                    reason: event.reason.message,
-                    stack: event.reason.stack,
-                    eventListenerLog: eventListenerLog.slice(-10)
-                });
-            }
-        });
-
         // Disable service worker completely
         if ('serviceWorker' in navigator) {
-            console.log('[DEBUG] Disabling service workers');
             navigator.serviceWorker.getRegistrations().then(function(registrations) {
                 for(let registration of registrations) {
-                    registration.unregister().then(function(success) {
-                        if (success) {
-                            console.log('[SERVICE WORKER] Unregistered successfully');
-                        }
-                    });
+                    registration.unregister();
                 }
-            }).catch(function(error) {
-                console.log('[SERVICE WORKER ERROR]', error);
             });
         }
-
-        // Debug function to inspect event listeners
-        window.debugEventListeners = function() {
-            console.log('[DEBUG] Event listener log:', eventListenerLog);
-            return eventListenerLog;
-        };
-
-        console.log('[DEBUG] Event listener debugging initialized');
     </script>
     <script src="_framework/blazor.webassembly.js"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
