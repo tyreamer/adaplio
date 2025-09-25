@@ -104,6 +104,9 @@ builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+builder.WebHost.UseUrls($"http://*:{port}");
+
 var app = builder.Build();
 
 // Ensure database is created and migrated
@@ -128,8 +131,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
-
 // Add rate limiting
 app.UseIpRateLimiting();
 
@@ -139,6 +140,11 @@ app.UseCors("AllowFrontend");
 // Add authentication & authorization
 app.UseAuthentication();
 app.UseAuthorization();
+
+if (!app.Environment.IsProduction())
+{
+    app.UseHttpsRedirection();
+}
 
 var summaries = new[]
 {
