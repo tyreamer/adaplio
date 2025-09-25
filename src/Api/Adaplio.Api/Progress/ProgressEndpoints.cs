@@ -1,5 +1,6 @@
 using Adaplio.Api.Data;
 using Adaplio.Api.Domain;
+using Adaplio.Api.Gamification;
 using Adaplio.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
@@ -33,6 +34,7 @@ public static class ProgressEndpoints
         LogProgressRequest request,
         AppDbContext context,
         IProgressService progressService,
+        IGamificationService gamificationService,
         HttpContext httpContext)
     {
         try
@@ -95,9 +97,26 @@ public static class ProgressEndpoints
             var weekStart = GetWeekStart(currentDate);
             await progressService.UpdateAdherenceWeekAsync(clientProfile.Id, weekStart);
 
+            // Award XP and check for celebrations (idempotent)
+            var gamificationResult = await gamificationService.AwardXpForProgressAsync(progressEvent.Id, clientProfile.Id);
+
+            // Create celebration data if there are rewards
+            CelebrationData? celebration = null;
+            if (gamificationResult.XpAwarded > 0 || gamificationResult.NewBadges.Count > 0)
+            {
+                celebration = new CelebrationData(
+                    gamificationResult.XpAwarded,
+                    gamificationResult.LeveledUp,
+                    gamificationResult.LeveledUp ? gamificationResult.CurrentLevel : null,
+                    gamificationResult.NewBadges.Select(b => new BadgeDto(b.Id, b.Name, b.Description, b.Icon, b.Color, b.Rarity, b.EarnedAt)).ToArray(),
+                    gamificationResult.CurrentStreak
+                );
+            }
+
             return Results.Ok(new LogProgressResponse(
                 "Progress logged successfully",
-                progressEvent.Id
+                progressEvent.Id,
+                celebration
             ));
         }
         catch (Exception)

@@ -300,3 +300,70 @@ body {
     --elevation-5: 0 0 0 5px var(--color-neutral-900);
   }
 }
+
+/* Animations */
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Layout Responsive Styles */
+@media (max-width: 900px) {
+  .content-container {
+    padding: var(--space-lg) var(--space-md) !important;
+    margin-bottom: 80px !important; /* Space for bottom nav */
+  }
+
+  .primary-cta {
+    display: none !important;
+  }
+
+  .nav-item {
+    margin: 0 var(--space-sm) var(--space-xs) var(--space-sm) !important;
+    padding: var(--space-md) !important;
+    min-height: 48px !important;
+  }
+
+  .nav-section-title {
+    padding: var(--space-md) var(--space-md) var(--space-sm) var(--space-md) !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .brand-text {
+    display: none !important;
+  }
+
+  .content-container {
+    padding: var(--space-md) !important;
+  }
+}
+
+/* Drawer mini mode adjustments */
+@media (min-width: 901px) {
+  .mud-drawer-mini .nav-text {
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: opacity var(--duration-fast) var(--easing-standard),
+                transform var(--duration-fast) var(--easing-standard);
+  }
+
+  .mud-drawer-mini:hover .nav-text {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .mud-drawer-mini .nav-section-title {
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: opacity var(--duration-fast) var(--easing-standard),
+                transform var(--duration-fast) var(--easing-standard);
+  }
+
+  .mud-drawer-mini:hover .nav-section-title {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

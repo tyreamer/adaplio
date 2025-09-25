@@ -28,7 +28,8 @@ public class AppDbContext : DbContext
     public DbSet<PlanItemAcceptance> PlanItemAcceptances { get; set; }
     public DbSet<ProgressEvent> ProgressEvents { get; set; }
     public DbSet<AdherenceWeek> AdherenceWeeks { get; set; }
-    public DbSet<Gamification> Gamifications { get; set; }
+    public DbSet<Domain.Gamification> Gamifications { get; set; }
+    public DbSet<XpAward> XpAwards { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -52,8 +53,8 @@ public class AppDbContext : DbContext
             .HasIndex(t => t.UserId)
             .IsUnique();
 
-        modelBuilder.Entity<Gamification>()
-            .HasIndex(g => g.ClientProfileId)
+        modelBuilder.Entity<XpAward>()
+            .HasIndex(xa => xa.ProgressEventId)
             .IsUnique();
 
         // Configure composite unique constraints
@@ -142,7 +143,7 @@ public class AppDbContext : DbContext
                 .Property(aw => aw.WeekStartDate)
                 .HasConversion<DateOnlyConverter>();
 
-            modelBuilder.Entity<Gamification>()
+            modelBuilder.Entity<Domain.Gamification>()
                 .Property(g => g.LastActivityDate)
                 .HasConversion<DateOnlyConverter>();
         }

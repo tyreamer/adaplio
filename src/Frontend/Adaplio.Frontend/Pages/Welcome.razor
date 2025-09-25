@@ -375,12 +375,6 @@
     animation-delay: var(--delay);
 }
 
-@keyframes fadeInUp {
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
 
 .card-header {
     display: flex;
@@ -621,80 +615,6 @@
     background-clip: text;
 }
 
-/* Responsive Design */
-@media (max-width: 900px) {
-    .hero-content {
-        grid-template-columns: 1fr;
-        text-align: center;
-        gap: var(--space-xxxl);
-    }
-
-    .hero-title {
-        font-size: 2.5rem;
-    }
-
-    .hero-actions {
-        justify-content: center;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .hero-cta {
-        width: 100%;
-        max-width: 300px;
-    }
-
-    .testimonial-carousel {
-        grid-template-columns: 1fr;
-    }
-
-    .footer-content {
-        grid-template-columns: 1fr;
-        text-align: center;
-        gap: var(--space-xxl);
-    }
-}
-
-@media (max-width: 600px) {
-    .hero-section {
-        padding: var(--space-xxxl) 0 var(--space-xxl) 0;
-    }
-
-    .hero-title {
-        font-size: 2rem;
-    }
-
-    .hero-subtitle {
-        font-size: 1.1rem;
-    }
-
-    .logo-grid {
-        gap: var(--space-lg);
-    }
-
-    .stat-chip {
-        font-size: var(--font-size-xs);
-        padding: var(--space-xs) var(--space-md);
-    }
-
-    .trust-signals .mud-stack {
-        flex-direction: column !important;
-        align-items: center !important;
-        gap: var(--space-md) !important;
-    }
-}
-
-/* Dark mode adjustments */
-@media (prefers-color-scheme: dark) {
-    .welcome-page {
-        background: linear-gradient(135deg, var(--color-background) 0%, var(--color-neutral-50) 100%);
-    }
-
-    .logo-placeholder {
-        background: var(--color-neutral-100);
-        color: var(--color-neutral-700);
-    }
-}
 </style>
 
 @code {

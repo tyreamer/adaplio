@@ -1,6 +1,7 @@
 using Adaplio.Api.Auth;
 using Adaplio.Api.Data;
 using Adaplio.Api.Dev;
+using Adaplio.Api.Gamification;
 using Adaplio.Api.Plans;
 using Adaplio.Api.Progress;
 using Adaplio.Api.Services;
@@ -34,6 +35,7 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IAliasService, AliasService>();
 builder.Services.AddScoped<IProgressService, ProgressService>();
 builder.Services.AddScoped<IPlanService, PlanService>();
+builder.Services.AddScoped<IGamificationService, GamificationService>();
 
 // Add JWT authentication
 var jwtSecret = builder.Configuration["Jwt:Secret"] ?? "your-256-bit-secret-key-here-make-it-long-enough-for-security";
@@ -165,6 +167,9 @@ app.MapProgressEndpoints();
 
 // Map plan endpoints
 app.MapPlanEndpoints();
+
+// Map gamification endpoints
+app.MapGamificationEndpoints();
 
 // Map development endpoints (only in development)
 if (app.Environment.IsDevelopment())

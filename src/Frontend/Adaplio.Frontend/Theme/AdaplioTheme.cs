@@ -29,7 +29,6 @@ public static class AdaplioTheme
             // Surface colors
             Surface = DesignTokens.Colors.Light.Surface,
             Background = DesignTokens.Colors.Light.Background,
-            BackgroundGrey = DesignTokens.Colors.Light.Neutral50,
 
             // Text colors
             TextPrimary = DesignTokens.Colors.Light.OnSurface,
@@ -87,7 +86,6 @@ public static class AdaplioTheme
             // Surface colors
             Surface = DesignTokens.Colors.Dark.Surface,
             Background = DesignTokens.Colors.Dark.Background,
-            BackgroundGrey = DesignTokens.Colors.Dark.Neutral50,
 
             // Text colors
             TextPrimary = DesignTokens.Colors.Dark.OnSurface,

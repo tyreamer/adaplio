@@ -239,45 +239,6 @@
     outline-offset: 2px;
 }
 
-/* Drawer mini mode adjustments */
-@media (min-width: 901px) {
-    .mud-drawer-mini .nav-text {
-        opacity: 0;
-        transform: translateX(-10px);
-        transition: opacity var(--duration-fast) var(--easing-standard),
-                    transform var(--duration-fast) var(--easing-standard);
-    }
-
-    .mud-drawer-mini:hover .nav-text {
-        opacity: 1;
-        transform: translateX(0);
-    }
-
-    .mud-drawer-mini .nav-section-title {
-        opacity: 0;
-        transform: translateX(-10px);
-        transition: opacity var(--duration-fast) var(--easing-standard),
-                    transform var(--duration-fast) var(--easing-standard);
-    }
-
-    .mud-drawer-mini:hover .nav-section-title {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-/* Mobile adjustments */
-@media (max-width: 900px) {
-    .nav-item {
-        margin: 0 var(--space-sm) var(--space-xs) var(--space-sm) !important;
-        padding: var(--space-md) !important;
-        min-height: 48px !important;
-    }
-
-    .nav-section-title {
-        padding: var(--space-md) var(--space-md) var(--space-sm) var(--space-md);
-    }
-}
 </style>
 
 @code {

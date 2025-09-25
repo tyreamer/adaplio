@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Adaplio.Api.Gamification;
 
 namespace Adaplio.Api.Progress;
 
@@ -16,7 +17,8 @@ public record LogProgressRequest(
 
 public record LogProgressResponse(
     string Message,
-    int ProgressEventId
+    int ProgressEventId,
+    CelebrationData? Celebration
 );
 
 // Adherence summary responses
