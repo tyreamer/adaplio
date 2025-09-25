@@ -1,7 +1,7 @@
 @using Adaplio.Frontend.Theme
 @inject ThemeService ThemeService
 
-<MudThemeProvider Theme="@ThemeService.CurrentTheme" IsDarkMode="@ThemeService.IsDarkMode" />
+<MudThemeProvider Theme="@GetSafeTheme()" IsDarkMode="@ThemeService.IsDarkMode" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
@@ -24,6 +24,19 @@
     {
         await ThemeService.InitializeAsync();
         ThemeService.OnThemeChanged += StateHasChanged;
+    }
+
+    private MudBlazor.MudTheme GetSafeTheme()
+    {
+        try
+        {
+            return ThemeService.CurrentTheme;
+        }
+        catch
+        {
+            // Fallback to basic light theme if there's an error
+            return new MudBlazor.MudTheme();
+        }
     }
 
     public void Dispose()

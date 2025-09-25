@@ -18,7 +18,21 @@ public class ThemeService
 
     public bool IsDarkMode => _isDarkMode;
 
-    public MudTheme CurrentTheme => _isDarkMode ? AdaplioTheme.DarkTheme : AdaplioTheme.LightTheme;
+    public MudTheme CurrentTheme
+    {
+        get
+        {
+            try
+            {
+                return _isDarkMode ? AdaplioTheme.DarkTheme : AdaplioTheme.LightTheme;
+            }
+            catch
+            {
+                // Fallback to default theme if there's any error
+                return new MudTheme();
+            }
+        }
+    }
 
     public async Task InitializeAsync()
     {

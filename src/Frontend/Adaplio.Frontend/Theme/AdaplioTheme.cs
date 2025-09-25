@@ -195,34 +195,22 @@ public static class AdaplioTheme
     /// </summary>
     private static string[] CreateElevationArray()
     {
-        return new string[]
+        var elevations = new string[25];
+
+        // Safely populate elevation levels
+        elevations[0] = DesignTokens.Elevation.Light.Level0;
+        elevations[1] = DesignTokens.Elevation.Light.Level1;
+        elevations[2] = DesignTokens.Elevation.Light.Level2;
+        elevations[3] = DesignTokens.Elevation.Light.Level3;
+        elevations[4] = DesignTokens.Elevation.Light.Level4;
+
+        // Fill remaining slots with highest level
+        for (int i = 5; i < 25; i++)
         {
-            DesignTokens.Elevation.Light.Level0,  // 0
-            DesignTokens.Elevation.Light.Level1,  // 1
-            DesignTokens.Elevation.Light.Level2,  // 2
-            DesignTokens.Elevation.Light.Level3,  // 3
-            DesignTokens.Elevation.Light.Level4,  // 4
-            DesignTokens.Elevation.Light.Level5,  // 5
-            DesignTokens.Elevation.Light.Level5,  // 6
-            DesignTokens.Elevation.Light.Level5,  // 7
-            DesignTokens.Elevation.Light.Level5,  // 8
-            DesignTokens.Elevation.Light.Level5,  // 9
-            DesignTokens.Elevation.Light.Level5,  // 10
-            DesignTokens.Elevation.Light.Level5,  // 11
-            DesignTokens.Elevation.Light.Level5,  // 12
-            DesignTokens.Elevation.Light.Level5,  // 13
-            DesignTokens.Elevation.Light.Level5,  // 14
-            DesignTokens.Elevation.Light.Level5,  // 15
-            DesignTokens.Elevation.Light.Level5,  // 16
-            DesignTokens.Elevation.Light.Level5,  // 17
-            DesignTokens.Elevation.Light.Level5,  // 18
-            DesignTokens.Elevation.Light.Level5,  // 19
-            DesignTokens.Elevation.Light.Level5,  // 20
-            DesignTokens.Elevation.Light.Level5,  // 21
-            DesignTokens.Elevation.Light.Level5,  // 22
-            DesignTokens.Elevation.Light.Level5,  // 23
-            DesignTokens.Elevation.Light.Level5   // 24
-        };
+            elevations[i] = DesignTokens.Elevation.Light.Level5;
+        }
+
+        return elevations;
     }
 
     /// <summary>
@@ -230,33 +218,21 @@ public static class AdaplioTheme
     /// </summary>
     private static string[] CreateDarkElevationArray()
     {
-        return new string[]
+        var elevations = new string[25];
+
+        // Safely populate elevation levels
+        elevations[0] = DesignTokens.Elevation.Dark.Level0;
+        elevations[1] = DesignTokens.Elevation.Dark.Level1;
+        elevations[2] = DesignTokens.Elevation.Dark.Level2;
+        elevations[3] = DesignTokens.Elevation.Dark.Level3;
+        elevations[4] = DesignTokens.Elevation.Dark.Level4;
+
+        // Fill remaining slots with highest level
+        for (int i = 5; i < 25; i++)
         {
-            DesignTokens.Elevation.Dark.Level0,  // 0
-            DesignTokens.Elevation.Dark.Level1,  // 1
-            DesignTokens.Elevation.Dark.Level2,  // 2
-            DesignTokens.Elevation.Dark.Level3,  // 3
-            DesignTokens.Elevation.Dark.Level4,  // 4
-            DesignTokens.Elevation.Dark.Level5,  // 5
-            DesignTokens.Elevation.Dark.Level5,  // 6
-            DesignTokens.Elevation.Dark.Level5,  // 7
-            DesignTokens.Elevation.Dark.Level5,  // 8
-            DesignTokens.Elevation.Dark.Level5,  // 9
-            DesignTokens.Elevation.Dark.Level5,  // 10
-            DesignTokens.Elevation.Dark.Level5,  // 11
-            DesignTokens.Elevation.Dark.Level5,  // 12
-            DesignTokens.Elevation.Dark.Level5,  // 13
-            DesignTokens.Elevation.Dark.Level5,  // 14
-            DesignTokens.Elevation.Dark.Level5,  // 15
-            DesignTokens.Elevation.Dark.Level5,  // 16
-            DesignTokens.Elevation.Dark.Level5,  // 17
-            DesignTokens.Elevation.Dark.Level5,  // 18
-            DesignTokens.Elevation.Dark.Level5,  // 19
-            DesignTokens.Elevation.Dark.Level5,  // 20
-            DesignTokens.Elevation.Dark.Level5,  // 21
-            DesignTokens.Elevation.Dark.Level5,  // 22
-            DesignTokens.Elevation.Dark.Level5,  // 23
-            DesignTokens.Elevation.Dark.Level5   // 24
-        };
+            elevations[i] = DesignTokens.Elevation.Dark.Level5;
+        }
+
+        return elevations;
     }
 }
