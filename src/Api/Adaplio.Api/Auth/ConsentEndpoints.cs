@@ -18,9 +18,6 @@ public static class ConsentEndpoints
             .RequireAuthorization()
             .WithName("CreateGrant");
 
-        consentGroup.MapGet("/trainer/clients", GetTrainerClients)
-            .RequireAuthorization()
-            .WithName("GetTrainerClients");
 
         // Client endpoints
         consentGroup.MapPost("/client/grants/accept", AcceptGrant)
@@ -186,64 +183,6 @@ public static class ConsentEndpoints
         }
     }
 
-    private static async Task<IResult> GetTrainerClients(
-        AppDbContext context,
-        IAliasService aliasService,
-        HttpContext httpContext)
-    {
-        try
-        {
-            var userId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var userType = httpContext.User.FindFirst("user_type")?.Value;
-
-            if (string.IsNullOrEmpty(userId) || userType != "trainer")
-            {
-                return Results.Forbid();
-            }
-
-            // Get trainer profile
-            var trainerProfile = await context.TrainerProfiles
-                .FirstOrDefaultAsync(tp => tp.UserId == int.Parse(userId));
-
-            if (trainerProfile == null)
-            {
-                return Results.NotFound("Trainer profile not found");
-            }
-
-            // Get all active consent grants for this trainer grouped by client
-            var clientGrants = await context.ConsentGrants
-                .Include(cg => cg.ClientProfile)
-                .Where(cg => cg.TrainerProfileId == trainerProfile.Id && cg.RevokedAt == null)
-                .GroupBy(cg => cg.ClientProfileId)
-                .Select(group => new
-                {
-                    ClientId = group.Key,
-                    ClientProfile = group.First().ClientProfile,
-                    Scopes = group.Select(cg => cg.Scope).ToArray(),
-                    GrantedAt = group.Min(cg => cg.GrantedAt)
-                })
-                .ToListAsync();
-
-            var clients = clientGrants.Select(cg =>
-            {
-                var clientAlias = aliasService.GenerateClientAlias(cg.ClientId, trainerProfile.Id);
-
-                return new TrainerClientDto(
-                    ClientAlias: clientAlias,
-                    Scopes: cg.Scopes,
-                    AdherencePct: 0.0m, // Placeholder - will be calculated later
-                    LastActivity: null, // Placeholder - will be calculated later
-                    GrantedAt: cg.GrantedAt
-                );
-            }).ToArray();
-
-            return Results.Ok(new TrainerClientsResponse(clients));
-        }
-        catch (Exception ex)
-        {
-            return Results.Problem("Failed to retrieve clients. Please try again.");
-        }
-    }
 
     private static async Task<IResult> SeedGrant(
         AppDbContext context,
