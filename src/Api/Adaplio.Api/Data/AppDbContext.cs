@@ -48,29 +48,59 @@ public class AppDbContext : DbContext
                 .Property(u => u.IsVerified)
                 .HasConversion<int>();
 
-            // Handle text to timestamp conversions for columns that might be stored as text
+            // Configure all DateTimeOffset columns to use proper PostgreSQL timestamp type
+            // AppUser
+            modelBuilder.Entity<AppUser>()
+                .Property(u => u.CreatedAt)
+                .HasColumnType("timestamp with time zone");
+            modelBuilder.Entity<AppUser>()
+                .Property(u => u.UpdatedAt)
+                .HasColumnType("timestamp with time zone");
+
+            // MagicLink
             modelBuilder.Entity<MagicLink>()
                 .Property(ml => ml.ExpiresAt)
                 .HasColumnType("timestamp with time zone");
-
             modelBuilder.Entity<MagicLink>()
                 .Property(ml => ml.UsedAt)
                 .HasColumnType("timestamp with time zone");
-
             modelBuilder.Entity<MagicLink>()
                 .Property(ml => ml.CreatedAt)
                 .HasColumnType("timestamp with time zone");
 
+            // GrantCode
             modelBuilder.Entity<GrantCode>()
                 .Property(gc => gc.ExpiresAt)
                 .HasColumnType("timestamp with time zone");
-
             modelBuilder.Entity<GrantCode>()
                 .Property(gc => gc.UsedAt)
                 .HasColumnType("timestamp with time zone");
-
             modelBuilder.Entity<GrantCode>()
                 .Property(gc => gc.CreatedAt)
+                .HasColumnType("timestamp with time zone");
+
+            // ClientProfile
+            modelBuilder.Entity<ClientProfile>()
+                .Property(cp => cp.CreatedAt)
+                .HasColumnType("timestamp with time zone");
+            modelBuilder.Entity<ClientProfile>()
+                .Property(cp => cp.UpdatedAt)
+                .HasColumnType("timestamp with time zone");
+
+            // TrainerProfile
+            modelBuilder.Entity<TrainerProfile>()
+                .Property(tp => tp.CreatedAt)
+                .HasColumnType("timestamp with time zone");
+            modelBuilder.Entity<TrainerProfile>()
+                .Property(tp => tp.UpdatedAt)
+                .HasColumnType("timestamp with time zone");
+
+            // ConsentGrant
+            modelBuilder.Entity<ConsentGrant>()
+                .Property(cg => cg.CreatedAt)
+                .HasColumnType("timestamp with time zone");
+            modelBuilder.Entity<ConsentGrant>()
+                .Property(cg => cg.RevokedAt)
                 .HasColumnType("timestamp with time zone");
         }
 
@@ -207,9 +237,18 @@ public class AppDbContext : DbContext
 
         foreach (var entry in entries)
         {
-            if (entry.Property("UpdatedAt").CurrentValue != null)
+            try
             {
-                entry.Property("UpdatedAt").CurrentValue = DateTimeOffset.UtcNow;
+                // Check if the entity has an UpdatedAt property
+                var updatedAtProperty = entry.Properties.FirstOrDefault(p => p.Metadata.Name == "UpdatedAt");
+                if (updatedAtProperty != null)
+                {
+                    updatedAtProperty.CurrentValue = DateTimeOffset.UtcNow;
+                }
+            }
+            catch
+            {
+                // Skip if property doesn't exist - some entities might not have UpdatedAt
             }
         }
     }
