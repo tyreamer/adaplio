@@ -1,0 +1,351 @@
+/* Motion and Microinteractions - Premium 2025 Design */
+
+/* CSS Custom Properties for Motion */
+:root {
+    /* Duration tokens */
+    --motion-duration-fast: 120ms;
+    --motion-duration-base: 200ms;
+    --motion-duration-gentle: 280ms;
+    --motion-duration-slow: 400ms;
+
+    /* Easing tokens */
+    --motion-easing-standard: cubic-bezier(0.4, 0.0, 0.2, 1);
+    --motion-easing-decelerated: cubic-bezier(0.0, 0.0, 0.2, 1);
+    --motion-easing-accelerated: cubic-bezier(0.4, 0.0, 1, 1);
+    --motion-easing-emphasized: cubic-bezier(0.2, 0.0, 0, 1);
+}
+
+/* Global Motion Preferences */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Enhanced Button Interactions */
+.mud-button {
+    transition: all var(--motion-duration-base) var(--motion-easing-standard);
+    position: relative;
+    overflow: hidden;
+}
+
+.mud-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 24, 40, 0.15);
+}
+
+.mud-button:active {
+    transform: translateY(0);
+    transition-duration: var(--motion-duration-fast);
+}
+
+/* Ripple Effect Enhancement */
+.mud-button::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width var(--motion-duration-gentle) var(--motion-easing-emphasized),
+                height var(--motion-duration-gentle) var(--motion-easing-emphasized);
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0;
+}
+
+.mud-button:active::before {
+    width: 300px;
+    height: 300px;
+    opacity: 1;
+    transition-duration: var(--motion-duration-fast);
+}
+
+/* Enhanced Card Interactions */
+.mud-card {
+    transition: all var(--motion-duration-base) var(--motion-easing-standard);
+    will-change: transform, box-shadow;
+}
+
+.mud-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(16, 24, 40, 0.12);
+}
+
+/* Form Input Focus Animations */
+.mud-input-control:focus-within {
+    animation: inputFocus var(--motion-duration-gentle) var(--motion-easing-emphasized);
+}
+
+@keyframes inputFocus {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.01);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Progress Animations */
+.mud-progress-linear .mud-progress-linear-bar {
+    animation: progressFlow 2s var(--motion-easing-standard) infinite;
+}
+
+@keyframes progressFlow {
+    0% {
+        background-position: -200px 0;
+    }
+    100% {
+        background-position: calc(200px + 100%) 0;
+    }
+}
+
+/* Loading State Animations */
+.mud-progress-circular {
+    animation: rotate 1.4s linear infinite;
+}
+
+@keyframes rotate {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Enhanced Menu and Dropdown Animations */
+.mud-menu .mud-paper {
+    animation: slideInScale var(--motion-duration-gentle) var(--motion-easing-emphasized);
+    transform-origin: top center;
+}
+
+@keyframes slideInScale {
+    0% {
+        opacity: 0;
+        transform: scale(0.9) translateY(-10px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Snackbar Animations */
+.mud-snackbar {
+    animation: slideInFromBottom var(--motion-duration-gentle) var(--motion-easing-emphasized);
+}
+
+@keyframes slideInFromBottom {
+    0% {
+        transform: translateY(100px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Dialog Animations */
+.mud-dialog {
+    animation: dialogAppear var(--motion-duration-gentle) var(--motion-easing-emphasized);
+}
+
+@keyframes dialogAppear {
+    0% {
+        opacity: 0;
+        transform: scale(0.95) translateY(-20px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Drawer Slide Animations */
+.mud-drawer {
+    transition: transform var(--motion-duration-gentle) var(--motion-easing-emphasized);
+}
+
+/* Enhanced Icon Button Interactions */
+.mud-icon-button {
+    transition: all var(--motion-duration-base) var(--motion-easing-standard);
+    position: relative;
+}
+
+.mud-icon-button:hover {
+    transform: scale(1.1);
+    background: var(--mud-palette-action-hover, rgba(0, 0, 0, 0.04));
+}
+
+.mud-icon-button:active {
+    transform: scale(0.95);
+    transition-duration: var(--motion-duration-fast);
+}
+
+/* Chip Animations */
+.mud-chip {
+    transition: all var(--motion-duration-base) var(--motion-easing-standard);
+}
+
+.mud-chip:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(16, 24, 40, 0.1);
+}
+
+/* Tab Indicator Animation */
+.mud-tabs .mud-tab-slider {
+    transition: all var(--motion-duration-gentle) var(--motion-easing-emphasized);
+}
+
+/* Switch and Checkbox Animations */
+.mud-switch .mud-switch-track,
+.mud-switch .mud-switch-thumb {
+    transition: all var(--motion-duration-base) var(--motion-easing-standard);
+}
+
+.mud-checkbox .mud-checkbox-input:checked + .mud-checkbox-box {
+    animation: checkmarkDraw var(--motion-duration-gentle) var(--motion-easing-emphasized);
+}
+
+@keyframes checkmarkDraw {
+    0% {
+        transform: scale(0);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* List Item Hover Effects */
+.mud-list-item {
+    transition: all var(--motion-duration-base) var(--motion-easing-standard);
+}
+
+.mud-list-item:hover {
+    transform: translateX(4px);
+    background: var(--mud-palette-action-hover, rgba(0, 0, 0, 0.04));
+}
+
+/* Page Transition Effects */
+.page-enter {
+    animation: pageSlideIn var(--motion-duration-gentle) var(--motion-easing-emphasized);
+}
+
+@keyframes pageSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Floating Action Button */
+.mud-fab {
+    transition: all var(--motion-duration-base) var(--motion-easing-standard);
+    box-shadow: 0 4px 12px rgba(16, 24, 40, 0.15);
+}
+
+.mud-fab:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 24px rgba(16, 24, 40, 0.2);
+}
+
+.mud-fab:active {
+    transform: scale(0.95);
+}
+
+/* Badge Pulse Animation */
+.mud-badge {
+    animation: badgePulse 2s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
+}
+
+/* Enhanced Focus States */
+.mud-focusable:focus {
+    outline: 2px solid var(--mud-palette-primary);
+    outline-offset: 2px;
+    animation: focusRing var(--motion-duration-base) var(--motion-easing-standard);
+}
+
+@keyframes focusRing {
+    0% {
+        outline-color: transparent;
+        outline-width: 0;
+    }
+    100% {
+        outline-color: var(--mud-palette-primary);
+        outline-width: 2px;
+    }
+}
+
+/* Staggered List Animations */
+.stagger-animation > * {
+    animation: staggerIn var(--motion-duration-gentle) var(--motion-easing-emphasized) both;
+}
+
+.stagger-animation > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-animation > *:nth-child(2) { animation-delay: 50ms; }
+.stagger-animation > *:nth-child(3) { animation-delay: 100ms; }
+.stagger-animation > *:nth-child(4) { animation-delay: 150ms; }
+.stagger-animation > *:nth-child(5) { animation-delay: 200ms; }
+.stagger-animation > *:nth-child(6) { animation-delay: 250ms; }
+.stagger-animation > *:nth-child(7) { animation-delay: 300ms; }
+
+@keyframes staggerIn {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Dark Mode Optimizations */
+@media (prefers-color-scheme: dark) {
+    .mud-button:hover {
+        box-shadow: 0 4px 12px rgba(20, 24, 30, 0.24);
+    }
+
+    .mud-card:hover {
+        box-shadow: 0 8px 24px rgba(20, 24, 30, 0.32);
+    }
+
+    .mud-fab {
+        box-shadow: 0 4px 12px rgba(20, 24, 30, 0.24);
+    }
+
+    .mud-fab:hover {
+        box-shadow: 0 8px 24px rgba(20, 24, 30, 0.4);
+    }
+}

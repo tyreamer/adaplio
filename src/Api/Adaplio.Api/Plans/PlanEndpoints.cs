@@ -38,6 +38,10 @@ public static class PlanEndpoints
             .RequireAuthorization()
             .WithName("GetTrainerProposals");
 
+        planGroup.MapGet("/trainer/clients", GetTrainerClients)
+            .RequireAuthorization()
+            .WithName("GetTrainerClients");
+
         planGroup.MapGet("/client/proposals", GetClientProposals)
             .RequireAuthorization()
             .WithName("GetClientProposals");
@@ -546,6 +550,59 @@ public static class PlanEndpoints
         catch (Exception ex)
         {
             return Results.Problem($"Failed to log progress: {ex.Message}");
+        }
+    }
+
+    private static async Task<IResult> GetTrainerClients(
+        AppDbContext context,
+        HttpContext httpContext)
+    {
+        try
+        {
+            var userId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userType = httpContext.User.FindFirst("user_type")?.Value;
+
+            if (string.IsNullOrEmpty(userId) || userType != "trainer")
+            {
+                return Results.Forbid();
+            }
+
+            var trainerProfile = await context.TrainerProfiles
+                .FirstOrDefaultAsync(tp => tp.UserId == int.Parse(userId));
+
+            if (trainerProfile == null)
+            {
+                return Results.NotFound("Trainer profile not found");
+            }
+
+            // Get clients that have granted consent to this trainer
+            var clients = await context.ConsentGrants
+                .Where(cg => cg.TrainerProfileId == trainerProfile.Id
+                    && cg.ExpiresAt > DateTimeOffset.UtcNow)
+                .Include(cg => cg.ClientProfile)
+                .ThenInclude(cp => cp.User)
+                .Select(cg => new
+                {
+                    id = cg.ClientProfile.Id,
+                    alias = cg.ClientProfile.Alias,
+                    email = cg.ClientProfile.User.Email,
+                    createdAt = cg.ClientProfile.CreatedAt,
+                    scopes = context.ConsentGrants
+                        .Where(cg2 => cg2.ClientProfileId == cg.ClientProfile.Id
+                            && cg2.TrainerProfileId == trainerProfile.Id
+                            && cg2.ExpiresAt > DateTimeOffset.UtcNow)
+                        .Select(cg2 => cg2.Scope)
+                        .ToList()
+                })
+                .Distinct()
+                .OrderBy(c => c.alias)
+                .ToListAsync();
+
+            return Results.Ok(new { clients });
+        }
+        catch (Exception ex)
+        {
+            return Results.Problem($"Failed to get clients: {ex.Message}");
         }
     }
 }

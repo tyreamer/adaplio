@@ -22,6 +22,9 @@ public static class AuthEndpoints
         authGroup.MapPost("/trainer/register", RegisterTrainer);
         authGroup.MapPost("/trainer/login", LoginTrainer);
 
+        // Get current user info endpoint
+        authGroup.MapGet("/me", GetCurrentUser).RequireAuthorization();
+
         // Logout endpoint
         authGroup.MapPost("/logout", Logout);
     }
@@ -265,6 +268,47 @@ public static class AuthEndpoints
         catch (Exception ex)
         {
             return Results.Problem("Login failed. Please try again.");
+        }
+    }
+
+    private static async Task<IResult> GetCurrentUser(
+        HttpContext httpContext,
+        AppDbContext context)
+    {
+        try
+        {
+            var userIdClaim = httpContext.User.FindFirst("UserId")?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+            {
+                return Results.Unauthorized();
+            }
+
+            var user = await context.AppUsers
+                .Include(u => u.ClientProfile)
+                .Include(u => u.TrainerProfile)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null)
+            {
+                return Results.Unauthorized();
+            }
+
+            var response = new
+            {
+                userId = user.Id.ToString(),
+                email = user.Email,
+                userType = user.UserType,
+                alias = user.ClientProfile?.Alias,
+                fullName = user.TrainerProfile?.FullName,
+                practiceName = user.TrainerProfile?.PracticeName,
+                isVerified = user.IsVerified
+            };
+
+            return Results.Ok(response);
+        }
+        catch (Exception ex)
+        {
+            return Results.Problem("Failed to get user information.");
         }
     }
 
