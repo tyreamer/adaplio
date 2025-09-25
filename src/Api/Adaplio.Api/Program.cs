@@ -174,11 +174,26 @@ app.MapPlanEndpoints();
 // Map gamification endpoints
 app.MapGamificationEndpoints();
 
-// Map development endpoints (only in development)
-if (app.Environment.IsDevelopment())
+app.MapGet("/health", () => Results.Ok(new { ok = true }));
+
+app.MapGet("/health/db", async () =>
 {
-    app.MapDevEndpoints();
-}
+    try
+    {
+        await using var con = new Npgsql.NpgsqlConnection(
+            Environment.GetEnvironmentVariable("DB_CONNECTION")
+        );
+        await con.OpenAsync();
+        await con.CloseAsync();
+        return Results.Ok(new { db = "ok" });
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem($"db error: {ex.Message}");
+    }
+});
+
+app.MapGet("/", () => "Adaplio API is running!");
 
 app.Run();
 

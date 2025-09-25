@@ -59,46 +59,20 @@
     <script src="_framework/blazor.webassembly.js"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
     <script>
-        // More robust service worker registration with error handling
+        // Disable service worker for now to prevent JavaScript errors
         if ('serviceWorker' in navigator) {
-            // First, unregister any existing service workers to avoid conflicts
+            // Unregister any existing service workers
             navigator.serviceWorker.getRegistrations().then(function(registrations) {
                 for(let registration of registrations) {
                     registration.unregister().then(function(success) {
                         if (success) {
-                            console.log('Old service worker unregistered successfully');
+                            console.log('Service worker unregistered successfully');
                         }
                     });
                 }
             }).catch(function(error) {
-                console.log('Error unregistering old service workers:', error);
-            }).finally(function() {
-                // Register the new service worker
-                navigator.serviceWorker.register('service-worker.js', {
-                    scope: '/',
-                    updateViaCache: 'none' // Always check for updates
-                })
-                .then(function(registration) {
-                    console.log('Service worker registered successfully:', registration.scope);
-
-                    // Handle updates
-                    registration.addEventListener('updatefound', function() {
-                        console.log('Service worker update found');
-                        const newWorker = registration.installing;
-                        newWorker.addEventListener('statechange', function() {
-                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                console.log('New service worker installed, refreshing page');
-                                window.location.reload();
-                            }
-                        });
-                    });
-                })
-                .catch(function(error) {
-                    console.log('Service worker registration failed:', error);
-                });
+                console.log('Error unregistering service workers:', error);
             });
-        } else {
-            console.log('Service workers are not supported');
         }
     </script>
 </body>
