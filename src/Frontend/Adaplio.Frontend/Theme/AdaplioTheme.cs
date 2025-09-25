@@ -15,39 +15,25 @@ public static class AdaplioTheme
             // Brand colors
             Primary = DesignTokens.Colors.Light.Primary,
             PrimaryContrastText = DesignTokens.Colors.Light.OnPrimary,
-            PrimaryDarken = DesignTokens.Colors.Light.PrimaryContainer,
-            PrimaryLighten = DesignTokens.Colors.Light.OnPrimaryContainer,
 
             Secondary = DesignTokens.Colors.Light.Secondary,
             SecondaryContrastText = DesignTokens.Colors.Light.OnSecondary,
-            SecondaryDarken = DesignTokens.Colors.Light.SecondaryContainer,
-            SecondaryLighten = DesignTokens.Colors.Light.OnSecondaryContainer,
 
             Tertiary = DesignTokens.Colors.Light.Tertiary,
             TertiaryContrastText = DesignTokens.Colors.Light.OnTertiary,
-            TertiaryDarken = DesignTokens.Colors.Light.TertiaryContainer,
-            TertiaryLighten = DesignTokens.Colors.Light.OnTertiaryContainer,
 
             // State colors
             Success = DesignTokens.Colors.Light.Success,
             SuccessContrastText = DesignTokens.Colors.Light.OnSuccess,
-            SuccessDarken = DesignTokens.Colors.Light.SuccessContainer,
-            SuccessLighten = DesignTokens.Colors.Light.OnSuccessContainer,
 
             Warning = DesignTokens.Colors.Light.Warning,
             WarningContrastText = DesignTokens.Colors.Light.OnWarning,
-            WarningDarken = DesignTokens.Colors.Light.WarningContainer,
-            WarningLighten = DesignTokens.Colors.Light.OnWarningContainer,
 
             Error = DesignTokens.Colors.Light.Error,
             ErrorContrastText = DesignTokens.Colors.Light.OnError,
-            ErrorDarken = DesignTokens.Colors.Light.ErrorContainer,
-            ErrorLighten = DesignTokens.Colors.Light.OnErrorContainer,
 
             Info = DesignTokens.Colors.Light.Info,
             InfoContrastText = DesignTokens.Colors.Light.OnInfo,
-            InfoDarken = DesignTokens.Colors.Light.InfoContainer,
-            InfoLighten = DesignTokens.Colors.Light.OnInfoContainer,
 
             // Surface colors
             Surface = DesignTokens.Colors.Light.Surface,
@@ -92,39 +78,25 @@ public static class AdaplioTheme
             // Brand colors
             Primary = DesignTokens.Colors.Dark.Primary,
             PrimaryContrastText = DesignTokens.Colors.Dark.OnPrimary,
-            PrimaryDarken = DesignTokens.Colors.Dark.PrimaryContainer,
-            PrimaryLighten = DesignTokens.Colors.Dark.OnPrimaryContainer,
 
             Secondary = DesignTokens.Colors.Dark.Secondary,
             SecondaryContrastText = DesignTokens.Colors.Dark.OnSecondary,
-            SecondaryDarken = DesignTokens.Colors.Dark.SecondaryContainer,
-            SecondaryLighten = DesignTokens.Colors.Dark.OnSecondaryContainer,
 
             Tertiary = DesignTokens.Colors.Dark.Tertiary,
             TertiaryContrastText = DesignTokens.Colors.Dark.OnTertiary,
-            TertiaryDarken = DesignTokens.Colors.Dark.TertiaryContainer,
-            TertiaryLighten = DesignTokens.Colors.Dark.OnTertiaryContainer,
 
             // State colors
             Success = DesignTokens.Colors.Dark.Success,
             SuccessContrastText = DesignTokens.Colors.Dark.OnSuccess,
-            SuccessDarken = DesignTokens.Colors.Dark.SuccessContainer,
-            SuccessLighten = DesignTokens.Colors.Dark.OnSuccessContainer,
 
             Warning = DesignTokens.Colors.Dark.Warning,
             WarningContrastText = DesignTokens.Colors.Dark.OnWarning,
-            WarningDarken = DesignTokens.Colors.Dark.WarningContainer,
-            WarningLighten = DesignTokens.Colors.Dark.OnWarningContainer,
 
             Error = DesignTokens.Colors.Dark.Error,
             ErrorContrastText = DesignTokens.Colors.Dark.OnError,
-            ErrorDarken = DesignTokens.Colors.Dark.ErrorContainer,
-            ErrorLighten = DesignTokens.Colors.Dark.OnErrorContainer,
 
             Info = DesignTokens.Colors.Dark.Info,
             InfoContrastText = DesignTokens.Colors.Dark.OnInfo,
-            InfoDarken = DesignTokens.Colors.Dark.InfoContainer,
-            InfoLighten = DesignTokens.Colors.Dark.OnInfoContainer,
 
             // Surface colors
             Surface = DesignTokens.Colors.Dark.Surface,
@@ -170,11 +142,6 @@ public static class AdaplioTheme
             DrawerWidthLeft = "280px",
             DrawerWidthRight = "280px",
             AppbarHeight = "64px"
-        },
-
-        Shadows = new Shadow
-        {
-            Elevation = CreateElevationArray()
         }
     };
 
@@ -182,57 +149,6 @@ public static class AdaplioTheme
     {
         PaletteLight = LightTheme.PaletteLight,
         PaletteDark = LightTheme.PaletteDark,
-        LayoutProperties = LightTheme.LayoutProperties,
-
-        Shadows = new Shadow
-        {
-            Elevation = CreateDarkElevationArray()
-        }
+        LayoutProperties = LightTheme.LayoutProperties
     };
-
-    /// <summary>
-    /// Creates a comprehensive elevation array for light mode (25 levels as required by MudBlazor)
-    /// </summary>
-    private static string[] CreateElevationArray()
-    {
-        var elevations = new string[25];
-
-        // Safely populate elevation levels
-        elevations[0] = DesignTokens.Elevation.Light.Level0;
-        elevations[1] = DesignTokens.Elevation.Light.Level1;
-        elevations[2] = DesignTokens.Elevation.Light.Level2;
-        elevations[3] = DesignTokens.Elevation.Light.Level3;
-        elevations[4] = DesignTokens.Elevation.Light.Level4;
-
-        // Fill remaining slots with highest level
-        for (int i = 5; i < 25; i++)
-        {
-            elevations[i] = DesignTokens.Elevation.Light.Level5;
-        }
-
-        return elevations;
-    }
-
-    /// <summary>
-    /// Creates a comprehensive elevation array for dark mode (25 levels as required by MudBlazor)
-    /// </summary>
-    private static string[] CreateDarkElevationArray()
-    {
-        var elevations = new string[25];
-
-        // Safely populate elevation levels
-        elevations[0] = DesignTokens.Elevation.Dark.Level0;
-        elevations[1] = DesignTokens.Elevation.Dark.Level1;
-        elevations[2] = DesignTokens.Elevation.Dark.Level2;
-        elevations[3] = DesignTokens.Elevation.Dark.Level3;
-        elevations[4] = DesignTokens.Elevation.Dark.Level4;
-
-        // Fill remaining slots with highest level
-        for (int i = 5; i < 25; i++)
-        {
-            elevations[i] = DesignTokens.Elevation.Dark.Level5;
-        }
-
-        return elevations;
-    }
 }

@@ -35,101 +35,125 @@
 
     @if (isLoading)
     {
-        <div class="d-flex justify-center pa-8">
-            <MudProgressCircular Indeterminate="true" />
-            <MudText Class="ml-3">Loading board...</MudText>
+        <div class="board-loading">
+            <MudProgressCircular Indeterminate="true" Size="Size.Large" Color="Color.Primary" />
+            <MudText Typo="Typo.h6" Class="mt-4">Loading your weekly board...</MudText>
         </div>
     }
     else if (board != null)
     {
-        <MudGrid>
+        <!-- 7-Column Weekly Grid -->
+        <div class="weekly-board-grid">
             @foreach (var day in board.Days)
             {
-                <MudItem xs="12" sm="6" lg="2">
-                    <MudCard Style="min-height: 400px;">
-                        <MudCardHeader>
-                            <CardHeaderContent>
-                                <MudText Typo="Typo.h6" Align="Align.Center">
-                                    @day.DayName
-                                </MudText>
-                                <MudText Typo="Typo.caption" Align="Align.Center" Color="Color.Secondary">
-                                    @day.Date.ToString("MMM dd")
-                                </MudText>
-                            </CardHeaderContent>
-                        </MudCardHeader>
-                        <MudCardContent Class="pa-2">
-                            @if (day.Exercises.Any())
-                            {
-                                @foreach (var exercise in day.Exercises)
-                                {
-                                    <MudCard Class="mb-2" Outlined="true">
-                                        <MudCardContent Class="pa-3">
-                                            <MudText Typo="Typo.body2" Class="font-weight-medium">
-                                                @exercise.ExerciseName
-                                            </MudText>
-                                            @if (exercise.TargetSets.HasValue || exercise.TargetReps.HasValue)
-                                            {
-                                                <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                                    @exercise.TargetSets sets × @exercise.TargetReps reps
-                                                    @if (exercise.HoldSeconds.HasValue)
-                                                    {
-                                                        <text> × @exercise.HoldSeconds sec</text>
-                                                    }
-                                                </MudText>
-                                            }
-
-                                            <div class="mt-2">
-                                                @if (exercise.Status == "planned")
-                                                {
-                                                    <MudChip T="string" Size="Size.Small" Color="Color.Default">Planned</MudChip>
-                                                    <div class="mt-2">
-                                                        <MudButton Size="Size.Small"
-                                                                   Variant="Variant.Filled"
-                                                                   Color="Color.Success"
-                                                                   OnClick="@(() => QuickLogComplete(exercise.ExerciseInstanceId))"
-                                                                   FullWidth="true">
-                                                            Mark Done
-                                                        </MudButton>
-                                                    </div>
-                                                }
-                                                else if (exercise.Status == "done")
-                                                {
-                                                    <MudChip T="string" Size="Size.Small" Color="Color.Success">
-                                                        <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" />
-                                                        Completed
-                                                    </MudChip>
-                                                }
-                                                else if (exercise.Status == "partial")
-                                                {
-                                                    <MudChip T="string" Size="Size.Small" Color="Color.Warning">Partial</MudChip>
-                                                }
-                                                else if (exercise.Status == "skipped")
-                                                {
-                                                    <MudChip T="string" Size="Size.Small" Color="Color.Secondary">Skipped</MudChip>
-                                                }
-                                            </div>
-
-                                            @if (!string.IsNullOrEmpty(exercise.Notes))
-                                            {
-                                                <MudText Typo="Typo.caption" Class="mt-1" Style="font-style: italic;">
-                                                    @exercise.Notes
-                                                </MudText>
-                                            }
-                                        </MudCardContent>
-                                    </MudCard>
+                <div class="day-column @GetDayColumnClass(day.Date)">
+                    <div class="day-header">
+                        <MudText Typo="Typo.h6" Class="day-name">@day.DayName</MudText>
+                        <MudText Typo="Typo.body2" Class="day-date">@day.Date.ToString("MMM dd")</MudText>
+                        @if (day.Exercises.Any())
+                        {
+                            <div class="day-progress">
+                                @{
+                                    var dayTotal = day.Exercises.Count();
+                                    var dayCompleted = day.Exercises.Count(e => e.Status == "done");
+                                    var dayProgress = dayTotal > 0 ? (decimal)dayCompleted / dayTotal * 100 : 0;
                                 }
-                            }
-                            else
-                            {
-                                <MudText Typo="Typo.body2" Color="Color.Secondary" Align="Align.Center" Class="py-4">
-                                    No exercises scheduled
+                                <MudProgressLinear Value="@((int)dayProgress)"
+                                                   Color="Color.Success"
+                                                   Class="progress-bar"
+                                                   Size="Size.Small" />
+                                <MudText Typo="Typo.caption" Class="progress-text">
+                                    @dayCompleted/@dayTotal completed
                                 </MudText>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="exercises-container">
+                        @if (day.Exercises.Any())
+                        {
+                            @foreach (var exercise in day.Exercises)
+                            {
+                                <div class="exercise-card @GetExerciseStatusClass(exercise.Status)">
+                                    <div class="exercise-header">
+                                        <MudText Typo="Typo.body1" Class="exercise-name">
+                                            @exercise.ExerciseName
+                                        </MudText>
+                                        <div class="exercise-status">
+                                            @if (exercise.Status == "planned")
+                                            {
+                                                <MudIcon Icon="@Icons.Material.Outlined.Schedule" Size="Size.Small" />
+                                            }
+                                            else if (exercise.Status == "done")
+                                            {
+                                                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" Color="Color.Success" />
+                                            }
+                                            else if (exercise.Status == "partial")
+                                            {
+                                                <MudIcon Icon="@Icons.Material.Outlined.MoreHoriz" Size="Size.Small" Color="Color.Warning" />
+                                            }
+                                            else if (exercise.Status == "skipped")
+                                            {
+                                                <MudIcon Icon="@Icons.Material.Outlined.Close" Size="Size.Small" Color="Color.Secondary" />
+                                            }
+                                        </div>
+                                    </div>
+
+                                    @if (exercise.TargetSets.HasValue || exercise.TargetReps.HasValue)
+                                    {
+                                        <MudText Typo="Typo.caption" Class="exercise-targets">
+                                            @if (exercise.TargetSets.HasValue)
+                                            {
+                                                <text>@exercise.TargetSets sets</text>
+                                            }
+                                            @if (exercise.TargetSets.HasValue && exercise.TargetReps.HasValue)
+                                            {
+                                                <text> × </text>
+                                            }
+                                            @if (exercise.TargetReps.HasValue)
+                                            {
+                                                <text>@exercise.TargetReps reps</text>
+                                            }
+                                            @if (exercise.HoldSeconds.HasValue)
+                                            {
+                                                <text> × @exercise.HoldSeconds sec</text>
+                                            }
+                                        </MudText>
+                                    }
+
+                                    @if (exercise.Status == "planned")
+                                    {
+                                        <MudButton Size="Size.Small"
+                                                   Variant="Variant.Filled"
+                                                   Color="Color.Success"
+                                                   OnClick="@(() => QuickLogComplete(exercise.ExerciseInstanceId))"
+                                                   FullWidth="true"
+                                                   Class="complete-button">
+                                            <MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" Class="mr-1" />
+                                            Complete
+                                        </MudButton>
+                                    }
+
+                                    @if (!string.IsNullOrEmpty(exercise.Notes))
+                                    {
+                                        <MudText Typo="Typo.caption" Class="exercise-notes">
+                                            @exercise.Notes
+                                        </MudText>
+                                    }
+                                </div>
                             }
-                        </MudCardContent>
-                    </MudCard>
-                </MudItem>
+                        }
+                        else
+                        {
+                            <div class="empty-day">
+                                <MudIcon Icon="@Icons.Material.Outlined.FreeBreakfast" Size="Size.Medium" Color="Color.Secondary" />
+                                <MudText Typo="Typo.body2" Class="mt-2">Rest day</MudText>
+                            </div>
+                        }
+                    </div>
+                </div>
             }
-        </MudGrid>
+        </div>
 
         @if (board.Days.SelectMany(d => d.Exercises).Any())
         {
@@ -177,6 +201,7 @@
         </MudCard>
     }
 </MudContainer>
+
 
 @code {
     private DateOnly currentWeekStart = GetCurrentWeekStart();
@@ -282,6 +307,23 @@
         var dayOfWeek = (int)today.DayOfWeek;
         var daysToSubtract = dayOfWeek == 0 ? 6 : dayOfWeek - 1; // Sunday = 6 days back
         return today.AddDays(-daysToSubtract);
+    }
+
+    private string GetDayColumnClass(DateOnly date)
+    {
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        return date == today ? "is-today" : "";
+    }
+
+    private string GetExerciseStatusClass(string status)
+    {
+        return status switch
+        {
+            "done" => "is-completed",
+            "partial" => "is-partial",
+            "skipped" => "is-skipped",
+            _ => "is-planned"
+        };
     }
 
     public class BoardResponse
