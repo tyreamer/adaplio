@@ -1,94 +1,195 @@
 namespace Adaplio.Frontend.Theme;
 
+/// <summary>
+/// Comprehensive design token system - single source of truth for all design decisions.
+/// Based on 2025 design system principles with dark mode intentionality.
+/// </summary>
 public static class DesignTokens
 {
     public static class Colors
     {
-        public static class Brand
-        {
-            public const string Primary = "#2E90FA";
-            public const string PrimaryLight = "#7AB8FF";
-            public const string OnPrimary = "#FFFFFF";
-            public const string OnPrimaryDark = "#0A1829";
-        }
-
         public static class Light
         {
+            // Brand Colors - Azure Blue foundation
             public const string Primary = "#2E90FA";
             public const string OnPrimary = "#FFFFFF";
+            public const string PrimaryContainer = "#E6F4FF";
+            public const string OnPrimaryContainer = "#001F3D";
+
             public const string Secondary = "#7A7D87";
             public const string OnSecondary = "#FFFFFF";
+            public const string SecondaryContainer = "#F4F5F6";
+            public const string OnSecondaryContainer = "#2D3142";
+
+            public const string Tertiary = "#5C6AC4";
+            public const string OnTertiary = "#FFFFFF";
+            public const string TertiaryContainer = "#E8EAFF";
+            public const string OnTertiaryContainer = "#1A1B3A";
+
+            // State Colors - Semantic system
             public const string Success = "#12B76A";
             public const string OnSuccess = "#FFFFFF";
+            public const string SuccessContainer = "#E6F7F1";
+            public const string OnSuccessContainer = "#002818";
+
             public const string Warning = "#FDB022";
             public const string OnWarning = "#000000";
+            public const string WarningContainer = "#FFF8E6";
+            public const string OnWarningContainer = "#2D1B00";
+
             public const string Error = "#F04438";
             public const string OnError = "#FFFFFF";
-            public const string Surface = "#FFFFFF";
-            public const string OnSurface = "#1A1D29";
-            public const string Background = "#FAFBFC";
-            public const string OnBackground = "#1A1D29";
+            public const string ErrorContainer = "#FFEAE9";
+            public const string OnErrorContainer = "#2D0A0A";
 
-            // Neutral scale
+            public const string Info = "#2E90FA";
+            public const string OnInfo = "#FFFFFF";
+            public const string InfoContainer = "#E6F4FF";
+            public const string OnInfoContainer = "#001F3D";
+
+            // Surface & Background - Layered system
+            public const string Background = "#FCFCFD";
+            public const string OnBackground = "#101828";
+            public const string Surface = "#FFFFFF";
+            public const string OnSurface = "#101828";
+            public const string SurfaceVariant = "#F9FAFB";
+            public const string OnSurfaceVariant = "#344054";
+            public const string SurfaceTint = "#2E90FA";
+
+            public const string InverseSurface = "#2A343E";
+            public const string InverseOnSurface = "#F2F4F7";
+            public const string InversePrimary = "#7AB8FF";
+
+            // Neutral Scale - Tailored gray ramp
+            public const string Neutral0 = "#FFFFFF";
             public const string Neutral50 = "#F9FAFB";
             public const string Neutral100 = "#F2F4F7";
-            public const string Neutral200 = "#E4E7EC";
+            public const string Neutral200 = "#EAECF0";
             public const string Neutral300 = "#D0D5DD";
+            public const string Neutral400 = "#98A2B3";
             public const string Neutral500 = "#667085";
+            public const string Neutral600 = "#475467";
             public const string Neutral700 = "#344054";
+            public const string Neutral800 = "#1D2939";
             public const string Neutral900 = "#101828";
+
+            // Interactive states
+            public const string Outline = "#D0D5DD";
+            public const string OutlineVariant = "#EAECF0";
+            public const string Scrim = "rgba(16, 24, 40, 0.5)";
+            public const string Shadow = "rgba(16, 24, 40, 0.1)";
         }
 
         public static class Dark
         {
+            // Brand Colors - Contrast-corrected for dark
             public const string Primary = "#7AB8FF";
-            public const string OnPrimary = "#0A1829";
+            public const string OnPrimary = "#0E1116";
+            public const string PrimaryContainer = "#1A365D";
+            public const string OnPrimaryContainer = "#B8E6FF";
+
             public const string Secondary = "#9CA3AF";
-            public const string OnSecondary = "#000000";
-            public const string Success = "#10B981";
-            public const string OnSuccess = "#000000";
+            public const string OnSecondary = "#111827";
+            public const string SecondaryContainer = "#374151";
+            public const string OnSecondaryContainer = "#D1D7E0";
+
+            public const string Tertiary = "#8B95FF";
+            public const string OnTertiary = "#1A1B3A";
+            public const string TertiaryContainer = "#2D3142";
+            public const string OnTertiaryContainer = "#C7CCFF";
+
+            // State Colors - Dark mode optimized
+            public const string Success = "#22C55E";
+            public const string OnSuccess = "#0F1011";
+            public const string SuccessContainer = "#14532D";
+            public const string OnSuccessContainer = "#BBF7D0";
+
             public const string Warning = "#F59E0B";
-            public const string OnWarning = "#000000";
+            public const string OnWarning = "#0F1011";
+            public const string WarningContainer = "#78350F";
+            public const string OnWarningContainer = "#FDE68A";
+
             public const string Error = "#EF4444";
-            public const string OnError = "#000000";
+            public const string OnError = "#FFFFFF";
+            public const string ErrorContainer = "#7F1D1D";
+            public const string OnErrorContainer = "#FECACA";
+
+            public const string Info = "#7AB8FF";
+            public const string OnInfo = "#0E1116";
+            public const string InfoContainer = "#1A365D";
+            public const string OnInfoContainer = "#B8E6FF";
+
+            // Surface & Background - Subtle depth
+            public const string Background = "#070B0F";
+            public const string OnBackground = "#E6EAF2";
             public const string Surface = "#0E1116";
             public const string OnSurface = "#E6EAF2";
-            public const string Background = "#0A0E13";
-            public const string OnBackground = "#E6EAF2";
+            public const string SurfaceVariant = "#1A2129";
+            public const string OnSurfaceVariant = "#9CA3AF";
+            public const string SurfaceTint = "#7AB8FF";
 
-            // Neutral scale for dark
-            public const string Neutral50 = "#1F2937";
-            public const string Neutral100 = "#374151";
-            public const string Neutral200 = "#4B5563";
-            public const string Neutral300 = "#6B7280";
-            public const string Neutral500 = "#9CA3AF";
-            public const string Neutral700 = "#D1D5DB";
-            public const string Neutral900 = "#F3F4F6";
+            public const string InverseSurface = "#E6EAF2";
+            public const string InverseOnSurface = "#1A2129";
+            public const string InversePrimary = "#2E90FA";
+
+            // Neutral Scale - Dark mode hierarchy
+            public const string Neutral0 = "#000000";
+            public const string Neutral50 = "#070B0F";
+            public const string Neutral100 = "#0E1116";
+            public const string Neutral200 = "#1A2129";
+            public const string Neutral300 = "#2A343E";
+            public const string Neutral400 = "#3E4A56";
+            public const string Neutral500 = "#54606F";
+            public const string Neutral600 = "#6B7485";
+            public const string Neutral700 = "#818B9A";
+            public const string Neutral800 = "#A3ABB8";
+            public const string Neutral900 = "#E6EAF2";
+
+            // Interactive states
+            public const string Outline = "#54606F";
+            public const string OutlineVariant = "#3E4A56";
+            public const string Scrim = "rgba(7, 11, 15, 0.7)";
+            public const string Shadow = "rgba(20, 24, 30, 0.24)";
         }
     }
 
+    /// <summary>
+    /// Consistent spacing scale - 4px base unit
+    /// </summary>
     public static class Spacing
     {
-        public const double XS = 4;    // 4px
-        public const double SM = 8;    // 8px
-        public const double MD = 12;   // 12px
-        public const double LG = 16;   // 16px
-        public const double XL = 20;   // 20px
-        public const double XXL = 24;  // 24px
-        public const double XXXL = 32; // 32px
-        public const double XXXXL = 40; // 40px
+        public const int XXS = 2;   // 2px
+        public const int XS = 4;    // 4px
+        public const int SM = 8;    // 8px
+        public const int MD = 12;   // 12px
+        public const int Base = 16; // 16px
+        public const int LG = 20;   // 20px
+        public const int XL = 24;   // 24px
+        public const int XXL = 32;  // 32px
+        public const int XXXL = 40; // 40px
+        public const int XXXXL = 48; // 48px
+        public const int XXXXXL = 64; // 64px
     }
 
+    /// <summary>
+    /// Border radius scale for cohesive roundness
+    /// </summary>
     public static class BorderRadius
     {
-        public const int SM = 4;   // 4px
-        public const int MD = 8;   // 8px
-        public const int LG = 12;  // 12px
-        public const int XL = 16;  // 16px
-        public const int XXL = 20; // 20px
-        public const int Round = 9999; // Full round
+        public const int None = 0;
+        public const int XS = 4;
+        public const int SM = 6;
+        public const int MD = 8;
+        public const int LG = 12;
+        public const int XL = 16;
+        public const int XXL = 20;
+        public const int XXXL = 24;
+        public const int Round = 9999; // Pill shape
     }
 
+    /// <summary>
+    /// Elevation system with subtle depth
+    /// </summary>
     public static class Elevation
     {
         public static class Light
@@ -112,11 +213,15 @@ public static class DesignTokens
         }
     }
 
+    /// <summary>
+    /// Typography system with variable font support
+    /// </summary>
     public static class Typography
     {
         public static class FontFamily
         {
-            public const string Primary = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+            public const string Primary = "Inter Variable, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+            public const string Mono = "JetBrains Mono Variable, JetBrains Mono, 'SF Mono', Monaco, Inconsolata, 'Roboto Mono', Consolas, 'Courier New', monospace";
         }
 
         public static class FontSize
@@ -130,126 +235,79 @@ public static class DesignTokens
             public const string XXXL = "1.75rem";  // 28px
             public const string XXXXL = "2rem";    // 32px
             public const string XXXXXL = "2.5rem"; // 40px
+            public const string Display = "3rem";  // 48px
         }
 
         public static class FontWeight
         {
+            public const int Light = 300;
             public const int Normal = 400;
             public const int Medium = 500;
             public const int Semibold = 600;
             public const int Bold = 700;
+            public const int Extrabold = 800;
         }
 
         public static class LineHeight
         {
             public const double Tight = 1.25;
+            public const double Snug = 1.375;
             public const double Normal = 1.5;
             public const double Relaxed = 1.625;
+            public const double Loose = 2.0;
         }
 
-        // Semantic typography tokens
-        public static class Headings
+        public static class LetterSpacing
         {
-            public static class H1
-            {
-                public const string Size = FontSize.XXXXXL;  // 40px
-                public const int Weight = FontWeight.Semibold;
-                public const double LineHeight = 1.2; // 48px
-            }
-
-            public static class H2
-            {
-                public const string Size = FontSize.XXXXL;   // 32px
-                public const int Weight = FontWeight.Semibold;
-                public const double LineHeight = 1.25; // 40px
-            }
-
-            public static class H3
-            {
-                public const string Size = FontSize.XXXL;    // 28px
-                public const int Weight = FontWeight.Semibold;
-                public const double LineHeight = 1.29; // 36px
-            }
-
-            public static class H4
-            {
-                public const string Size = FontSize.XXL;     // 24px
-                public const int Weight = FontWeight.Semibold;
-                public const double LineHeight = 1.33; // 32px
-            }
-
-            public static class H5
-            {
-                public const string Size = FontSize.XL;      // 20px
-                public const int Weight = FontWeight.Semibold;
-                public const double LineHeight = 1.4; // 28px
-            }
-
-            public static class H6
-            {
-                public const string Size = FontSize.LG;      // 18px
-                public const int Weight = FontWeight.Semibold;
-                public const double LineHeight = 1.44; // 26px
-            }
-        }
-
-        public static class Body
-        {
-            public static class Large
-            {
-                public const string Size = FontSize.LG;      // 18px
-                public const int Weight = FontWeight.Normal;
-                public const double LineHeight = 1.5; // 1.5
-            }
-
-            public static class Medium
-            {
-                public const string Size = FontSize.Base;    // 16px
-                public const int Weight = FontWeight.Normal;
-                public const double LineHeight = 1.5; // 1.5
-            }
-
-            public static class Small
-            {
-                public const string Size = FontSize.SM;      // 14px
-                public const int Weight = FontWeight.Normal;
-                public const double LineHeight = 1.5; // 1.5
-            }
+            public const string Tight = "-0.025em";
+            public const string Normal = "0";
+            public const string Wide = "0.025em";
+            public const string Wider = "0.05em";
+            public const string Widest = "0.1em";
         }
     }
 
+    /// <summary>
+    /// Motion system - purposeful transitions
+    /// </summary>
     public static class Motion
     {
         public static class Duration
         {
-            public const int Fast = 120;     // 120ms
-            public const int Base = 200;     // 200ms
-            public const int Gentle = 280;   // 280ms
+            public const int Fast = 120;      // 120ms
+            public const int Base = 200;      // 200ms
+            public const int Gentle = 280;    // 280ms
+            public const int Slow = 400;      // 400ms
         }
 
         public static class Easing
         {
             public const string Standard = "cubic-bezier(0.4, 0.0, 0.2, 1)";
-            public const string Decelerate = "cubic-bezier(0.0, 0.0, 0.2, 1)";
-            public const string Accelerate = "cubic-bezier(0.4, 0.0, 1, 1)";
+            public const string Decelerated = "cubic-bezier(0.0, 0.0, 0.2, 1)";
+            public const string Accelerated = "cubic-bezier(0.4, 0.0, 1, 1)";
+            public const string Emphasized = "cubic-bezier(0.2, 0.0, 0, 1)";
         }
     }
 
+    /// <summary>
+    /// Responsive breakpoints
+    /// </summary>
     public static class Breakpoints
     {
-        public const int SM = 600;   // Small devices
-        public const int MD = 900;   // Medium devices
-        public const int LG = 1200;  // Large devices
+        public const int SM = 600;   // Small devices (landscape phones)
+        public const int MD = 900;   // Medium devices (tablets)
+        public const int LG = 1200;  // Large devices (desktops)
         public const int XL = 1536;  // Extra large devices
     }
 
-    public static class ZIndex
+    /// <summary>
+    /// Focus system for WCAG 2.2 compliance
+    /// </summary>
+    public static class Focus
     {
-        public const int Dropdown = 1000;
-        public const int Sticky = 1020;
-        public const int Fixed = 1030;
-        public const int Modal = 1040;
-        public const int Popover = 1050;
-        public const int Tooltip = 1060;
+        public const int RingWidth = 3;
+        public const string RingOffset = "2px";
+        public const string RingColorLight = "#2E90FA";
+        public const string RingColorDark = "#7AB8FF";
     }
 }

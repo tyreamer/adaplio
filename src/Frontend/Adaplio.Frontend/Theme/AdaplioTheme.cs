@@ -2,6 +2,10 @@ using MudBlazor;
 
 namespace Adaplio.Frontend.Theme;
 
+/// <summary>
+/// Premium MudBlazor theme implementation using comprehensive design tokens.
+/// Delivers a 2025-quality visual language with intentional dark mode.
+/// </summary>
 public static class AdaplioTheme
 {
     public static MudTheme LightTheme => new()
@@ -11,29 +15,49 @@ public static class AdaplioTheme
             // Brand colors
             Primary = DesignTokens.Colors.Light.Primary,
             PrimaryContrastText = DesignTokens.Colors.Light.OnPrimary,
+            PrimaryDarken = DesignTokens.Colors.Light.PrimaryContainer,
+            PrimaryLighten = DesignTokens.Colors.Light.OnPrimaryContainer,
+
             Secondary = DesignTokens.Colors.Light.Secondary,
             SecondaryContrastText = DesignTokens.Colors.Light.OnSecondary,
-            Tertiary = DesignTokens.Colors.Light.Primary,
-            TertiaryContrastText = DesignTokens.Colors.Light.OnPrimary,
+            SecondaryDarken = DesignTokens.Colors.Light.SecondaryContainer,
+            SecondaryLighten = DesignTokens.Colors.Light.OnSecondaryContainer,
+
+            Tertiary = DesignTokens.Colors.Light.Tertiary,
+            TertiaryContrastText = DesignTokens.Colors.Light.OnTertiary,
+            TertiaryDarken = DesignTokens.Colors.Light.TertiaryContainer,
+            TertiaryLighten = DesignTokens.Colors.Light.OnTertiaryContainer,
 
             // State colors
             Success = DesignTokens.Colors.Light.Success,
             SuccessContrastText = DesignTokens.Colors.Light.OnSuccess,
+            SuccessDarken = DesignTokens.Colors.Light.SuccessContainer,
+            SuccessLighten = DesignTokens.Colors.Light.OnSuccessContainer,
+
             Warning = DesignTokens.Colors.Light.Warning,
             WarningContrastText = DesignTokens.Colors.Light.OnWarning,
+            WarningDarken = DesignTokens.Colors.Light.WarningContainer,
+            WarningLighten = DesignTokens.Colors.Light.OnWarningContainer,
+
             Error = DesignTokens.Colors.Light.Error,
             ErrorContrastText = DesignTokens.Colors.Light.OnError,
-            Info = DesignTokens.Colors.Light.Primary,
-            InfoContrastText = DesignTokens.Colors.Light.OnPrimary,
+            ErrorDarken = DesignTokens.Colors.Light.ErrorContainer,
+            ErrorLighten = DesignTokens.Colors.Light.OnErrorContainer,
+
+            Info = DesignTokens.Colors.Light.Info,
+            InfoContrastText = DesignTokens.Colors.Light.OnInfo,
+            InfoDarken = DesignTokens.Colors.Light.InfoContainer,
+            InfoLighten = DesignTokens.Colors.Light.OnInfoContainer,
 
             // Surface colors
             Surface = DesignTokens.Colors.Light.Surface,
             Background = DesignTokens.Colors.Light.Background,
+            BackgroundGray = DesignTokens.Colors.Light.SurfaceVariant,
 
             // Text colors
             TextPrimary = DesignTokens.Colors.Light.OnSurface,
-            TextSecondary = DesignTokens.Colors.Light.Neutral700,
-            TextDisabled = DesignTokens.Colors.Light.Neutral500,
+            TextSecondary = DesignTokens.Colors.Light.OnSurfaceVariant,
+            TextDisabled = DesignTokens.Colors.Light.Neutral400,
 
             // Action colors
             ActionDefault = DesignTokens.Colors.Light.Neutral700,
@@ -49,18 +73,18 @@ public static class AdaplioTheme
             DrawerText = DesignTokens.Colors.Light.OnSurface,
             DrawerIcon = DesignTokens.Colors.Light.Neutral700,
 
-            // Divider
-            Divider = DesignTokens.Colors.Light.Neutral200,
-            DividerLight = DesignTokens.Colors.Light.Neutral100,
+            // Lines and dividers
+            Divider = DesignTokens.Colors.Light.Outline,
+            DividerLight = DesignTokens.Colors.Light.OutlineVariant,
 
             // Tables
-            TableLines = DesignTokens.Colors.Light.Neutral200,
-            TableStriped = DesignTokens.Colors.Light.Neutral50,
+            TableLines = DesignTokens.Colors.Light.Outline,
+            TableStriped = DesignTokens.Colors.Light.SurfaceVariant,
             TableHover = DesignTokens.Colors.Light.Neutral50,
 
             // Overlays
-            OverlayDark = "rgba(16, 24, 40, 0.6)",
-            OverlayLight = "rgba(255, 255, 255, 0.6)"
+            OverlayDark = DesignTokens.Colors.Light.Scrim,
+            OverlayLight = "rgba(255, 255, 255, 0.8)"
         },
 
         PaletteDark = new PaletteDark
@@ -68,34 +92,54 @@ public static class AdaplioTheme
             // Brand colors
             Primary = DesignTokens.Colors.Dark.Primary,
             PrimaryContrastText = DesignTokens.Colors.Dark.OnPrimary,
+            PrimaryDarken = DesignTokens.Colors.Dark.PrimaryContainer,
+            PrimaryLighten = DesignTokens.Colors.Dark.OnPrimaryContainer,
+
             Secondary = DesignTokens.Colors.Dark.Secondary,
             SecondaryContrastText = DesignTokens.Colors.Dark.OnSecondary,
-            Tertiary = DesignTokens.Colors.Dark.Primary,
-            TertiaryContrastText = DesignTokens.Colors.Dark.OnPrimary,
+            SecondaryDarken = DesignTokens.Colors.Dark.SecondaryContainer,
+            SecondaryLighten = DesignTokens.Colors.Dark.OnSecondaryContainer,
+
+            Tertiary = DesignTokens.Colors.Dark.Tertiary,
+            TertiaryContrastText = DesignTokens.Colors.Dark.OnTertiary,
+            TertiaryDarken = DesignTokens.Colors.Dark.TertiaryContainer,
+            TertiaryLighten = DesignTokens.Colors.Dark.OnTertiaryContainer,
 
             // State colors
             Success = DesignTokens.Colors.Dark.Success,
             SuccessContrastText = DesignTokens.Colors.Dark.OnSuccess,
+            SuccessDarken = DesignTokens.Colors.Dark.SuccessContainer,
+            SuccessLighten = DesignTokens.Colors.Dark.OnSuccessContainer,
+
             Warning = DesignTokens.Colors.Dark.Warning,
             WarningContrastText = DesignTokens.Colors.Dark.OnWarning,
+            WarningDarken = DesignTokens.Colors.Dark.WarningContainer,
+            WarningLighten = DesignTokens.Colors.Dark.OnWarningContainer,
+
             Error = DesignTokens.Colors.Dark.Error,
             ErrorContrastText = DesignTokens.Colors.Dark.OnError,
-            Info = DesignTokens.Colors.Dark.Primary,
-            InfoContrastText = DesignTokens.Colors.Dark.OnPrimary,
+            ErrorDarken = DesignTokens.Colors.Dark.ErrorContainer,
+            ErrorLighten = DesignTokens.Colors.Dark.OnErrorContainer,
+
+            Info = DesignTokens.Colors.Dark.Info,
+            InfoContrastText = DesignTokens.Colors.Dark.OnInfo,
+            InfoDarken = DesignTokens.Colors.Dark.InfoContainer,
+            InfoLighten = DesignTokens.Colors.Dark.OnInfoContainer,
 
             // Surface colors
             Surface = DesignTokens.Colors.Dark.Surface,
             Background = DesignTokens.Colors.Dark.Background,
+            BackgroundGray = DesignTokens.Colors.Dark.SurfaceVariant,
 
             // Text colors
             TextPrimary = DesignTokens.Colors.Dark.OnSurface,
-            TextSecondary = DesignTokens.Colors.Dark.Neutral700,
-            TextDisabled = DesignTokens.Colors.Dark.Neutral500,
+            TextSecondary = DesignTokens.Colors.Dark.OnSurfaceVariant,
+            TextDisabled = DesignTokens.Colors.Dark.Neutral600,
 
             // Action colors
             ActionDefault = DesignTokens.Colors.Dark.Neutral700,
-            ActionDisabled = DesignTokens.Colors.Dark.Neutral300,
-            ActionDisabledBackground = DesignTokens.Colors.Dark.Neutral100,
+            ActionDisabled = DesignTokens.Colors.Dark.Neutral500,
+            ActionDisabledBackground = DesignTokens.Colors.Dark.Neutral300,
 
             // AppBar colors
             AppbarBackground = DesignTokens.Colors.Dark.Surface,
@@ -106,56 +150,31 @@ public static class AdaplioTheme
             DrawerText = DesignTokens.Colors.Dark.OnSurface,
             DrawerIcon = DesignTokens.Colors.Dark.Neutral700,
 
-            // Divider
-            Divider = DesignTokens.Colors.Dark.Neutral200,
-            DividerLight = DesignTokens.Colors.Dark.Neutral100,
+            // Lines and dividers
+            Divider = DesignTokens.Colors.Dark.Outline,
+            DividerLight = DesignTokens.Colors.Dark.OutlineVariant,
 
             // Tables
-            TableLines = DesignTokens.Colors.Dark.Neutral200,
-            TableStriped = DesignTokens.Colors.Dark.Neutral50,
-            TableHover = DesignTokens.Colors.Dark.Neutral50,
+            TableLines = DesignTokens.Colors.Dark.Outline,
+            TableStriped = DesignTokens.Colors.Dark.SurfaceVariant,
+            TableHover = DesignTokens.Colors.Dark.Neutral200,
 
             // Overlays
-            OverlayDark = "rgba(20, 24, 30, 0.8)",
-            OverlayLight = "rgba(14, 17, 22, 0.6)"
+            OverlayDark = DesignTokens.Colors.Dark.Scrim,
+            OverlayLight = "rgba(14, 17, 22, 0.8)"
         },
 
         LayoutProperties = new LayoutProperties
         {
             DefaultBorderRadius = $"{DesignTokens.BorderRadius.LG}px",
+            DrawerWidthLeft = "280px",
+            DrawerWidthRight = "280px",
             AppbarHeight = "64px"
         },
 
         Shadows = new Shadow
         {
-            Elevation = new string[]
-            {
-                DesignTokens.Elevation.Light.Level0,  // 0
-                DesignTokens.Elevation.Light.Level1,  // 1
-                DesignTokens.Elevation.Light.Level2,  // 2
-                DesignTokens.Elevation.Light.Level3,  // 3
-                DesignTokens.Elevation.Light.Level4,  // 4
-                DesignTokens.Elevation.Light.Level5,  // 5
-                DesignTokens.Elevation.Light.Level5,  // 6
-                DesignTokens.Elevation.Light.Level5,  // 7
-                DesignTokens.Elevation.Light.Level5,  // 8
-                DesignTokens.Elevation.Light.Level5,  // 9
-                DesignTokens.Elevation.Light.Level5,  // 10
-                DesignTokens.Elevation.Light.Level5,  // 11
-                DesignTokens.Elevation.Light.Level5,  // 12
-                DesignTokens.Elevation.Light.Level5,  // 13
-                DesignTokens.Elevation.Light.Level5,  // 14
-                DesignTokens.Elevation.Light.Level5,  // 15
-                DesignTokens.Elevation.Light.Level5,  // 16
-                DesignTokens.Elevation.Light.Level5,  // 17
-                DesignTokens.Elevation.Light.Level5,  // 18
-                DesignTokens.Elevation.Light.Level5,  // 19
-                DesignTokens.Elevation.Light.Level5,  // 20
-                DesignTokens.Elevation.Light.Level5,  // 21
-                DesignTokens.Elevation.Light.Level5,  // 22
-                DesignTokens.Elevation.Light.Level5,  // 23
-                DesignTokens.Elevation.Light.Level5   // 24
-            }
+            Elevation = CreateElevationArray()
         }
     };
 
@@ -167,34 +186,77 @@ public static class AdaplioTheme
 
         Shadows = new Shadow
         {
-            Elevation = new string[]
-            {
-                DesignTokens.Elevation.Dark.Level0,  // 0
-                DesignTokens.Elevation.Dark.Level1,  // 1
-                DesignTokens.Elevation.Dark.Level2,  // 2
-                DesignTokens.Elevation.Dark.Level3,  // 3
-                DesignTokens.Elevation.Dark.Level4,  // 4
-                DesignTokens.Elevation.Dark.Level5,  // 5
-                DesignTokens.Elevation.Dark.Level5,  // 6
-                DesignTokens.Elevation.Dark.Level5,  // 7
-                DesignTokens.Elevation.Dark.Level5,  // 8
-                DesignTokens.Elevation.Dark.Level5,  // 9
-                DesignTokens.Elevation.Dark.Level5,  // 10
-                DesignTokens.Elevation.Dark.Level5,  // 11
-                DesignTokens.Elevation.Dark.Level5,  // 12
-                DesignTokens.Elevation.Dark.Level5,  // 13
-                DesignTokens.Elevation.Dark.Level5,  // 14
-                DesignTokens.Elevation.Dark.Level5,  // 15
-                DesignTokens.Elevation.Dark.Level5,  // 16
-                DesignTokens.Elevation.Dark.Level5,  // 17
-                DesignTokens.Elevation.Dark.Level5,  // 18
-                DesignTokens.Elevation.Dark.Level5,  // 19
-                DesignTokens.Elevation.Dark.Level5,  // 20
-                DesignTokens.Elevation.Dark.Level5,  // 21
-                DesignTokens.Elevation.Dark.Level5,  // 22
-                DesignTokens.Elevation.Dark.Level5,  // 23
-                DesignTokens.Elevation.Dark.Level5   // 24
-            }
+            Elevation = CreateDarkElevationArray()
         }
     };
+
+    /// <summary>
+    /// Creates a comprehensive elevation array for light mode (25 levels as required by MudBlazor)
+    /// </summary>
+    private static string[] CreateElevationArray()
+    {
+        return new string[]
+        {
+            DesignTokens.Elevation.Light.Level0,  // 0
+            DesignTokens.Elevation.Light.Level1,  // 1
+            DesignTokens.Elevation.Light.Level2,  // 2
+            DesignTokens.Elevation.Light.Level3,  // 3
+            DesignTokens.Elevation.Light.Level4,  // 4
+            DesignTokens.Elevation.Light.Level5,  // 5
+            DesignTokens.Elevation.Light.Level5,  // 6
+            DesignTokens.Elevation.Light.Level5,  // 7
+            DesignTokens.Elevation.Light.Level5,  // 8
+            DesignTokens.Elevation.Light.Level5,  // 9
+            DesignTokens.Elevation.Light.Level5,  // 10
+            DesignTokens.Elevation.Light.Level5,  // 11
+            DesignTokens.Elevation.Light.Level5,  // 12
+            DesignTokens.Elevation.Light.Level5,  // 13
+            DesignTokens.Elevation.Light.Level5,  // 14
+            DesignTokens.Elevation.Light.Level5,  // 15
+            DesignTokens.Elevation.Light.Level5,  // 16
+            DesignTokens.Elevation.Light.Level5,  // 17
+            DesignTokens.Elevation.Light.Level5,  // 18
+            DesignTokens.Elevation.Light.Level5,  // 19
+            DesignTokens.Elevation.Light.Level5,  // 20
+            DesignTokens.Elevation.Light.Level5,  // 21
+            DesignTokens.Elevation.Light.Level5,  // 22
+            DesignTokens.Elevation.Light.Level5,  // 23
+            DesignTokens.Elevation.Light.Level5   // 24
+        };
+    }
+
+    /// <summary>
+    /// Creates a comprehensive elevation array for dark mode (25 levels as required by MudBlazor)
+    /// </summary>
+    private static string[] CreateDarkElevationArray()
+    {
+        return new string[]
+        {
+            DesignTokens.Elevation.Dark.Level0,  // 0
+            DesignTokens.Elevation.Dark.Level1,  // 1
+            DesignTokens.Elevation.Dark.Level2,  // 2
+            DesignTokens.Elevation.Dark.Level3,  // 3
+            DesignTokens.Elevation.Dark.Level4,  // 4
+            DesignTokens.Elevation.Dark.Level5,  // 5
+            DesignTokens.Elevation.Dark.Level5,  // 6
+            DesignTokens.Elevation.Dark.Level5,  // 7
+            DesignTokens.Elevation.Dark.Level5,  // 8
+            DesignTokens.Elevation.Dark.Level5,  // 9
+            DesignTokens.Elevation.Dark.Level5,  // 10
+            DesignTokens.Elevation.Dark.Level5,  // 11
+            DesignTokens.Elevation.Dark.Level5,  // 12
+            DesignTokens.Elevation.Dark.Level5,  // 13
+            DesignTokens.Elevation.Dark.Level5,  // 14
+            DesignTokens.Elevation.Dark.Level5,  // 15
+            DesignTokens.Elevation.Dark.Level5,  // 16
+            DesignTokens.Elevation.Dark.Level5,  // 17
+            DesignTokens.Elevation.Dark.Level5,  // 18
+            DesignTokens.Elevation.Dark.Level5,  // 19
+            DesignTokens.Elevation.Dark.Level5,  // 20
+            DesignTokens.Elevation.Dark.Level5,  // 21
+            DesignTokens.Elevation.Dark.Level5,  // 22
+            DesignTokens.Elevation.Dark.Level5,  // 23
+            DesignTokens.Elevation.Dark.Level5   // 24
+        };
+    }
 }
