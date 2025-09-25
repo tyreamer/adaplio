@@ -38,6 +38,11 @@ public class AppDbContext : DbContext
         // Configure PostgreSQL type conversions
         if (Database.ProviderName == "Npgsql.EntityFrameworkCore.PostgreSQL")
         {
+            // Configure auto-increment for primary keys
+            modelBuilder.Entity<AppUser>()
+                .Property(u => u.Id)
+                .UseIdentityColumn();
+
             // Boolean to integer conversion for is_verified column
             modelBuilder.Entity<AppUser>()
                 .Property(u => u.IsVerified)
