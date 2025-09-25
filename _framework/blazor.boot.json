@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "Adaplio.Frontend",
   "resources": {
-    "hash": "sha256-qOysbB1grwhqZg6BnWYP1+mfDCO35+ObT4TbrVFeyKM=",
+    "hash": "sha256-b0Ms7hIiNkuIbFUyu2bVK080YirE1jxdkmyt11FkaHU=",
     "jsModuleNative": {
       "dotnet.native.js": "sha256-D0bzod5lwwSzPR43JC8TTCcZKw+3jIHOk8CZFCRj5is="
     },
@@ -60,8 +60,8 @@
       "System.Text.RegularExpressions.wasm": "sha256-hqYbLGy53NkhIeltPM5yx0AzOqPP41zUNfWzuZLaWY0=",
       "System.Threading.wasm": "sha256-l1N5mKqZevUN7pZgyKazOGsgCY/8IzY+BCQqre7Ty9c=",
       "System.wasm": "sha256-9DLmgOsnmEbjuZrRVFruRmVRvh/skjCDv6hQMjVZ3K8=",
-      "System.Private.CoreLib.wasm": "sha256-uYOnnAmnA2aZvQMitSnDZtNEw3p3zHWRFJuBzf2dL7w=",
-      "Adaplio.Frontend.wasm": "sha256-VjO2cN6RouMWpOfXUz3FEWcdRXCemhLtKdZy/6oiRWo="
+      "System.Private.CoreLib.wasm": "sha256-jM76FxLOCL6clDHgW4Aq+G1Oti2VjkikMktmPO4hfas=",
+      "Adaplio.Frontend.wasm": "sha256-BEHhS9A75iGbP1aBjWi5Z80QzGxOukHIW9NNWzZyTr8="
     }
   },
   "cacheBootResources": true,
