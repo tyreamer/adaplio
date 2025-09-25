@@ -1,0 +1,709 @@
+@page "/welcome"
+@using Adaplio.Frontend.Theme
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Welcome to Adaplio - Adherence that sticks</PageTitle>
+
+<div class="welcome-page">
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1 class="hero-title">
+                    Adherence that <span class="gradient-text">sticks</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Transform fitness plans into lasting habits with personalized tracking,
+                    real-time progress insights, and reward-driven motivation.
+                </p>
+                <div class="hero-actions">
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               Size="Size.Large"
+                               Class="hero-cta primary-cta btn-scale"
+                               StartIcon="@Icons.Material.Filled.PersonAdd"
+                               Href="/auth/trainer/register">
+                        Start as Trainer
+                    </MudButton>
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Primary"
+                               Size="Size.Large"
+                               Class="hero-cta secondary-cta btn-scale"
+                               StartIcon="@Icons.Material.Filled.Login"
+                               Href="/auth/client/login">
+                        I'm a Client
+                    </MudButton>
+                </div>
+                <div class="trust-signals">
+                    <MudStack Row AlignItems="AlignItems.Center" Spacing="6" Justify="Justify.Center">
+                        <div class="stat-chip">
+                            <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="Size.Small" Color="Color.Success" />
+                            <span>+35% adherence</span>
+                        </div>
+                        <div class="stat-chip">
+                            <MudIcon Icon="@Icons.Material.Filled.Group" Size="Size.Small" Color="Color.Primary" />
+                            <span>1,000+ users</span>
+                        </div>
+                        <div class="stat-chip">
+                            <MudIcon Icon="@Icons.Material.Filled.Star" Size="Size.Small" Color="Color.Warning" />
+                            <span>4.8 rating</span>
+                        </div>
+                    </MudStack>
+                </div>
+            </div>
+
+            <div class="hero-visual">
+                <!-- Product Showcase Cards -->
+                <div class="product-showcase">
+                    <div class="showcase-card card-hover elevation-3" style="--delay: 0.1s">
+                        <div class="card-header">
+                            <MudIcon Icon="@Icons.Material.Filled.CalendarToday" Color="Color.Primary" Size="Size.Medium" />
+                            <MudText Typo="Typo.h6" Class="card-title">Weekly Board</MudText>
+                        </div>
+                        <div class="card-content">
+                            <div class="demo-week-grid">
+                                <div class="demo-day completed">M</div>
+                                <div class="demo-day completed">T</div>
+                                <div class="demo-day completed">W</div>
+                                <div class="demo-day partial">T</div>
+                                <div class="demo-day">F</div>
+                                <div class="demo-day">S</div>
+                                <div class="demo-day">S</div>
+                            </div>
+                            <MudProgressLinear Value="60" Color="Color.Success" Size="Size.Medium" Class="mt-3" />
+                        </div>
+                    </div>
+
+                    <div class="showcase-card card-hover elevation-3" style="--delay: 0.2s">
+                        <div class="card-header">
+                            <MudIcon Icon="@Icons.Material.Filled.Analytics" Color="Color.Success" Size="Size.Medium" />
+                            <MudText Typo="Typo.h6" Class="card-title">Adherence</MudText>
+                        </div>
+                        <div class="card-content">
+                            <div class="demo-chart">
+                                <div class="chart-bars">
+                                    <div class="chart-bar" style="height: 40%"></div>
+                                    <div class="chart-bar" style="height: 65%"></div>
+                                    <div class="chart-bar" style="height: 80%"></div>
+                                    <div class="chart-bar" style="height: 75%"></div>
+                                    <div class="chart-bar" style="height: 90%"></div>
+                                </div>
+                                <MudText Typo="Typo.h4" Color="Color.Success" Class="chart-value">78%</MudText>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="showcase-card card-hover elevation-3" style="--delay: 0.3s">
+                        <div class="card-header">
+                            <MudIcon Icon="@Icons.Material.Filled.EmojiEvents" Color="Color.Warning" Size="Size.Medium" />
+                            <MudText Typo="Typo.h6" Class="card-title">Rewards</MudText>
+                        </div>
+                        <div class="card-content">
+                            <div class="demo-badges">
+                                <div class="demo-badge earned">🔥</div>
+                                <div class="demo-badge earned">💪</div>
+                                <div class="demo-badge earned">⚡</div>
+                                <div class="demo-badge locked">🏆</div>
+                            </div>
+                            <MudText Typo="Typo.body2" Class="mt-2 text-success">3 badges earned this week!</MudText>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Social Proof Section -->
+    <section class="social-proof-section">
+        <div class="section-content">
+            <MudText Typo="Typo.h4" Align="Align.Center" Class="section-title">
+                Trusted by fitness professionals
+            </MudText>
+            <div class="testimonial-carousel">
+                <div class="testimonial-card elevation-2">
+                    <MudText Typo="Typo.body1" Class="testimonial-quote">
+                        "My clients' adherence improved by 40% within the first month.
+                        The visual progress tracking keeps everyone motivated."
+                    </MudText>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">
+                            <MudAvatar Size="Size.Medium" Color="Color.Primary">JD</MudAvatar>
+                        </div>
+                        <div class="author-info">
+                            <MudText Typo="Typo.subtitle2" Class="author-name">Jessica Davis</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">Certified Personal Trainer</MudText>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="testimonial-card elevation-2">
+                    <MudText Typo="Typo.body1" Class="testimonial-quote">
+                        "Finally, a platform that makes tracking fun! The reward system
+                        keeps me coming back every day."
+                    </MudText>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">
+                            <MudAvatar Size="Size.Medium" Color="Color.Secondary">MR</MudAvatar>
+                        </div>
+                        <div class="author-info">
+                            <MudText Typo="Typo.subtitle2" Class="author-name">Mike Rodriguez</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">Adaplio Client</MudText>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="testimonial-card elevation-2">
+                    <MudText Typo="Typo.body1" Class="testimonial-quote">
+                        "The insights dashboard helps me adjust programs in real-time.
+                        It's like having a co-trainer for data analysis."
+                    </MudText>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">
+                            <MudAvatar Size="Size.Medium" Color="Color.Tertiary">AL</MudAvatar>
+                        </div>
+                        <div class="author-info">
+                            <MudText Typo="Typo.subtitle2" Class="author-name">Alex Liu</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">Fitness Studio Owner</MudText>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Partner Logos -->
+            <div class="partner-logos">
+                <MudText Typo="Typo.caption" Align="Align.Center" Color="Color.Secondary" Class="mb-4">
+                    As featured in
+                </MudText>
+                <div class="logo-grid">
+                    <div class="logo-placeholder">TechFit</div>
+                    <div class="logo-placeholder">FitnessPro</div>
+                    <div class="logo-placeholder">HealthTech</div>
+                    <div class="logo-placeholder">WellnessNews</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="section-content">
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <MudIcon Icon="@Icons.Material.Filled.Assignment" Size="Size.Large" Color="Color.Primary" />
+                    </div>
+                    <MudText Typo="Typo.h5" Class="feature-title">Smart Templates</MudText>
+                    <MudText Typo="Typo.body1" Color="Color.Secondary" Class="feature-description">
+                        Create reusable workout templates with drag-and-drop simplicity.
+                        Customize for each client's needs and goals.
+                    </MudText>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="Size.Large" Color="Color.Success" />
+                    </div>
+                    <MudText Typo="Typo.h5" Class="feature-title">Real-time Insights</MudText>
+                    <MudText Typo="Typo.body1" Color="Color.Secondary" Class="feature-description">
+                        Track progress with detailed analytics. Identify patterns,
+                        celebrate wins, and adjust plans based on data.
+                    </MudText>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <MudIcon Icon="@Icons.Material.Filled.EmojiEvents" Size="Size.Large" Color="Color.Warning" />
+                    </div>
+                    <MudText Typo="Typo.h5" Class="feature-title">Gamified Experience</MudText>
+                    <MudText Typo="Typo.body1" Color="Color.Secondary" Class="feature-description">
+                        Unlock badges, streaks, and rewards that make fitness feel like a game.
+                        Motivation that actually works.
+                    </MudText>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="welcome-footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                    <div class="brand-icon">
+                        <MudIcon Icon="@Icons.Material.Filled.FitnessCenter" Color="Color.Primary" Size="Size.Medium" />
+                    </div>
+                    <MudText Typo="Typo.h6" Class="brand-text">Adaplio</MudText>
+                </MudStack>
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
+                    Privacy-first fitness tracking that puts your data in your control.
+                </MudText>
+            </div>
+
+            <div class="footer-links">
+                <MudStack Spacing="4">
+                    <MudLink Href="/privacy" Color="Color.Secondary">Privacy Policy</MudLink>
+                    <MudLink Href="/terms" Color="Color.Secondary">Terms of Service</MudLink>
+                    <MudLink Href="/contact" Color="Color.Secondary">Contact</MudLink>
+                    <MudLink Href="/help" Color="Color.Secondary">Help</MudLink>
+                </MudStack>
+            </div>
+        </div>
+
+        <MudDivider Class="my-6" />
+
+        <MudText Typo="Typo.caption" Align="Align.Center" Color="Color.Secondary">
+            © @DateTime.Now.Year Adaplio. Made with ❤️ for fitness professionals.
+        </MudText>
+    </footer>
+</div>
+
+<style>
+.welcome-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--color-background) 0%, var(--color-neutral-50) 100%);
+}
+
+.hero-section {
+    padding: var(--space-xxxxl) 0 var(--space-xxxl) 0;
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+}
+
+.hero-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-xxxxl);
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--space-lg);
+}
+
+.hero-text {
+    max-width: 500px;
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: var(--font-weight-bold);
+    line-height: 1.1;
+    margin-bottom: var(--space-lg);
+    color: var(--color-surface-on);
+}
+
+.gradient-text {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.hero-subtitle {
+    font-size: 1.25rem;
+    line-height: 1.6;
+    color: var(--color-neutral-700);
+    margin-bottom: var(--space-xxxl);
+}
+
+.hero-actions {
+    display: flex;
+    gap: var(--space-lg);
+    margin-bottom: var(--space-xxxl);
+}
+
+.hero-cta {
+    border-radius: var(--radius-lg) !important;
+    font-weight: var(--font-weight-medium) !important;
+    text-transform: none !important;
+    padding: var(--space-md) var(--space-xxl) !important;
+    min-height: 56px !important;
+    font-size: 1.1rem !important;
+}
+
+.primary-cta {
+    box-shadow: var(--elevation-3);
+}
+
+.primary-cta:hover {
+    box-shadow: var(--elevation-4);
+}
+
+.secondary-cta {
+    background: var(--color-surface) !important;
+    border: 2px solid var(--color-primary) !important;
+}
+
+.trust-signals {
+    margin-top: var(--space-xl);
+}
+
+.stat-chip {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-lg);
+    background: var(--color-surface);
+    border-radius: var(--radius-round);
+    box-shadow: var(--elevation-1);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-surface-on);
+}
+
+.hero-visual {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.product-showcase {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-lg);
+    max-width: 400px;
+}
+
+.showcase-card {
+    background: var(--color-surface);
+    border-radius: var(--radius-xl);
+    padding: var(--space-xxl);
+    box-shadow: var(--elevation-3);
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp var(--duration-gentle) var(--easing-decelerate) forwards;
+    animation-delay: var(--delay);
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+}
+
+.card-title {
+    font-weight: var(--font-weight-semibold) !important;
+    color: var(--color-surface-on);
+}
+
+.demo-week-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+}
+
+.demo-day {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    background: var(--color-neutral-100);
+    color: var(--color-neutral-500);
+}
+
+.demo-day.completed {
+    background: var(--color-success);
+    color: var(--color-success-on);
+}
+
+.demo-day.partial {
+    background: var(--color-warning);
+    color: var(--color-warning-on);
+}
+
+.demo-chart {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.chart-bars {
+    display: flex;
+    align-items: end;
+    gap: var(--space-sm);
+    height: 60px;
+}
+
+.chart-bar {
+    width: 16px;
+    background: linear-gradient(to top, var(--color-success) 0%, var(--color-primary) 100%);
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    opacity: 0.8;
+}
+
+.chart-value {
+    font-weight: var(--font-weight-bold) !important;
+}
+
+.demo-badges {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-md);
+}
+
+.demo-badge {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    background: var(--color-surface);
+    box-shadow: var(--elevation-2);
+}
+
+.demo-badge.earned {
+    background: linear-gradient(135deg, var(--color-warning) 0%, var(--color-primary) 100%);
+}
+
+.demo-badge.locked {
+    background: var(--color-neutral-100);
+    opacity: 0.5;
+    filter: grayscale(1);
+}
+
+.social-proof-section {
+    padding: var(--space-xxxxl) 0;
+    background: var(--color-surface);
+}
+
+.section-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--space-lg);
+}
+
+.section-title {
+    margin-bottom: var(--space-xxxl);
+    font-weight: var(--font-weight-semibold) !important;
+    color: var(--color-surface-on);
+}
+
+.testimonial-carousel {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--space-xxl);
+    margin-bottom: var(--space-xxxxl);
+}
+
+.testimonial-card {
+    background: var(--color-background);
+    border-radius: var(--radius-xl);
+    padding: var(--space-xxxl);
+    box-shadow: var(--elevation-2);
+}
+
+.testimonial-quote {
+    margin-bottom: var(--space-xxl);
+    font-style: italic;
+    line-height: 1.6;
+    color: var(--color-surface-on);
+}
+
+.testimonial-author {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.author-name {
+    font-weight: var(--font-weight-semibold) !important;
+    color: var(--color-surface-on);
+}
+
+.partner-logos {
+    text-align: center;
+}
+
+.logo-grid {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-xxxl);
+    flex-wrap: wrap;
+}
+
+.logo-placeholder {
+    padding: var(--space-lg) var(--space-xxl);
+    background: var(--color-neutral-100);
+    border-radius: var(--radius-md);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-neutral-500);
+    opacity: 0.7;
+}
+
+.features-section {
+    padding: var(--space-xxxxl) 0;
+    background: var(--color-background);
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--space-xxxl);
+}
+
+.feature-card {
+    text-align: center;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.feature-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: var(--radius-xl);
+    background: linear-gradient(135deg, var(--color-neutral-50) 0%, var(--color-surface) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--space-lg) auto;
+    box-shadow: var(--elevation-2);
+}
+
+.feature-title {
+    margin-bottom: var(--space-lg);
+    font-weight: var(--font-weight-semibold) !important;
+    color: var(--color-surface-on);
+}
+
+.feature-description {
+    line-height: 1.6;
+}
+
+.welcome-footer {
+    padding: var(--space-xxxxl) 0 var(--space-xxl) 0;
+    background: var(--color-surface);
+    border-top: 1px solid var(--color-neutral-200);
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--space-lg);
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: var(--space-xxxl);
+    align-items: start;
+}
+
+.brand-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+    border-radius: var(--radius-md);
+    color: white !important;
+}
+
+.brand-text {
+    font-weight: var(--font-weight-semibold) !important;
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Responsive Design */
+@media (max-width: 900px) {
+    .hero-content {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: var(--space-xxxl);
+    }
+
+    .hero-title {
+        font-size: 2.5rem;
+    }
+
+    .hero-actions {
+        justify-content: center;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .hero-cta {
+        width: 100%;
+        max-width: 300px;
+    }
+
+    .testimonial-carousel {
+        grid-template-columns: 1fr;
+    }
+
+    .footer-content {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: var(--space-xxl);
+    }
+}
+
+@media (max-width: 600px) {
+    .hero-section {
+        padding: var(--space-xxxl) 0 var(--space-xxl) 0;
+    }
+
+    .hero-title {
+        font-size: 2rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1.1rem;
+    }
+
+    .logo-grid {
+        gap: var(--space-lg);
+    }
+
+    .stat-chip {
+        font-size: var(--font-size-xs);
+        padding: var(--space-xs) var(--space-md);
+    }
+
+    .trust-signals .mud-stack {
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: var(--space-md) !important;
+    }
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+    .welcome-page {
+        background: linear-gradient(135deg, var(--color-background) 0%, var(--color-neutral-50) 100%);
+    }
+
+    .logo-placeholder {
+        background: var(--color-neutral-100);
+        color: var(--color-neutral-700);
+    }
+}
+</style>
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Add some entrance animations
+            await JSRuntime.InvokeVoidAsync("setTimeout", () => { }, 100);
+        }
+    }
+}

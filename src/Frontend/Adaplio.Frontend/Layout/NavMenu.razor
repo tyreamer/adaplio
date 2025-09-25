@@ -1,42 +1,311 @@
-﻿<MudNavMenu>
-    <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">
-        Home
-    </MudNavLink>
-    <MudNavLink Href="/plans" Icon="@Icons.Material.Filled.FitnessCenter">
-        My Plans
-    </MudNavLink>
-    <MudNavLink Href="/progress" Icon="@Icons.Material.Filled.TrendingUp">
-        Progress
-    </MudNavLink>
-    <MudNavLink Href="/adherence" Icon="@Icons.Material.Filled.Analytics">
-        Adherence
-    </MudNavLink>
-    <MudNavLink Href="/board" Icon="@Icons.Material.Filled.CalendarMonth">
-        Weekly Board
-    </MudNavLink>
-    <MudNavLink Href="/profile" Icon="@Icons.Material.Filled.Person">
-        Profile
-    </MudNavLink>
+﻿<MudNavMenu Class="nav-menu" Dense="true">
+    <!-- Client Section -->
+    <div class="nav-section">
+        <MudText Class="nav-section-title" Typo="Typo.overline">Client</MudText>
 
-    <MudDivider Class="my-2" />
+        <MudNavLink Href="/"
+                    Match="NavLinkMatch.All"
+                    Icon="@Icons.Material.Filled.Home"
+                    Class="nav-item"
+                    aria-current="@(IsActive("/") ? "page" : null)">
+            <MudStack Row AlignItems="AlignItems.Center" Spacing="3" Class="nav-content">
+                <MudIcon Icon="@Icons.Material.Filled.Home" Size="Size.Medium" />
+                <MudText Typo="Typo.body2" Class="nav-text">Home</MudText>
+            </MudStack>
+        </MudNavLink>
 
-    <MudNavGroup Text="Trainer" Icon="@Icons.Material.Filled.LocalHospital" Expandable="true">
-        <MudNavLink Href="/trainer/templates" Icon="@Icons.Material.Filled.Assignment">
-            Templates
+        <MudNavLink Href="/board"
+                    Icon="@Icons.Material.Filled.CalendarToday"
+                    Class="nav-item">
+            <MudStack Row AlignItems="AlignItems.Center" Spacing="3" Class="nav-content">
+                <MudIcon Icon="@Icons.Material.Filled.CalendarToday" Size="Size.Medium" />
+                <MudText Typo="Typo.body2" Class="nav-text">Weekly Board</MudText>
+            </MudStack>
         </MudNavLink>
-        <MudNavLink Href="/trainer/dashboard" Icon="@Icons.Material.Filled.Dashboard">
-            Dashboard
-        </MudNavLink>
-    </MudNavGroup>
 
-    <MudDivider Class="my-2" />
+        <MudNavLink Href="/progress"
+                    Icon="@Icons.Material.Filled.TrendingUp"
+                    Class="nav-item">
+            <MudStack Row AlignItems="AlignItems.Center" Spacing="3" Class="nav-content">
+                <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="Size.Medium" />
+                <MudText Typo="Typo.body2" Class="nav-text">Progress</MudText>
+            </MudStack>
+        </MudNavLink>
 
-    <MudNavGroup Text="Sign In" Icon="@Icons.Material.Filled.Login" Expandable="true">
-        <MudNavLink Href="/auth/client/login" Icon="@Icons.Material.Filled.Person">
-            Client Login
+        <MudNavLink Href="/adherence"
+                    Icon="@Icons.Material.Filled.Analytics"
+                    Class="nav-item">
+            <MudStack Row AlignItems="AlignItems.Center" Spacing="3" Class="nav-content">
+                <MudIcon Icon="@Icons.Material.Filled.Analytics" Size="Size.Medium" />
+                <MudText Typo="Typo.body2" Class="nav-text">Adherence</MudText>
+            </MudStack>
         </MudNavLink>
-        <MudNavLink Href="/auth/trainer/login" Icon="@Icons.Material.Filled.LocalHospital">
-            Trainer Login
+
+        <MudNavLink Href="/rewards"
+                    Icon="@Icons.Material.Filled.EmojiEvents"
+                    Class="nav-item">
+            <MudStack Row AlignItems="AlignItems.Center" Spacing="3" Class="nav-content">
+                <MudIcon Icon="@Icons.Material.Filled.EmojiEvents" Size="Size.Medium" />
+                <MudText Typo="Typo.body2" Class="nav-text">Rewards</MudText>
+            </MudStack>
         </MudNavLink>
-    </MudNavGroup>
+    </div>
+
+    <MudDivider Class="nav-divider" />
+
+    <!-- Trainer Section -->
+    <div class="nav-section">
+        <MudText Class="nav-section-title" Typo="Typo.overline">Trainer</MudText>
+
+        <MudNavLink Href="/trainer/dashboard"
+                    Icon="@Icons.Material.Filled.Dashboard"
+                    Class="nav-item">
+            <MudStack Row AlignItems="AlignItems.Center" Spacing="3" Class="nav-content">
+                <MudIcon Icon="@Icons.Material.Filled.Dashboard" Size="Size.Medium" />
+                <MudText Typo="Typo.body2" Class="nav-text">Dashboard</MudText>
+            </MudStack>
+        </MudNavLink>
+
+        <MudNavLink Href="/trainer/templates"
+                    Icon="@Icons.Material.Filled.Assignment"
+                    Class="nav-item">
+            <MudStack Row AlignItems="AlignItems.Center" Spacing="3" Class="nav-content">
+                <MudIcon Icon="@Icons.Material.Filled.Assignment" Size="Size.Medium" />
+                <MudText Typo="Typo.body2" Class="nav-text">Templates</MudText>
+            </MudStack>
+        </MudNavLink>
+
+        <MudNavLink Href="/trainer/proposals"
+                    Icon="@Icons.Material.Filled.Send"
+                    Class="nav-item">
+            <MudStack Row AlignItems="AlignItems.Center" Spacing="3" Class="nav-content">
+                <MudIcon Icon="@Icons.Material.Filled.Send" Size="Size.Medium" />
+                <MudText Typo="Typo.body2" Class="nav-text">Proposals</MudText>
+            </MudStack>
+        </MudNavLink>
+
+        <MudNavLink Href="/trainer/clients"
+                    Icon="@Icons.Material.Filled.Group"
+                    Class="nav-item">
+            <MudStack Row AlignItems="AlignItems.Center" Spacing="3" Class="nav-content">
+                <MudIcon Icon="@Icons.Material.Filled.Group" Size="Size.Medium" />
+                <MudText Typo="Typo.body2" Class="nav-text">Clients</MudText>
+            </MudStack>
+        </MudNavLink>
+    </div>
+
+    <MudDivider Class="nav-divider" />
+
+    <!-- Account Section -->
+    <div class="nav-section">
+        <MudText Class="nav-section-title" Typo="Typo.overline">Account</MudText>
+
+        <MudNavLink Href="/profile"
+                    Icon="@Icons.Material.Filled.Person"
+                    Class="nav-item">
+            <MudStack Row AlignItems="AlignItems.Center" Spacing="3" Class="nav-content">
+                <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Medium" />
+                <MudText Typo="Typo.body2" Class="nav-text">Profile</MudText>
+            </MudStack>
+        </MudNavLink>
+
+        <MudNavLink Href="/settings"
+                    Icon="@Icons.Material.Filled.Settings"
+                    Class="nav-item">
+            <MudStack Row AlignItems="AlignItems.Center" Spacing="3" Class="nav-content">
+                <MudIcon Icon="@Icons.Material.Filled.Settings" Size="Size.Medium" />
+                <MudText Typo="Typo.body2" Class="nav-text">Settings</MudText>
+            </MudStack>
+        </MudNavLink>
+    </div>
+
+    <!-- Auth Section (when not signed in) -->
+    @if (!_isSignedIn)
+    {
+        <MudDivider Class="nav-divider" />
+
+        <div class="nav-section">
+            <MudText Class="nav-section-title" Typo="Typo.overline">Get Started</MudText>
+
+            <MudNavLink Href="/auth/trainer/register"
+                        Icon="@Icons.Material.Filled.PersonAdd"
+                        Class="nav-item nav-cta">
+                <MudStack Row AlignItems="AlignItems.Center" Spacing="3" Class="nav-content">
+                    <MudIcon Icon="@Icons.Material.Filled.PersonAdd" Size="Size.Medium" />
+                    <MudText Typo="Typo.body2" Class="nav-text">Start as Trainer</MudText>
+                </MudStack>
+            </MudNavLink>
+
+            <MudNavLink Href="/auth/client/login"
+                        Icon="@Icons.Material.Filled.Login"
+                        Class="nav-item">
+                <MudStack Row AlignItems="AlignItems.Center" Spacing="3" Class="nav-content">
+                    <MudIcon Icon="@Icons.Material.Filled.Login" Size="Size.Medium" />
+                    <MudText Typo="Typo.body2" Class="nav-text">I'm a Client</MudText>
+                </MudStack>
+            </MudNavLink>
+        </div>
+    }
 </MudNavMenu>
+
+<style>
+.nav-menu {
+    padding: 0 !important;
+}
+
+.nav-section {
+    margin-bottom: var(--space-lg);
+}
+
+.nav-section-title {
+    padding: var(--space-md) var(--space-lg) var(--space-sm) var(--space-lg);
+    font-weight: var(--font-weight-semibold) !important;
+    color: var(--mud-palette-text-secondary) !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: var(--font-size-xs) !important;
+}
+
+.nav-item {
+    margin: 0 var(--space-md) var(--space-xs) var(--space-md) !important;
+    border-radius: var(--radius-lg) !important;
+    min-height: 44px !important;
+    padding: var(--space-sm) var(--space-md) !important;
+    transition: all var(--duration-fast) var(--easing-standard) !important;
+    text-decoration: none !important;
+    display: flex !important;
+    align-items: center !important;
+    position: relative;
+}
+
+.nav-item:hover {
+    background-color: var(--mud-palette-action-hover) !important;
+    transform: translateX(2px);
+}
+
+.nav-item.active {
+    background: linear-gradient(135deg, var(--mud-palette-primary) 0%, var(--mud-palette-secondary) 100%) !important;
+    color: var(--mud-palette-primary-contrast-text) !important;
+    box-shadow: var(--elevation-2);
+}
+
+.nav-item.active .mud-icon,
+.nav-item.active .nav-text {
+    color: var(--mud-palette-primary-contrast-text) !important;
+}
+
+.nav-cta {
+    background: var(--mud-palette-primary) !important;
+    color: var(--mud-palette-primary-contrast-text) !important;
+    box-shadow: var(--elevation-2);
+}
+
+.nav-cta .mud-icon,
+.nav-cta .nav-text {
+    color: var(--mud-palette-primary-contrast-text) !important;
+}
+
+.nav-cta:hover {
+    background: var(--mud-palette-primary-darken) !important;
+    box-shadow: var(--elevation-3);
+    transform: translateX(2px) translateY(-1px);
+}
+
+.nav-content {
+    width: 100%;
+}
+
+.nav-text {
+    font-weight: var(--font-weight-medium) !important;
+    color: var(--mud-palette-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nav-divider {
+    margin: var(--space-lg) var(--space-md) !important;
+    opacity: 0.3;
+}
+
+/* Focus states for accessibility */
+.nav-item:focus {
+    outline: 2px solid var(--mud-palette-primary);
+    outline-offset: 2px;
+}
+
+.nav-item:focus-visible {
+    outline: 2px solid var(--mud-palette-primary);
+    outline-offset: 2px;
+}
+
+/* Drawer mini mode adjustments */
+@media (min-width: 901px) {
+    .mud-drawer-mini .nav-text {
+        opacity: 0;
+        transform: translateX(-10px);
+        transition: opacity var(--duration-fast) var(--easing-standard),
+                    transform var(--duration-fast) var(--easing-standard);
+    }
+
+    .mud-drawer-mini:hover .nav-text {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    .mud-drawer-mini .nav-section-title {
+        opacity: 0;
+        transform: translateX(-10px);
+        transition: opacity var(--duration-fast) var(--easing-standard),
+                    transform var(--duration-fast) var(--easing-standard);
+    }
+
+    .mud-drawer-mini:hover .nav-section-title {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Mobile adjustments */
+@media (max-width: 900px) {
+    .nav-item {
+        margin: 0 var(--space-sm) var(--space-xs) var(--space-sm) !important;
+        padding: var(--space-md) !important;
+        min-height: 48px !important;
+    }
+
+    .nav-section-title {
+        padding: var(--space-md) var(--space-md) var(--space-sm) var(--space-md);
+    }
+}
+</style>
+
+@code {
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+
+    private bool _isSignedIn = false; // TODO: Get from auth service
+    private string _currentUrl = "";
+
+    protected override void OnInitialized()
+    {
+        _currentUrl = Navigation.Uri;
+        Navigation.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        _currentUrl = e.Location;
+        StateHasChanged();
+    }
+
+    private bool IsActive(string href)
+    {
+        var currentPath = Navigation.ToBaseRelativePath(_currentUrl);
+        return string.Equals(currentPath, href.TrimStart('/'), StringComparison.OrdinalIgnoreCase);
+    }
+
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= OnLocationChanged;
+    }
+}

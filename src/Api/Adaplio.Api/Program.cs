@@ -72,11 +72,16 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 
 // Add CORS
+var corsOrigins = Environment.GetEnvironmentVariable("CORS__ORIGINS") ?? "https://localhost:5001,http://localhost:5000";
+var allowedOrigins = corsOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                               .Select(origin => origin.Trim())
+                               .ToArray();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("https://localhost:5001", "http://localhost:5000")
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();

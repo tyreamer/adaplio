@@ -1,4 +1,7 @@
-﻿<MudThemeProvider Theme="@_theme" />
+@using Adaplio.Frontend.Theme
+@inject ThemeService ThemeService
+
+<MudThemeProvider Theme="@ThemeService.CurrentTheme" IsDarkMode="@ThemeService.IsDarkMode" />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
@@ -16,5 +19,14 @@
 </Router>
 
 @code {
-    private MudTheme _theme = new();
+    protected override async Task OnInitializedAsync()
+    {
+        await ThemeService.InitializeAsync();
+        ThemeService.OnThemeChanged += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        ThemeService.OnThemeChanged -= StateHasChanged;
+    }
 }

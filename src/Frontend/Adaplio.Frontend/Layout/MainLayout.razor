@@ -1,35 +1,321 @@
 ﻿@inherits LayoutComponentBase
+@using Adaplio.Frontend.Theme
+@inject ThemeService ThemeService
+@inject IJSRuntime JSRuntime
 
-<MudLayout>
-    <MudAppBar Elevation="1">
-        <MudIconButton Icon="Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+<MudLayout Class="app-layout">
+    <MudAppBar Elevation="0" Class="app-bar backdrop-blur">
+        <MudIconButton Icon="Icons.Material.Filled.Menu"
+                       Color="Color.Inherit"
+                       Edge="Edge.Start"
+                       OnClick="@DrawerToggle"
+                       Size="Size.Large"
+                       aria-label="Toggle navigation menu" />
+
+        <!-- Brand -->
+        <MudLink Href="/" Class="brand-link" Underline="Underline.None">
+            <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                <div class="brand-icon">
+                    <MudIcon Icon="@Icons.Material.Filled.FitnessCenter" Color="Color.Primary" Size="Size.Medium" />
+                </div>
+                <MudText Typo="Typo.h6" Class="brand-text">Adaplio</MudText>
+            </MudStack>
+        </MudLink>
+
         <MudSpacer />
-        <MudText Typo="Typo.h6">Adaplio</MudText>
-        <MudSpacer />
-        <MudToggleIconButton @bind-Toggled="@_isDarkMode"
-                             Icon="@Icons.Material.Filled.Brightness4"
-                             ToggledIcon="@Icons.Material.Filled.Brightness7"
-                             Title="Toggle Dark Mode"
-                             ToggledTitle="Toggle Light Mode" />
+
+        <!-- Primary CTA -->
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   Class="mr-4 primary-cta btn-scale"
+                   StartIcon="@Icons.Material.Filled.PersonAdd">
+            Invite Client
+        </MudButton>
+
+        <!-- Help -->
+        <MudTooltip Text="Help & Support">
+            <MudIconButton Icon="@Icons.Material.Filled.Help"
+                           Color="Color.Inherit"
+                           aria-label="Help and support" />
+        </MudTooltip>
+
+        <!-- Theme Toggle -->
+        <MudTooltip Text="@(_isDarkMode ? "Switch to light mode" : "Switch to dark mode")">
+            <MudToggleIconButton Toggled="@_isDarkMode"
+                                 Icon="@Icons.Material.Filled.LightMode"
+                                 ToggledIcon="@Icons.Material.Filled.DarkMode"
+                                 Color="Color.Inherit"
+                                 ToggledChanged="OnThemeToggled"
+                                 aria-label="Toggle theme" />
+        </MudTooltip>
+
+        <!-- Profile Menu -->
+        <MudMenu Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit" aria-label="User menu">
+            <MudMenuItem Icon="@Icons.Material.Filled.Person">Profile</MudMenuItem>
+            <MudMenuItem Icon="@Icons.Material.Filled.Settings">Settings</MudMenuItem>
+            <MudDivider />
+            <MudMenuItem Icon="@Icons.Material.Filled.Logout">Sign Out</MudMenuItem>
+        </MudMenu>
     </MudAppBar>
 
-    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
+    <MudDrawer @bind-Open="_drawerOpen"
+               ClipMode="DrawerClipMode.Always"
+               Elevation="0"
+               Class="app-drawer"
+               Variant="@(_isSmallScreen ? DrawerVariant.Temporary : DrawerVariant.Mini)"
+               OpenMiniOnHover="true">
+        <div class="drawer-header">
+            <MudText Typo="Typo.subtitle1" Class="drawer-title">Navigation</MudText>
+        </div>
         <NavMenu />
     </MudDrawer>
 
-    <MudMainContent>
-        <MudContainer MaxWidth="MaxWidth.Large" Class="my-4">
+    <MudMainContent Class="main-content">
+        <div class="content-container">
             @Body
-        </MudContainer>
+        </div>
+
+        <!-- Loading skeleton for page transitions -->
+        @if (_isLoading)
+        {
+            <div class="page-loading">
+                <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="loading-bar" />
+            </div>
+        }
     </MudMainContent>
 </MudLayout>
+
+<!-- Bottom Navigation for Mobile (Client Role) -->
+@if (_isSmallScreen && _isClientRole)
+{
+    <div class="bottom-nav elevation-3">
+        <MudPaper Class="bottom-nav-paper" Elevation="0">
+            <MudStack Row Justify="Justify.SpaceAround" AlignItems="AlignItems.Center" Class="bottom-nav-items">
+                <MudButton Href="/board"
+                           StartIcon="@Icons.Material.Filled.CalendarMonth"
+                           Variant="Variant.Text"
+                           Color="Color.Primary"
+                           Class="bottom-nav-item">
+                    Board
+                </MudButton>
+                <MudButton Href="/progress"
+                           StartIcon="@Icons.Material.Filled.TrendingUp"
+                           Variant="Variant.Text"
+                           Color="Color.Primary"
+                           Class="bottom-nav-item">
+                    Progress
+                </MudButton>
+                <MudButton Href="/rewards"
+                           StartIcon="@Icons.Material.Filled.EmojiEvents"
+                           Variant="Variant.Text"
+                           Color="Color.Primary"
+                           Class="bottom-nav-item">
+                    Rewards
+                </MudButton>
+                <MudButton Href="/profile"
+                           StartIcon="@Icons.Material.Filled.Person"
+                           Variant="Variant.Text"
+                           Color="Color.Primary"
+                           Class="bottom-nav-item">
+                    Profile
+                </MudButton>
+            </MudStack>
+        </MudPaper>
+    </div>
+}
+
+<style>
+.app-layout {
+    height: 100vh;
+}
+
+.app-bar {
+    background: rgba(var(--mud-palette-surface-rgb), 0.85) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--mud-palette-divider);
+}
+
+.brand-link {
+    text-decoration: none !important;
+}
+
+.brand-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--mud-palette-primary) 0%, var(--mud-palette-secondary) 100%);
+    border-radius: var(--radius-md);
+    color: white !important;
+}
+
+.brand-text {
+    font-weight: var(--font-weight-semibold) !important;
+    background: linear-gradient(135deg, var(--mud-palette-primary) 0%, var(--mud-palette-secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.primary-cta {
+    border-radius: var(--radius-lg) !important;
+    font-weight: var(--font-weight-medium) !important;
+    text-transform: none !important;
+    padding: 8px 20px !important;
+    min-height: 44px !important;
+}
+
+.app-drawer {
+    border-right: 1px solid var(--mud-palette-divider);
+}
+
+.drawer-header {
+    padding: var(--space-lg) var(--space-lg) var(--space-md) var(--space-lg);
+    border-bottom: 1px solid var(--mud-palette-divider-light);
+}
+
+.drawer-title {
+    font-weight: var(--font-weight-medium) !important;
+    color: var(--mud-palette-text-secondary) !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: var(--font-size-xs) !important;
+}
+
+.main-content {
+    background: var(--mud-palette-background);
+    min-height: calc(100vh - 64px);
+}
+
+.content-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--space-xxl) var(--space-lg);
+    min-height: calc(100vh - 64px);
+}
+
+.page-loading {
+    position: fixed;
+    top: 64px;
+    left: 0;
+    right: 0;
+    z-index: var(--z-fixed);
+}
+
+.loading-bar {
+    height: 2px !important;
+}
+
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: var(--z-sticky);
+    background: var(--mud-palette-surface);
+    border-top: 1px solid var(--mud-palette-divider);
+}
+
+.bottom-nav-paper {
+    background: transparent !important;
+    padding: var(--space-sm) 0;
+    height: 64px;
+}
+
+.bottom-nav-items {
+    height: 100%;
+    padding: 0 var(--space-md);
+}
+
+.bottom-nav-item {
+    flex-direction: column !important;
+    min-height: 48px !important;
+    border-radius: var(--radius-lg) !important;
+    font-size: var(--font-size-xs) !important;
+    font-weight: var(--font-weight-medium) !important;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .content-container {
+        padding: var(--space-lg) var(--space-md);
+        margin-bottom: 80px; /* Space for bottom nav */
+    }
+
+    .primary-cta {
+        display: none !important;
+    }
+}
+
+@media (max-width: 600px) {
+    .brand-text {
+        display: none;
+    }
+
+    .content-container {
+        padding: var(--space-md);
+    }
+}
+</style>
 
 @code {
     private bool _drawerOpen = true;
     private bool _isDarkMode = false;
+    private bool _isLoading = false;
+    private bool _isSmallScreen = false;
+    private bool _isClientRole = true; // TODO: Get from auth service
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isDarkMode = ThemeService.IsDarkMode;
+        ThemeService.OnThemeChanged += StateHasChanged;
+
+        // Check screen size
+        await CheckScreenSize();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("window.addEventListener", "resize",
+                DotNetObjectReference.Create(this), "onResize");
+        }
+    }
+
+    private async Task OnThemeToggled()
+    {
+        await ThemeService.ToggleThemeAsync();
+    }
 
     private void DrawerToggle()
     {
         _drawerOpen = !_drawerOpen;
+    }
+
+    private async Task CheckScreenSize()
+    {
+        try
+        {
+            _isSmallScreen = await JSRuntime.InvokeAsync<bool>("window.matchMedia", "(max-width: 900px)");
+        }
+        catch
+        {
+            _isSmallScreen = false;
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnResize()
+    {
+        await CheckScreenSize();
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        ThemeService.OnThemeChanged -= StateHasChanged;
     }
 }
