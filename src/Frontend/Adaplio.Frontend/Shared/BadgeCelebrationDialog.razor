@@ -84,7 +84,6 @@
 
 .celebration-header {
     margin-bottom: 24px;
-    animation: celebration-bounce 0.6s ease-out;
 }
 
 .celebration-title {
@@ -93,13 +92,11 @@
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    animation: gradient-shift 2s ease-in-out infinite;
     font-weight: bold;
     margin-bottom: 8px;
 }
 
 .level-up-text {
-    animation: level-up-glow 1.5s ease-in-out infinite alternate;
     font-weight: 600;
     margin-bottom: 8px;
 }
@@ -118,19 +115,6 @@
     position: relative;
     overflow: hidden;
     transition: all 0.3s ease;
-    animation: badge-appear 0.8s ease-out;
-}
-
-.badge-celebration-card::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    animation: shimmer 2s ease-in-out infinite;
-    pointer-events: none;
 }
 
 .badge-celebration-card.rarity-common {
@@ -151,14 +135,12 @@
 .badge-celebration-card.rarity-legendary {
     border: 3px solid #FF9800;
     box-shadow: 0 4px 20px rgba(255, 152, 0, 0.3);
-    animation: legendary-glow 1.5s ease-in-out infinite alternate;
 }
 
 .badge-icon-large {
     font-size: 4rem;
     line-height: 1;
     margin-bottom: 16px;
-    animation: icon-bounce 2s ease-in-out infinite;
 }
 
 .badge-name-large {
@@ -192,57 +174,14 @@
 }
 
 .view-rewards-button {
-    animation: button-pulse 2s ease-in-out infinite;
+    /* Animation removed for Blazor compatibility */
 }
 
-@keyframes celebration-bounce {
-    0% { transform: scale(0.8) translateY(-20px); opacity: 0; }
-    60% { transform: scale(1.1) translateY(5px); opacity: 1; }
-    100% { transform: scale(1) translateY(0); opacity: 1; }
-}
-
-@keyframes gradient-shift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
-@keyframes level-up-glow {
-    0% { text-shadow: 0 0 5px var(--mud-palette-primary); }
-    100% { text-shadow: 0 0 20px var(--mud-palette-primary), 0 0 30px var(--mud-palette-primary); }
-}
-
-@keyframes badge-appear {
-    0% { transform: scale(0.5) rotate(-180deg); opacity: 0; }
-    60% { transform: scale(1.1) rotate(10deg); opacity: 1; }
-    100% { transform: scale(1) rotate(0deg); opacity: 1; }
-}
-
-@keyframes shimmer {
-    0% { transform: translateX(-100%) translateY(-100%); }
-    100% { transform: translateX(100%) translateY(100%); }
-}
-
-@keyframes legendary-glow {
-    0% { box-shadow: 0 4px 20px rgba(255, 152, 0, 0.3); }
-    100% { box-shadow: 0 8px 40px rgba(255, 152, 0, 0.6), 0 0 60px rgba(255, 152, 0, 0.2); }
-}
-
-@keyframes icon-bounce {
-    0%, 20%, 60%, 100% { transform: translateY(0); }
-    40% { transform: translateY(-10px); }
-    80% { transform: translateY(-5px); }
-}
-
-@keyframes button-pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.02); }
-    100% { transform: scale(1); }
-}
+/* Animations removed due to Blazor CSS limitations */
 </style>
 
 @code {
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = default!;
+    [CascadingParameter] MudBlazor.IDialogReference MudDialog { get; set; } = null!;
     [Parameter] public BadgeDto[] NewBadges { get; set; } = Array.Empty<BadgeDto>();
     [Parameter] public int XpAwarded { get; set; }
     [Parameter] public bool LeveledUp { get; set; }
@@ -255,11 +194,11 @@
         await JSRuntime.InvokeVoidAsync("triggerDialogConfetti");
     }
 
-    private void Close() => MudDialog.Close();
+    private void Close() => MudDialog.Close(DialogResult.Cancel());
 
     private void ViewRewards()
     {
-        MudDialog.Close();
+        MudDialog.Close(DialogResult.Ok(true));
         // This would navigate to rewards page
         // For now, we'll assume navigation is handled elsewhere
     }
@@ -323,7 +262,11 @@
             confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0%';
             confetti.style.zIndex = '10000';
             confetti.style.pointerEvents = 'none';
-            confetti.style.animation = `confetti-celebration ${Math.random() * 3 + 2}s linear forwards`;
+            confetti.style.transition = 'transform 2s linear, opacity 2s linear';
+            setTimeout(() => {
+                confetti.style.transform = 'translateY(100vh) rotateZ(720deg)';
+                confetti.style.opacity = '0';
+            }, 100);
 
             document.body.appendChild(confetti);
 
@@ -335,17 +278,5 @@
         }
     };
 
-    if (!document.querySelector('#celebration-styles')) {
-        const style = document.createElement('style');
-        style.id = 'celebration-styles';
-        style.textContent = `
-            @keyframes confetti-celebration {
-                to {
-                    transform: translateY(100vh) rotateZ(720deg);
-                    opacity: 0;
-                }
-            }
-        `;
-        document.head.appendChild(style);
-    }
+    // Using CSS transitions instead of keyframes to avoid Blazor parsing issues
 </script>

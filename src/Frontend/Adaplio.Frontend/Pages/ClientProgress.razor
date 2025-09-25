@@ -508,7 +508,11 @@
             confetti.style.borderRadius = '50%';
             confetti.style.zIndex = '9999';
             confetti.style.pointerEvents = 'none';
-            confetti.style.animation = `confetti-fall ${Math.random() * 3 + 2}s linear forwards`;
+            confetti.style.transition = 'transform 2s linear, opacity 2s linear';
+            setTimeout(() => {
+                confetti.style.transform = 'translateY(100vh) rotate(720deg)';
+                confetti.style.opacity = '0';
+            }, 100);
 
             document.body.appendChild(confetti);
 
@@ -520,13 +524,5 @@
         }
     };
 
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes confetti-fall {
-            to {
-                transform: translateY(100vh) rotate(720deg);
-            }
-        }
-    `;
-    document.head.appendChild(style);
+    // Using CSS transitions instead of keyframes to avoid Blazor parsing issues
 </script>

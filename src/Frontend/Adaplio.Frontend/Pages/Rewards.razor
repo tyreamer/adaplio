@@ -270,13 +270,7 @@
 }
 
 .celebration-button {
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
+    /* Animation removed for Blazor compatibility */
 }
 
 #confetti-container {
@@ -297,11 +291,7 @@
     animation: confetti-fall 3s linear forwards;
 }
 
-@keyframes confetti-fall {
-    to {
-        transform: translateY(100vh) rotate(720deg);
-    }
-}
+/* Animation moved to JavaScript */
 </style>
 
 @code {
