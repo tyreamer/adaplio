@@ -35,6 +35,14 @@ public class AppDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        // Configure PostgreSQL boolean/integer mapping for is_verified column
+        if (Database.ProviderName == "Npgsql.EntityFrameworkCore.PostgreSQL")
+        {
+            modelBuilder.Entity<AppUser>()
+                .Property(u => u.IsVerified)
+                .HasConversion<int>();
+        }
+
         // Configure unique constraints
         modelBuilder.Entity<AppUser>()
             .HasIndex(u => u.Email)

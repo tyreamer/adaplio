@@ -259,8 +259,9 @@
     {
         if (firstRender)
         {
-            await JSRuntime.InvokeVoidAsync("window.addEventListener", "resize",
-                DotNetObjectReference.Create(this), "onResize");
+            // Skip JavaScript resize listener for now to eliminate potential handleEvent issues
+            // The responsive detection will work on initial load via CheckScreenSize()
+            await CheckScreenSize();
         }
     }
 
@@ -278,7 +279,7 @@
     {
         try
         {
-            _isSmallScreen = await JSRuntime.InvokeAsync<bool>("window.matchMedia", "(max-width: 900px)");
+            _isSmallScreen = await JSRuntime.InvokeAsync<bool>("eval", "window.matchMedia('(max-width: 900px)').matches");
         }
         catch
         {

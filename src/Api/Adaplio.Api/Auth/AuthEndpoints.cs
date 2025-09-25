@@ -172,12 +172,28 @@ public static class AuthEndpoints
     {
         try
         {
+            Console.WriteLine($"Trainer registration attempt for email: {request.Email}");
+
+            // Validate input
+            if (string.IsNullOrWhiteSpace(request.Email))
+            {
+                Console.WriteLine("Registration failed: Empty email");
+                return Results.BadRequest(new AuthResponse("Email is required."));
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Password))
+            {
+                Console.WriteLine("Registration failed: Empty password");
+                return Results.BadRequest(new AuthResponse("Password is required."));
+            }
+
             // Check if email already exists
             var existingUser = await context.AppUsers
                 .FirstOrDefaultAsync(u => u.Email == request.Email.ToLowerInvariant());
 
             if (existingUser != null)
             {
+                Console.WriteLine($"Registration failed: Email already exists - {request.Email}");
                 return Results.BadRequest(new AuthResponse("Email already registered."));
             }
 
@@ -196,6 +212,8 @@ public static class AuthEndpoints
             context.AppUsers.Add(user);
             await context.SaveChangesAsync();
 
+            Console.WriteLine($"Created trainer user with ID: {user.Id}");
+
             // Create trainer profile
             var trainerProfile = new TrainerProfile
             {
@@ -207,11 +225,15 @@ public static class AuthEndpoints
             context.TrainerProfiles.Add(trainerProfile);
             await context.SaveChangesAsync();
 
+            Console.WriteLine($"Created trainer profile for user: {user.Id}");
+
             return Results.Ok(new AuthResponse("Trainer registered successfully."));
         }
         catch (Exception ex)
         {
-            return Results.Problem("Registration failed. Please try again.");
+            Console.WriteLine($"Registration failed for email: {request.Email}. Error: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+            return Results.Problem($"Registration failed: {ex.Message}");
         }
     }
 
