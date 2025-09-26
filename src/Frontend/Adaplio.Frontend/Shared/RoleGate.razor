@@ -1,0 +1,104 @@
+@using Adaplio.Frontend.Services
+@inject AuthStateService AuthState
+@inject NavigationManager Navigation
+@implements IDisposable
+
+@if (!AuthState.IsAuthenticated)
+{
+    <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
+        <MudAlert Severity="Severity.Warning" Class="mb-4">
+            <div class="d-flex align-center">
+                <MudIcon Icon="@Icons.Material.Filled.Warning" Class="mr-2" />
+                <div>
+                    <MudText Typo="Typo.h6">Session Expired</MudText>
+                    <MudText Typo="Typo.body2">Your session has expired. Please sign in again to continue.</MudText>
+                </div>
+            </div>
+            <div class="mt-3">
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Login"
+                           Href="@GetLoginUrl()">
+                    Sign In
+                </MudButton>
+            </div>
+        </MudAlert>
+    </MudContainer>
+}
+else if (!IsAuthorized())
+{
+    <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
+        <MudAlert Severity="Severity.Error" Class="mb-4">
+            <div class="d-flex align-center">
+                <MudIcon Icon="@Icons.Material.Filled.Block" Class="mr-2" />
+                <div>
+                    <MudText Typo="Typo.h6">Access Denied</MudText>
+                    <MudText Typo="Typo.body2">You don't have access to this page in your current role.</MudText>
+                </div>
+            </div>
+            <div class="mt-3">
+                <MudButton Variant="Variant.Text"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.ArrowBack"
+                           OnClick="@(() => Navigation.NavigateTo("/home"))">
+                    Back to Home
+                </MudButton>
+            </div>
+        </MudAlert>
+    </MudContainer>
+}
+else
+{
+    @ChildContent
+}
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string? RequiredRole { get; set; }
+    [Parameter] public bool ClientOnly { get; set; }
+    [Parameter] public bool TrainerOnly { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        AuthState.OnAuthStateChanged += StateHasChanged;
+
+        if (!AuthState.IsAuthenticated)
+        {
+            await AuthState.InitializeAsync();
+        }
+    }
+
+    private bool IsAuthorized()
+    {
+        if (!AuthState.IsAuthenticated)
+            return false;
+
+        if (ClientOnly && !AuthState.IsClient)
+            return false;
+
+        if (TrainerOnly && !AuthState.IsTrainer)
+            return false;
+
+        if (!string.IsNullOrEmpty(RequiredRole) && AuthState.UserRole != RequiredRole)
+            return false;
+
+        return true;
+    }
+
+    private string GetLoginUrl()
+    {
+        if (ClientOnly || RequiredRole == "client")
+            return "/auth/client/login";
+
+        if (TrainerOnly || RequiredRole == "trainer")
+            return "/auth/trainer/login";
+
+        // Default to client login
+        return "/auth/client/login";
+    }
+
+    public void Dispose()
+    {
+        AuthState.OnAuthStateChanged -= StateHasChanged;
+    }
+}

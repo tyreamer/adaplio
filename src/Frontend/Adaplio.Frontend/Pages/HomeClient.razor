@@ -1,0 +1,460 @@
+@page "/home/client"
+@using Adaplio.Frontend.Services
+@inject AuthStateService AuthState
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<PageTitle>Your Weekly Board - Adaplio</PageTitle>
+
+<div class="client-home">
+    <!-- Header Section -->
+    <MudPaper Class="header-section" Elevation="1">
+        <MudContainer MaxWidth="MaxWidth.Large" Class="py-4">
+            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-2">
+                <MudText Typo="Typo.h5" Class="fw-bold">This Week</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    @DateTime.Now.ToString("dddd, MMMM dd")
+                </MudText>
+            </MudStack>
+
+            <MudStack Row Spacing="3" AlignItems="AlignItems.Center">
+                <!-- Streak -->
+                <MudChip Icon="@Icons.Material.Filled.Whatshot"
+                         Color="Color.Warning"
+                         Variant="Variant.Filled"
+                         Size="Size.Medium">
+                    <MudIcon Icon="@Icons.Material.Filled.Whatshot" Class="mr-1" />
+                    @_currentStreak
+                </MudChip>
+
+                <!-- XP Progress -->
+                <div class="xp-container">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">XP Progress</MudText>
+                    <div class="d-flex align-center">
+                        <MudProgressLinear Value="@_xpProgress"
+                                          Color="Color.Primary"
+                                          Size="Size.Medium"
+                                          Class="flex-grow-1 mr-2" />
+                        <MudText Typo="Typo.caption">@_currentXp/@_targetXp</MudText>
+                    </div>
+                </div>
+            </MudStack>
+        </MudContainer>
+    </MudPaper>
+
+    <MudContainer MaxWidth="MaxWidth.Large" Class="py-6">
+        <MudGrid>
+            <MudItem xs="12" lg="8">
+                <!-- Missions Section -->
+                <MudStack Spacing="4">
+                    <div class="d-flex align-center justify-space-between">
+                        <MudText Typo="Typo.h6" Class="fw-semibold">Today's Missions</MudText>
+                        @if (_missions.Any())
+                        {
+                            <MudChip Size="Size.Small" Color="Color.Info">@_missions.Count(m => m.IsDueToday) due today</MudChip>
+                        }
+                    </div>
+
+                    @if (_isLoading)
+                    {
+                        @for (int i = 0; i < 3; i++)
+                        {
+                            <MudCard Class="mission-card-skeleton">
+                                <MudCardContent>
+                                    <MudSkeleton Height="20px" Class="mb-2" />
+                                    <MudSkeleton Height="16px" Width="60%" Class="mb-3" />
+                                    <MudStack Row Spacing="2">
+                                        <MudSkeleton Height="32px" Width="80px" />
+                                        <MudSkeleton Height="32px" Width="100px" />
+                                    </MudStack>
+                                </MudCardContent>
+                            </MudCard>
+                        }
+                    }
+                    else if (!_missions.Any())
+                    {
+                        <MudCard Class="empty-state-card">
+                            <MudCardContent Class="text-center">
+                                <MudIcon Icon="@Icons.Material.Outlined.AssignmentTurnedIn"
+                                        Size="Size.Large"
+                                        Color="Color.Secondary"
+                                        Class="mb-3" />
+                                <MudText Typo="Typo.h6" Class="mb-2">No Missions Yet</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">
+                                    Ask your trainer for your first exercise plan, or paste a Grant Code below.
+                                </MudText>
+                                <MudTextField @bind-Value="_grantCode"
+                                             Label="Grant Code from Trainer"
+                                             Variant="Variant.Outlined"
+                                             Class="mb-3" />
+                                <MudButton Variant="Variant.Filled"
+                                          Color="Color.Primary"
+                                          OnClick="AcceptGrant"
+                                          Disabled="@(string.IsNullOrWhiteSpace(_grantCode))">
+                                    Accept Grant
+                                </MudButton>
+                            </MudCardContent>
+                        </MudCard>
+                    }
+                    else
+                    {
+                        @foreach (var mission in _missions)
+                        {
+                            <MudCard Class="mission-card" Elevation="2">
+                                <MudCardContent>
+                                    <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start">
+                                        <div class="flex-grow-1">
+                                            <MudStack Row AlignItems="AlignItems.Center" Class="mb-2">
+                                                <MudText Typo="Typo.h6">@mission.ExerciseName</MudText>
+                                                @if (mission.IsDueToday)
+                                                {
+                                                    <MudChip Size="Size.Small" Color="Color.Warning" Variant="Variant.Outlined">Due Today</MudChip>
+                                                }
+                                                @if (mission.Side != null)
+                                                {
+                                                    <MudChip Size="Size.Small" Color="Color.Info">@mission.Side</MudChip>
+                                                }
+                                            </MudStack>
+
+                                            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">
+                                                @mission.Prescription
+                                            </MudText>
+
+                                            <MudStack Row Spacing="1" Class="mb-2">
+                                                @foreach (var day in mission.TargetDays)
+                                                {
+                                                    <MudChip Size="Size.Small"
+                                                            Color="@(day == DateTime.Now.DayOfWeek.ToString() ? Color.Primary : Color.Default)"
+                                                            Variant="Variant.Outlined">
+                                                        @day
+                                                    </MudChip>
+                                                }
+                                            </MudStack>
+                                        </div>
+
+                                        <MudStack>
+                                            <MudButton Variant="Variant.Outlined"
+                                                      Color="Color.Primary"
+                                                      Size="Size.Small"
+                                                      OnClick="@(() => StartExercise(mission.Id))">
+                                                Start
+                                            </MudButton>
+                                            <MudButton Variant="Variant.Filled"
+                                                      Color="Color.Success"
+                                                      Size="Size.Small"
+                                                      OnClick="@(() => MarkComplete(mission.Id))">
+                                                Done
+                                            </MudButton>
+                                        </MudStack>
+                                    </MudStack>
+                                </MudCardContent>
+                            </MudCard>
+                        }
+                    }
+                </MudStack>
+            </MudItem>
+
+            <MudItem xs="12" lg="4">
+                <!-- Sidebar -->
+                <MudStack Spacing="4">
+                    <!-- Pending Proposals -->
+                    <MudCard Elevation="2">
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                                    <MudText Typo="Typo.h6">Pending Proposals</MudText>
+                                    @if (_pendingProposals.Any())
+                                    {
+                                        <MudBadge Content="@_pendingProposals.Count" Color="Color.Error" Overlap="true">
+                                            <MudIconButton Icon="@Icons.Material.Filled.NotificationsActive" Size="Size.Small" />
+                                        </MudBadge>
+                                    }
+                                </MudStack>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            @if (!_pendingProposals.Any())
+                            {
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">No pending proposals</MudText>
+                            }
+                            else
+                            {
+                                @foreach (var proposal in _pendingProposals)
+                                {
+                                    <MudPaper Class="proposal-item pa-3 mb-2" Elevation="0">
+                                        <MudText Typo="Typo.subtitle2">@proposal.Name</MudText>
+                                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">@proposal.Prescription</MudText>
+                                        <MudStack Row Spacing="2">
+                                            <MudButton Variant="Variant.Filled"
+                                                      Color="Color.Success"
+                                                      Size="Size.Small"
+                                                      OnClick="@(() => AcceptProposal(proposal.Id))">
+                                                Accept
+                                            </MudButton>
+                                            <MudButton Variant="Variant.Outlined"
+                                                      Color="Color.Error"
+                                                      Size="Size.Small"
+                                                      OnClick="@(() => DeclineProposal(proposal.Id))">
+                                                Decline
+                                            </MudButton>
+                                            <MudButton Variant="Variant.Text"
+                                                      Color="Color.Primary"
+                                                      Size="Size.Small">
+                                                Ask to Swap
+                                            </MudButton>
+                                        </MudStack>
+                                    </MudPaper>
+                                }
+                            }
+                        </MudCardContent>
+                    </MudCard>
+
+                    <!-- Badges & Rewards -->
+                    <MudCard Elevation="2">
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6">Badges & Rewards</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudGrid Spacing="2">
+                                @foreach (var badge in _badges)
+                                {
+                                    <MudItem xs="6">
+                                        <div class="badge-item @(badge.IsEarned ? "earned" : "locked")">
+                                            <MudIcon Icon="@badge.Icon"
+                                                    Color="@(badge.IsEarned ? Color.Warning : Color.Secondary)"
+                                                    Size="Size.Large" />
+                                            <MudText Typo="Typo.caption" Class="mt-1">@badge.Name</MudText>
+                                        </div>
+                                    </MudItem>
+                                }
+                            </MudGrid>
+                        </MudCardContent>
+                    </MudCard>
+
+                    <!-- My Trainers -->
+                    <MudCard Elevation="2">
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6">My Trainers</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            @if (!_trainers.Any())
+                            {
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">No trainers connected</MudText>
+                            }
+                            else
+                            {
+                                @foreach (var trainer in _trainers)
+                                {
+                                    <MudPaper Class="trainer-item pa-3 mb-2" Elevation="0">
+                                        <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                                            <div>
+                                                <MudText Typo="Typo.subtitle2">@trainer.Name</MudText>
+                                                <MudChip Size="Size.Small"
+                                                        Color="@(trainer.SharesSummary ? Color.Success : Color.Default)"
+                                                        Variant="@(trainer.SharesSummary ? Variant.Filled : Variant.Outlined)">
+                                                    @(trainer.SharesSummary ? "Summary" : "Private")
+                                                </MudChip>
+                                            </div>
+                                            <MudButton Variant="Variant.Text"
+                                                      Color="Color.Primary"
+                                                      Size="Size.Small"
+                                                      OnClick="@(() => ManageTrainer(trainer.Id))">
+                                                Manage
+                                            </MudButton>
+                                        </MudStack>
+                                    </MudPaper>
+                                }
+                            }
+                        </MudCardContent>
+                    </MudCard>
+                </MudStack>
+            </MudItem>
+        </MudGrid>
+    </MudContainer>
+</div>
+
+<style>
+.client-home {
+    background: var(--mud-palette-background-grey);
+    min-height: 100vh;
+}
+
+.header-section {
+    background: linear-gradient(135deg, var(--mud-palette-primary) 0%, var(--mud-palette-secondary) 100%);
+    color: white;
+}
+
+.header-section .mud-text {
+    color: white !important;
+}
+
+.xp-container {
+    min-width: 200px;
+}
+
+.mission-card {
+    border-left: 4px solid var(--mud-palette-primary);
+}
+
+.mission-card-skeleton {
+    border: 1px solid var(--mud-palette-divider);
+}
+
+.empty-state-card {
+    border: 2px dashed var(--mud-palette-divider);
+}
+
+.proposal-item, .trainer-item {
+    background: var(--mud-palette-background-grey);
+    border-radius: var(--mud-default-borderradius);
+    border: 1px solid var(--mud-palette-divider);
+}
+
+.badge-item {
+    text-align: center;
+    padding: 1rem;
+    border-radius: var(--mud-default-borderradius);
+    background: var(--mud-palette-surface);
+}
+
+.badge-item.earned {
+    border: 2px solid var(--mud-palette-warning);
+}
+
+.badge-item.locked {
+    opacity: 0.5;
+    border: 2px solid var(--mud-palette-divider);
+}
+</style>
+
+@code {
+    private bool _isLoading = true;
+    private string _grantCode = "";
+
+    // Mock data - replace with actual API calls
+    private int _currentStreak = 5;
+    private int _currentXp = 750;
+    private int _targetXp = 1000;
+    private double _xpProgress => ((double)_currentXp / _targetXp) * 100;
+
+    private List<Mission> _missions = new();
+    private List<Proposal> _pendingProposals = new();
+    private List<Badge> _badges = new();
+    private List<Trainer> _trainers = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        _isLoading = true;
+        StateHasChanged();
+
+        // Simulate API delay
+        await Task.Delay(1000);
+
+        // Mock data
+        _missions = new List<Mission>
+        {
+            new() { Id = 1, ExerciseName = "Knee Extension", Prescription = "3×15 reps", IsDueToday = true, TargetDays = new[] {"Monday", "Wednesday", "Friday"}, Side = "Right" },
+            new() { Id = 2, ExerciseName = "Hip Flexor Stretch", Prescription = "3×30s hold", IsDueToday = true, TargetDays = new[] {"Daily"} },
+            new() { Id = 3, ExerciseName = "Calf Raises", Prescription = "2×20 reps", IsDueToday = false, TargetDays = new[] {"Tuesday", "Thursday"} }
+        };
+
+        _pendingProposals = new List<Proposal>
+        {
+            new() { Id = 1, Name = "Shoulder Mobility", Prescription = "2×15 reps daily for 2 weeks" }
+        };
+
+        _badges = new List<Badge>
+        {
+            new() { Name = "First Week", Icon = Icons.Material.Filled.Star, IsEarned = true },
+            new() { Name = "Consistency", Icon = Icons.Material.Filled.Whatshot, IsEarned = true },
+            new() { Name = "Milestone", Icon = Icons.Material.Filled.EmojiEvents, IsEarned = false },
+            new() { Name = "Champion", Icon = Icons.Material.Filled.WorkspacePremium, IsEarned = false }
+        };
+
+        _trainers = new List<Trainer>
+        {
+            new() { Id = 1, Name = "Dr. Smith PT", SharesSummary = true }
+        };
+
+        _isLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task AcceptGrant()
+    {
+        Snackbar.Add("Grant code accepted successfully!", Severity.Success);
+        _grantCode = "";
+        await LoadData(); // Refresh data
+    }
+
+    private async Task StartExercise(int missionId)
+    {
+        Navigation.NavigateTo($"/exercise/{missionId}");
+    }
+
+    private async Task MarkComplete(int missionId)
+    {
+        Snackbar.Add("Exercise marked as complete!", Severity.Success);
+        await LoadData(); // Refresh data
+    }
+
+    private async Task AcceptProposal(int proposalId)
+    {
+        Snackbar.Add("Proposal accepted!", Severity.Success);
+        _pendingProposals.RemoveAll(p => p.Id == proposalId);
+        await LoadData(); // Refresh data
+    }
+
+    private async Task DeclineProposal(int proposalId)
+    {
+        Snackbar.Add("Proposal declined", Severity.Info);
+        _pendingProposals.RemoveAll(p => p.Id == proposalId);
+        StateHasChanged();
+    }
+
+    private void ManageTrainer(int trainerId)
+    {
+        Navigation.NavigateTo($"/trainers/{trainerId}/manage");
+    }
+
+    // Data models
+    public class Mission
+    {
+        public int Id { get; set; }
+        public string ExerciseName { get; set; } = "";
+        public string Prescription { get; set; } = "";
+        public bool IsDueToday { get; set; }
+        public string[] TargetDays { get; set; } = Array.Empty<string>();
+        public string? Side { get; set; }
+    }
+
+    public class Proposal
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = "";
+        public string Prescription { get; set; } = "";
+    }
+
+    public class Badge
+    {
+        public string Name { get; set; } = "";
+        public string Icon { get; set; } = "";
+        public bool IsEarned { get; set; }
+    }
+
+    public class Trainer
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = "";
+        public bool SharesSummary { get; set; }
+    }
+}

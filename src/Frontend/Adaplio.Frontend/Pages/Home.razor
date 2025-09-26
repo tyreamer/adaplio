@@ -1,50 +1,213 @@
-﻿@page "/"
+@page "/"
+@page "/home"
+@using Adaplio.Frontend.Services
+@inject AuthStateService AuthState
+@inject NavigationManager Navigation
+@implements IDisposable
 
-<PageTitle>Home - Adaplio</PageTitle>
+<PageTitle>Adaplio</PageTitle>
 
-<MudText Typo="Typo.h3" GutterBottom="true">Welcome to Adaplio</MudText>
-<MudText Typo="Typo.body1" Class="mb-4">
-    Your gamified physical therapy adherence app. Track your progress, stay motivated, and achieve your health goals.
-</MudText>
+@if (!_isInitialized)
+{
+    <!-- Loading state -->
+    <MudContainer MaxWidth="MaxWidth.Medium" Class="d-flex justify-center align-center" Style="min-height: 100vh;">
+        <MudStack AlignItems="AlignItems.Center" Spacing="4">
+            <MudProgressCircular Indeterminate="true" Size="Size.Large" Color="Color.Primary" />
+            <MudText Typo="Typo.h6" Color="Color.Secondary">Loading...</MudText>
+        </MudStack>
+    </MudContainer>
+}
+else if (!AuthState.IsAuthenticated)
+{
+    <!-- Welcome/Landing page for unauthenticated users -->
+    <div class="welcome-page">
+        <MudContainer MaxWidth="MaxWidth.Large" Class="py-16">
+            <MudStack Spacing="8" AlignItems="AlignItems.Center">
+                <!-- Hero Section -->
+                <div class="hero-content text-center">
+                    <MudIcon Icon="@Icons.Material.Filled.FitnessCenter"
+                            Size="Size.Large"
+                            Color="Color.Primary"
+                            Class="hero-icon mb-4" />
+                    <MudText Typo="Typo.h2" Class="hero-title mb-4">Welcome to Adaplio</MudText>
+                    <MudText Typo="Typo.h5" Color="Color.Secondary" Class="hero-subtitle mb-6">
+                        Transform your physical therapy practice with intelligent adherence tracking
+                    </MudText>
+                    <MudText Typo="Typo.body1" Color="Color.Secondary" Class="hero-description">
+                        Whether you're a client managing your recovery journey or a physical therapist
+                        guiding your patients, Adaplio provides the tools you need for better outcomes.
+                    </MudText>
+                </div>
 
-<MudGrid>
-    <MudItem xs="12" sm="6" md="4">
-        <MudCard>
-            <MudCardContent>
-                <div style="display: flex; justify-content: center">
-                    <MudIcon Icon="@Icons.Material.Filled.FitnessCenter" Size="Size.Large" />
-                </div>
-                <MudText Typo="Typo.h6" Align="Align.Center" Class="mt-2">Exercise Plans</MudText>
-                <MudText Typo="Typo.body2" Align="Align.Center">
-                    Access your personalized physical therapy plans
-                </MudText>
-            </MudCardContent>
-        </MudCard>
-    </MudItem>
-    <MudItem xs="12" sm="6" md="4">
-        <MudCard>
-            <MudCardContent>
-                <div style="display: flex; justify-content: center">
-                    <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="Size.Large" />
-                </div>
-                <MudText Typo="Typo.h6" Align="Align.Center" Class="mt-2">Track Progress</MudText>
-                <MudText Typo="Typo.body2" Align="Align.Center">
-                    Monitor your adherence and improvement
-                </MudText>
-            </MudCardContent>
-        </MudCard>
-    </MudItem>
-    <MudItem xs="12" sm="6" md="4">
-        <MudCard>
-            <MudCardContent>
-                <div style="display: flex; justify-content: center">
-                    <MudIcon Icon="@Icons.Material.Filled.EmojiEvents" Size="Size.Large" />
-                </div>
-                <MudText Typo="Typo.h6" Align="Align.Center" Class="mt-2">Achievements</MudText>
-                <MudText Typo="Typo.body2" Align="Align.Center">
-                    Earn rewards and celebrate milestones
-                </MudText>
-            </MudCardContent>
-        </MudCard>
-    </MudItem>
-</MudGrid>
+                <!-- CTA Buttons -->
+                <MudStack Row Spacing="3" Class="cta-buttons">
+                    <MudButton Variant="Variant.Filled"
+                              Color="Color.Primary"
+                              Size="Size.Large"
+                              StartIcon="@Icons.Material.Filled.PersonAdd"
+                              Href="/auth/trainer/register"
+                              Class="cta-primary">
+                        Start as Trainer
+                    </MudButton>
+                    <MudButton Variant="Variant.Outlined"
+                              Color="Color.Primary"
+                              Size="Size.Large"
+                              StartIcon="@Icons.Material.Filled.Login"
+                              Href="/auth/client/login"
+                              Class="cta-secondary">
+                        I'm a Client
+                    </MudButton>
+                </MudStack>
+
+                <!-- Features Grid -->
+                <MudGrid Class="features-grid mt-16" Spacing="4" Justify="Justify.Center">
+                    <MudItem xs="12" sm="6" md="4">
+                        <MudCard Class="feature-card h-100" Elevation="2">
+                            <MudCardContent Class="text-center">
+                                <MudIcon Icon="@Icons.Material.Filled.Assignment"
+                                        Size="Size.Large"
+                                        Color="Color.Primary"
+                                        Class="mb-3" />
+                                <MudText Typo="Typo.h6" Class="mb-2">Smart Exercise Plans</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                    Create and manage personalized therapy plans with intelligent tracking
+                                </MudText>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="4">
+                        <MudCard Class="feature-card h-100" Elevation="2">
+                            <MudCardContent Class="text-center">
+                                <MudIcon Icon="@Icons.Material.Filled.TrendingUp"
+                                        Size="Size.Large"
+                                        Color="Color.Success"
+                                        Class="mb-3" />
+                                <MudText Typo="Typo.h6" Class="mb-2">Progress Tracking</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                    Monitor adherence and progress with detailed analytics and insights
+                                </MudText>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="4">
+                        <MudCard Class="feature-card h-100" Elevation="2">
+                            <MudCardContent Class="text-center">
+                                <MudIcon Icon="@Icons.Material.Filled.EmojiEvents"
+                                        Size="Size.Large"
+                                        Color="Color.Warning"
+                                        Class="mb-3" />
+                                <MudText Typo="Typo.h6" Class="mb-2">Gamification</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                    Keep clients motivated with rewards, badges, and progress streaks
+                                </MudText>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+                </MudGrid>
+            </MudStack>
+        </MudContainer>
+    </div>
+}
+
+<style>
+.welcome-page {
+    background: linear-gradient(135deg, var(--mud-palette-background) 0%, var(--mud-palette-background-grey) 100%);
+    min-height: 100vh;
+}
+
+.hero-icon {
+    font-size: 4rem !important;
+}
+
+.hero-title {
+    font-weight: var(--font-weight-bold) !important;
+    background: linear-gradient(135deg, var(--mud-palette-primary) 0%, var(--mud-palette-secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.hero-subtitle {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.hero-description {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.cta-buttons {
+    margin-top: 2rem;
+}
+
+.cta-primary, .cta-secondary {
+    min-width: 180px;
+    padding: 12px 24px;
+    font-weight: var(--font-weight-medium);
+}
+
+.features-grid {
+    max-width: 900px;
+}
+
+.feature-card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.feature-card:hover {
+    transform: translateY(-4px);
+}
+
+.feature-card .mud-card-content {
+    padding: 2rem !important;
+}
+</style>
+
+@code {
+    private bool _isInitialized = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        AuthState.OnAuthStateChanged += HandleAuthStateChanged;
+
+        // Initialize auth state
+        await AuthState.InitializeAsync();
+        _isInitialized = true;
+
+        // Redirect based on role if authenticated
+        await RedirectBasedOnRole();
+    }
+
+    private async Task HandleAuthStateChanged()
+    {
+        await RedirectBasedOnRole();
+        StateHasChanged();
+    }
+
+    private async Task RedirectBasedOnRole()
+    {
+        if (AuthState.IsAuthenticated)
+        {
+            var currentPath = Navigation.ToBaseRelativePath(Navigation.Uri);
+
+            // Only redirect if we're on the root/home page
+            if (currentPath == "" || currentPath == "home")
+            {
+                if (AuthState.IsClient)
+                {
+                    Navigation.NavigateTo("/home/client");
+                }
+                else if (AuthState.IsTrainer)
+                {
+                    Navigation.NavigateTo("/home/trainer");
+                }
+            }
+        }
+    }
+
+    public void Dispose()
+    {
+        AuthState.OnAuthStateChanged -= HandleAuthStateChanged;
+    }
+}

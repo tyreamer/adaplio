@@ -1,0 +1,450 @@
+@page "/home/trainer"
+@using Adaplio.Frontend.Services
+@inject AuthStateService AuthState
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Clients Overview - Adaplio</PageTitle>
+
+<div class="trainer-home">
+    <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="py-6">
+        <!-- Header -->
+        <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-6">
+            <div>
+                <MudText Typo="Typo.h4" Class="fw-bold">Clients Overview</MudText>
+                <MudText Typo="Typo.body1" Color="Color.Secondary">
+                    Welcome back, @AuthState.FullName
+                </MudText>
+            </div>
+
+            <MudStack Row Spacing="2">
+                <MudButtonGroup Variant="Variant.Outlined">
+                    <MudButton Color="@(_currentFilter == "all" ? Color.Primary : Color.Default)"
+                              OnClick="@(() => SetFilter("all"))">
+                        All
+                    </MudButton>
+                    <MudButton Color="@(_currentFilter == "summary" ? Color.Primary : Color.Default)"
+                              OnClick="@(() => SetFilter("summary"))">
+                        Summary Shared
+                    </MudButton>
+                    <MudButton Color="@(_currentFilter == "private" ? Color.Primary : Color.Default)"
+                              OnClick="@(() => SetFilter("private"))">
+                        Private
+                    </MudButton>
+                </MudButtonGroup>
+
+                <MudButton Variant="Variant.Filled"
+                          Color="Color.Primary"
+                          StartIcon="@Icons.Material.Filled.PersonAdd"
+                          OnClick="SendInvite">
+                    Send Invite
+                </MudButton>
+            </MudStack>
+        </MudStack>
+
+        <MudGrid>
+            <MudItem xs="12" lg="8">
+                <!-- Clients Table -->
+                <MudCard Elevation="2">
+                    <MudCardContent>
+                        @if (_isLoading)
+                        {
+                            <MudTable Items="@(new int[5])" Dense="true">
+                                <HeaderContent>
+                                    <MudTh>Client</MudTh>
+                                    <MudTh>Scope</MudTh>
+                                    <MudTh>Adherence</MudTh>
+                                    <MudTh>Last Activity</MudTh>
+                                    <MudTh>Actions</MudTh>
+                                </HeaderContent>
+                                <RowTemplate Context="item">
+                                    <MudTd><MudSkeleton Height="20px" /></MudTd>
+                                    <MudTd><MudSkeleton Height="24px" Width="80px" /></MudTd>
+                                    <MudTd><MudSkeleton Height="20px" Width="60px" /></MudTd>
+                                    <MudTd><MudSkeleton Height="20px" Width="100px" /></MudTd>
+                                    <MudTd><MudSkeleton Height="32px" Width="120px" /></MudTd>
+                                </RowTemplate>
+                            </MudTable>
+                        }
+                        else if (!_filteredClients.Any())
+                        {
+                            <div class="empty-state text-center py-8">
+                                <MudIcon Icon="@Icons.Material.Outlined.PersonSearch"
+                                        Size="Size.Large"
+                                        Color="Color.Secondary"
+                                        Class="mb-3" />
+                                <MudText Typo="Typo.h6" Class="mb-2">No Clients Yet</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">
+                                    Start building your client base by sending invites.
+                                </MudText>
+                                <MudButton Variant="Variant.Filled"
+                                          Color="Color.Primary"
+                                          StartIcon="@Icons.Material.Filled.Share"
+                                          OnClick="SendInvite">
+                                    Send First Invite
+                                </MudButton>
+                            </div>
+                        }
+                        else
+                        {
+                            <MudTable Items="@_filteredClients" Dense="false" Hover="true">
+                                <HeaderContent>
+                                    <MudTh>
+                                        <MudTableSortLabel SortBy="@(new Func<ClientData, object>(x => x.Alias))">
+                                            Client
+                                        </MudTableSortLabel>
+                                    </MudTh>
+                                    <MudTh>Scope</MudTh>
+                                    <MudTh>
+                                        <MudTableSortLabel SortBy="@(new Func<ClientData, object>(x => x.AdherencePercent))">
+                                            Adherence (7d)
+                                        </MudTableSortLabel>
+                                    </MudTh>
+                                    <MudTh>
+                                        <MudTableSortLabel SortBy="@(new Func<ClientData, object>(x => x.LastActivity))">
+                                            Last Activity
+                                        </MudTableSortLabel>
+                                    </MudTh>
+                                    <MudTh>Actions</MudTh>
+                                </HeaderContent>
+                                <RowTemplate Context="client">
+                                    <MudTd DataLabel="Client">
+                                        <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                                            <MudAvatar Color="Color.Primary" Size="Size.Medium">
+                                                @client.Alias.Substring(0, 2).ToUpper()
+                                            </MudAvatar>
+                                            <div>
+                                                <MudText Typo="Typo.subtitle2">@client.Alias</MudText>
+                                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                                    @client.Email
+                                                </MudText>
+                                            </div>
+                                        </MudStack>
+                                    </MudTd>
+                                    <MudTd DataLabel="Scope">
+                                        <MudChip Color="@(client.SharesSummary ? Color.Success : Color.Default)"
+                                                Variant="@(client.SharesSummary ? Variant.Filled : Variant.Outlined)"
+                                                Size="Size.Small">
+                                            @(client.SharesSummary ? "Summary" : "Private")
+                                        </MudChip>
+                                    </MudTd>
+                                    <MudTd DataLabel="Adherence">
+                                        <div class="d-flex align-center">
+                                            <MudProgressCircular Value="@client.AdherencePercent"
+                                                               Color="@GetAdherenceColor(client.AdherencePercent)"
+                                                               Size="Size.Small"
+                                                               Class="mr-2" />
+                                            <MudText Typo="Typo.body2">@client.AdherencePercent%</MudText>
+                                        </div>
+                                    </MudTd>
+                                    <MudTd DataLabel="Last Activity">
+                                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                            @GetRelativeTime(client.LastActivity)
+                                        </MudText>
+                                    </MudTd>
+                                    <MudTd DataLabel="Actions">
+                                        <MudStack Row Spacing="1">
+                                            <MudButton Variant="Variant.Text"
+                                                      Color="Color.Primary"
+                                                      Size="Size.Small"
+                                                      OnClick="@(() => ViewSummary(client.Id))"
+                                                      Disabled="@(!client.SharesSummary)">
+                                                View Summary
+                                            </MudButton>
+                                            <MudButton Variant="Variant.Outlined"
+                                                      Color="Color.Primary"
+                                                      Size="Size.Small"
+                                                      OnClick="@(() => NewProposal(client.Id))">
+                                                New Proposal
+                                            </MudButton>
+                                        </MudStack>
+                                    </MudTd>
+                                </RowTemplate>
+                            </MudTable>
+                        }
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+
+            <MudItem xs="12" lg="4">
+                <!-- Right Rail -->
+                <MudStack Spacing="4">
+                    <!-- Quick Actions -->
+                    <MudCard Elevation="2">
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6">Quick Actions</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudStack Spacing="2">
+                                <MudButton Variant="Variant.Filled"
+                                          Color="Color.Primary"
+                                          FullWidth="true"
+                                          StartIcon="@Icons.Material.Filled.Add"
+                                          OnClick="@(() => Navigation.NavigateTo("/proposals/new"))">
+                                    New Proposal
+                                </MudButton>
+                                <MudButton Variant="Variant.Outlined"
+                                          Color="Color.Primary"
+                                          FullWidth="true"
+                                          StartIcon="@Icons.Material.Filled.Template"
+                                          OnClick="@(() => Navigation.NavigateTo("/templates"))">
+                                    Manage Templates
+                                </MudButton>
+                                <MudButton Variant="Variant.Text"
+                                          Color="Color.Primary"
+                                          FullWidth="true"
+                                          StartIcon="@Icons.Material.Filled.VideoLibrary"
+                                          OnClick="UploadVideo">
+                                    Upload Video
+                                </MudButton>
+                            </MudStack>
+                        </MudCardContent>
+                    </MudCard>
+
+                    <!-- Recent Proposals -->
+                    <MudCard Elevation="2">
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6">Recent Proposals</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            @if (!_recentProposals.Any())
+                            {
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">No recent proposals</MudText>
+                            }
+                            else
+                            {
+                                @foreach (var proposal in _recentProposals)
+                                {
+                                    <MudPaper Class="proposal-item pa-3 mb-2" Elevation="0">
+                                        <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                                            <div>
+                                                <MudText Typo="Typo.subtitle2">@proposal.ClientAlias</MudText>
+                                                <MudText Typo="Typo.body2" Color="Color.Secondary">@proposal.Name</MudText>
+                                            </div>
+                                            <MudChip Size="Size.Small"
+                                                    Color="@GetProposalStatusColor(proposal.Status)"
+                                                    Variant="Variant.Outlined">
+                                                @proposal.Status
+                                            </MudChip>
+                                        </MudStack>
+                                    </MudPaper>
+                                }
+                            }
+                        </MudCardContent>
+                    </MudCard>
+
+                    <!-- Notifications -->
+                    <MudCard Elevation="2">
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                                    <MudText Typo="Typo.h6">Notifications</MudText>
+                                    @if (_notifications.Any(n => !n.IsRead))
+                                    {
+                                        <MudBadge Content="@_notifications.Count(n => !n.IsRead)" Color="Color.Error" Overlap="true">
+                                            <MudIconButton Icon="@Icons.Material.Filled.NotificationsActive" Size="Size.Small" />
+                                        </MudBadge>
+                                    }
+                                </MudStack>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            @if (!_notifications.Any())
+                            {
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">No notifications</MudText>
+                            }
+                            else
+                            {
+                                @foreach (var notification in _notifications.Take(5))
+                                {
+                                    <MudPaper Class="notification-item pa-3 mb-2 @(notification.IsRead ? "read" : "unread")" Elevation="0">
+                                        <MudText Typo="Typo.body2">@notification.Message</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                            @GetRelativeTime(notification.CreatedAt)
+                                        </MudText>
+                                    </MudPaper>
+                                }
+                            }
+                        </MudCardContent>
+                    </MudCard>
+                </MudStack>
+            </MudItem>
+        </MudGrid>
+    </MudContainer>
+</div>
+
+<style>
+.trainer-home {
+    background: var(--mud-palette-background);
+    min-height: 100vh;
+}
+
+.proposal-item, .notification-item {
+    background: var(--mud-palette-background-grey);
+    border-radius: var(--mud-default-borderradius);
+    border: 1px solid var(--mud-palette-divider);
+}
+
+.notification-item.unread {
+    border-left: 4px solid var(--mud-palette-primary);
+    background: var(--mud-palette-primary-hover);
+}
+
+.empty-state {
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+</style>
+
+@code {
+    private bool _isLoading = true;
+    private string _currentFilter = "all";
+    private List<ClientData> _clients = new();
+    private List<RecentProposal> _recentProposals = new();
+    private List<Notification> _notifications = new();
+
+    private IEnumerable<ClientData> _filteredClients => _currentFilter switch
+    {
+        "summary" => _clients.Where(c => c.SharesSummary),
+        "private" => _clients.Where(c => !c.SharesSummary),
+        _ => _clients
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        _isLoading = true;
+        StateHasChanged();
+
+        // Simulate API delay
+        await Task.Delay(1000);
+
+        // Mock data
+        _clients = new List<ClientData>
+        {
+            new() { Id = 1, Alias = "C-AB12", Email = "client1@email.com", SharesSummary = true, AdherencePercent = 85, LastActivity = DateTime.Now.AddHours(-2) },
+            new() { Id = 2, Alias = "C-CD34", Email = "client2@email.com", SharesSummary = false, AdherencePercent = 92, LastActivity = DateTime.Now.AddDays(-1) },
+            new() { Id = 3, Alias = "C-EF56", Email = "client3@email.com", SharesSummary = true, AdherencePercent = 67, LastActivity = DateTime.Now.AddDays(-3) }
+        };
+
+        _recentProposals = new List<RecentProposal>
+        {
+            new() { ClientAlias = "C-AB12", Name = "Hip Flexor Protocol", Status = "Partially Accepted" },
+            new() { ClientAlias = "C-CD34", Name = "Shoulder Mobility", Status = "Sent" },
+            new() { ClientAlias = "C-EF56", Name = "Core Strengthening", Status = "Declined" }
+        };
+
+        _notifications = new List<Notification>
+        {
+            new() { Message = "C-AB12 declined Hip Extension exercise", CreatedAt = DateTime.Now.AddMinutes(-30), IsRead = false },
+            new() { Message = "C-CD34 changed sharing scope to Private", CreatedAt = DateTime.Now.AddHours(-2), IsRead = false },
+            new() { Message = "C-EF56 completed Week 1 milestone", CreatedAt = DateTime.Now.AddDays(-1), IsRead = true }
+        };
+
+        _isLoading = false;
+        StateHasChanged();
+    }
+
+    private void SetFilter(string filter)
+    {
+        _currentFilter = filter;
+        StateHasChanged();
+    }
+
+    private async Task SendInvite()
+    {
+        // Generate grant code and copy to clipboard
+        var grantCode = "GRANT-" + Guid.NewGuid().ToString("N")[..8].ToUpper();
+
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", grantCode);
+            Snackbar.Add($"Grant code {grantCode} copied to clipboard!", Severity.Success);
+        }
+        catch
+        {
+            Snackbar.Add($"Grant code: {grantCode} (Please copy manually)", Severity.Info);
+        }
+    }
+
+    private void ViewSummary(int clientId)
+    {
+        Navigation.NavigateTo($"/clients/{clientId}/summary");
+    }
+
+    private void NewProposal(int clientId)
+    {
+        Navigation.NavigateTo($"/proposals/new?clientId={clientId}");
+    }
+
+    private async Task UploadVideo()
+    {
+        Navigation.NavigateTo("/media/upload");
+    }
+
+    private Color GetAdherenceColor(int percentage)
+    {
+        return percentage >= 80 ? Color.Success :
+               percentage >= 60 ? Color.Warning :
+               Color.Error;
+    }
+
+    private Color GetProposalStatusColor(string status)
+    {
+        return status switch
+        {
+            "Sent" => Color.Info,
+            "Partially Accepted" => Color.Warning,
+            "Declined" => Color.Error,
+            "Accepted" => Color.Success,
+            _ => Color.Default
+        };
+    }
+
+    private string GetRelativeTime(DateTime dateTime)
+    {
+        var timeSpan = DateTime.Now - dateTime;
+
+        return timeSpan.TotalMinutes < 60 ? $"{(int)timeSpan.TotalMinutes}m ago" :
+               timeSpan.TotalHours < 24 ? $"{(int)timeSpan.TotalHours}h ago" :
+               timeSpan.TotalDays < 7 ? $"{(int)timeSpan.TotalDays}d ago" :
+               dateTime.ToString("MMM dd");
+    }
+
+    // Data models
+    public class ClientData
+    {
+        public int Id { get; set; }
+        public string Alias { get; set; } = "";
+        public string Email { get; set; } = "";
+        public bool SharesSummary { get; set; }
+        public int AdherencePercent { get; set; }
+        public DateTime LastActivity { get; set; }
+    }
+
+    public class RecentProposal
+    {
+        public string ClientAlias { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string Status { get; set; } = "";
+    }
+
+    public class Notification
+    {
+        public string Message { get; set; } = "";
+        public DateTime CreatedAt { get; set; }
+        public bool IsRead { get; set; }
+    }
+}

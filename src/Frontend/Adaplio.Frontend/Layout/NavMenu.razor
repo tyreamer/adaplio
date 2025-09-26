@@ -1,96 +1,125 @@
-﻿<MudNavMenu Class="nav-menu" Dense="true">
-    <!-- Client Section -->
-    <div class="nav-section">
-        <MudText Class="nav-section-title" Typo="Typo.overline">Client</MudText>
+﻿@using Adaplio.Frontend.Services
+@inject AuthStateService AuthState
+@implements IDisposable
 
-        <MudNavLink Href="/"
-                    Match="NavLinkMatch.All"
-                    Icon="@Icons.Material.Filled.Home"
-                    Class="nav-item"
-                    aria-current="@(IsActive("/") ? "page" : null)">
-            Home
-        </MudNavLink>
-
-        <MudNavLink Href="/board"
-                    Icon="@Icons.Material.Filled.CalendarToday"
-                    Class="nav-item">
-            Weekly Board
-        </MudNavLink>
-
-        <MudNavLink Href="/progress"
-                    Icon="@Icons.Material.Filled.TrendingUp"
-                    Class="nav-item">
-            Progress
-        </MudNavLink>
-
-        <MudNavLink Href="/adherence"
-                    Icon="@Icons.Material.Filled.Analytics"
-                    Class="nav-item">
-            Adherence
-        </MudNavLink>
-
-        <MudNavLink Href="/rewards"
-                    Icon="@Icons.Material.Filled.EmojiEvents"
-                    Class="nav-item">
-            Rewards
-        </MudNavLink>
-    </div>
-
-    <MudDivider Class="nav-divider" />
-
-    <!-- Trainer Section -->
-    <div class="nav-section">
-        <MudText Class="nav-section-title" Typo="Typo.overline">Trainer</MudText>
-
-        <MudNavLink Href="/trainer/dashboard"
-                    Icon="@Icons.Material.Filled.Dashboard"
-                    Class="nav-item">
-            Dashboard
-        </MudNavLink>
-
-        <MudNavLink Href="/trainer/templates"
-                    Icon="@Icons.Material.Filled.Assignment"
-                    Class="nav-item">
-            Templates
-        </MudNavLink>
-
-        <MudNavLink Href="/trainer/proposals"
-                    Icon="@Icons.Material.Filled.Send"
-                    Class="nav-item">
-            Proposals
-        </MudNavLink>
-
-        <MudNavLink Href="/trainer/clients"
-                    Icon="@Icons.Material.Filled.Group"
-                    Class="nav-item">
-            Clients
-        </MudNavLink>
-    </div>
-
-    <MudDivider Class="nav-divider" />
-
-    <!-- Account Section -->
-    <div class="nav-section">
-        <MudText Class="nav-section-title" Typo="Typo.overline">Account</MudText>
-
-        <MudNavLink Href="/profile"
-                    Icon="@Icons.Material.Filled.Person"
-                    Class="nav-item">
-            Profile
-        </MudNavLink>
-
-        <MudNavLink Href="/settings"
-                    Icon="@Icons.Material.Filled.Settings"
-                    Class="nav-item">
-            Settings
-        </MudNavLink>
-    </div>
-
-    <!-- Auth Section (when not signed in) -->
-    @if (!_isSignedIn)
+<MudNavMenu Class="nav-menu" Dense="true">
+    @if (AuthState.IsAuthenticated)
     {
+        @if (AuthState.IsClient)
+        {
+            <!-- Client Navigation -->
+            <div class="nav-section">
+                <MudText Class="nav-section-title" Typo="Typo.overline">Client</MudText>
+
+                <MudNavLink Href="/home"
+                            Icon="@Icons.Material.Filled.Home"
+                            Class="nav-item">
+                    Home
+                </MudNavLink>
+
+                <MudNavLink Href="/board"
+                            Icon="@Icons.Material.Filled.CalendarToday"
+                            Class="nav-item">
+                    Weekly Board
+                </MudNavLink>
+
+                <MudNavLink Href="/proposals"
+                            Icon="@Icons.Material.Filled.Assignment"
+                            Class="nav-item">
+                    Proposals
+                </MudNavLink>
+
+                <MudNavLink Href="/progress"
+                            Icon="@Icons.Material.Filled.TrendingUp"
+                            Class="nav-item">
+                    Progress
+                </MudNavLink>
+
+                <MudNavLink Href="/rewards"
+                            Icon="@Icons.Material.Filled.EmojiEvents"
+                            Class="nav-item">
+                    Rewards
+                </MudNavLink>
+
+                <MudNavLink Href="/trainers"
+                            Icon="@Icons.Material.Filled.Groups"
+                            Class="nav-item">
+                    My Trainers
+                </MudNavLink>
+            </div>
+        }
+        else if (AuthState.IsTrainer)
+        {
+            <!-- Trainer Navigation -->
+            <div class="nav-section">
+                <MudText Class="nav-section-title" Typo="Typo.overline">Trainer</MudText>
+
+                <MudNavLink Href="/home"
+                            Icon="@Icons.Material.Filled.Home"
+                            Class="nav-item">
+                    Home
+                </MudNavLink>
+
+                <MudNavLink Href="/dashboard"
+                            Icon="@Icons.Material.Filled.Dashboard"
+                            Class="nav-item">
+                    Dashboard
+                </MudNavLink>
+
+                <MudNavLink Href="/templates"
+                            Icon="@Icons.Material.Filled.Assignment"
+                            Class="nav-item">
+                    Templates
+                </MudNavLink>
+
+                <MudNavLink Href="/proposals"
+                            Icon="@Icons.Material.Filled.Send"
+                            Class="nav-item">
+                    Proposals
+                </MudNavLink>
+
+                <MudNavLink Href="/clients"
+                            Icon="@Icons.Material.Filled.Group"
+                            Class="nav-item">
+                    Clients
+                </MudNavLink>
+            </div>
+        }
+
         <MudDivider Class="nav-divider" />
 
+        <!-- Account Section -->
+        <div class="nav-section">
+            <MudText Class="nav-section-title" Typo="Typo.overline">Account</MudText>
+
+            <div class="user-info">
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    Signed in as @(AuthState.IsClient ? AuthState.Alias : AuthState.FullName)
+                </MudText>
+                <MudChip Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined">
+                    @(AuthState.IsClient ? "Client" : "Trainer")
+                </MudChip>
+            </div>
+
+            <MudNavLink Href="/settings"
+                        Icon="@Icons.Material.Filled.Settings"
+                        Class="nav-item">
+                Settings
+            </MudNavLink>
+
+            <MudButton Variant="Variant.Text"
+                      Color="Color.Secondary"
+                      StartIcon="@Icons.Material.Filled.Logout"
+                      FullWidth="true"
+                      Class="logout-btn"
+                      OnClick="Logout">
+                Sign Out
+            </MudButton>
+        </div>
+    }
+    else
+    {
+        <!-- Auth Section (when not signed in) -->
         <div class="nav-section">
             <MudText Class="nav-section-title" Typo="Typo.overline">Get Started</MudText>
 
@@ -189,34 +218,45 @@
     outline-offset: 2px;
 }
 
+.user-info {
+    padding: var(--space-md) var(--space-lg);
+    margin-bottom: var(--space-md);
+    background: var(--mud-palette-background-grey);
+    border-radius: var(--radius-md);
+    margin-left: var(--space-md);
+    margin-right: var(--space-md);
+}
+
+.logout-btn {
+    margin: 0 var(--space-md) !important;
+    border-radius: var(--radius-lg) !important;
+    min-height: 44px !important;
+    justify-content: flex-start !important;
+}
+
 </style>
 
 @code {
     [Inject] private NavigationManager Navigation { get; set; } = default!;
 
-    private bool _isSignedIn = false; // TODO: Get from auth service
-    private string _currentUrl = "";
-
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        _currentUrl = Navigation.Uri;
-        Navigation.LocationChanged += OnLocationChanged;
+        AuthState.OnAuthStateChanged += StateHasChanged;
+
+        if (!AuthState.IsAuthenticated)
+        {
+            await AuthState.InitializeAsync();
+        }
     }
 
-    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    private async Task Logout()
     {
-        _currentUrl = e.Location;
-        StateHasChanged();
-    }
-
-    private bool IsActive(string href)
-    {
-        var currentPath = Navigation.ToBaseRelativePath(_currentUrl);
-        return string.Equals(currentPath, href.TrimStart('/'), StringComparison.OrdinalIgnoreCase);
+        await AuthState.LogoutAsync();
+        Navigation.NavigateTo("/");
     }
 
     public void Dispose()
     {
-        Navigation.LocationChanged -= OnLocationChanged;
+        AuthState.OnAuthStateChanged -= StateHasChanged;
     }
 }

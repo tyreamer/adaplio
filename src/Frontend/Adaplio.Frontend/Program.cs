@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
 using Adaplio.Frontend;
 using Adaplio.Frontend.Theme;
+using Adaplio.Frontend.Services;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -25,5 +26,8 @@ builder.Services.AddScoped(sp =>
 });
 builder.Services.AddMudServices();
 builder.Services.AddThemeService();
+
+// Add authentication services
+builder.Services.AddScoped<AuthStateService>();
 
 await builder.Build().RunAsync();

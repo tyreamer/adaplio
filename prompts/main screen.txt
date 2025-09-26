@@ -1,0 +1,137 @@
+Goal: Implement role-based post-login landing views and role-gated navigation for “Adaplio” PT adherence app. Users are either Client or Trainer. Some accounts may toggle a local “view mode” for demo (“I’m a Client” / “Start as Trainer”), but the server role is the source of truth for gating.
+
+Deliverables
+
+RoleGate component + route protection
+
+Two landing pages:
+
+Pages/HomeClient.razor (default for Clients)
+
+Pages/HomeTrainer.razor (default for Trainers)
+
+Role-aware Shared/NavMenu.razor (hide irrelevant links).
+
+Empty states, skeletons, and error banners for 401/403.
+
+Minimal services to fetch data shapes below.
+
+UX & Behavior
+A) Client landing (/home when role=client)
+
+Header row: “This Week”, chips: Streak (🔥xN), XP meter (progress), Today’s date (tz-aware).
+
+Section “Missions” (today/this week):
+
+Card fields: exercise name, sets×reps or hold (e.g., “3×12” or “3×30s”), target day chips, Start (navigates to log panel), Done (posts quick completion).
+
+Support right/left side indication; show a subtle “due today” marker.
+
+Panel “Pending Proposals” (badge count). Clicking opens a drawer with rows:
+
+For each item: name, prescription, Accept / Decline / Ask to swap.
+
+Panel “Badges & Rewards” (grid of earned/locked).
+
+Panel “My Trainers”:
+
+List: Trainer display name (or org), scope chip: Summary or Private; Manage opens a dialog:
+
+Toggle scope (enable/disable view_summary), Revoke access.
+
+Empty states:
+
+No missions → CTA: “Paste Grant Code from your trainer” with input → POST accept grant.
+
+B) Trainer landing (/home when role=trainer)
+
+Header: Clients Overview with quick filters (All / Summary shared / Private).
+
+Clients Table (MudTable):
+
+Columns: Alias | Scope (chip) | Adherence % (last 7 days) | Last activity (relative) | Actions (View Summary, New Proposal).
+
+Right rail:
+
+New Proposal (primary button)
+
+Templates (manage)
+
+Upload Video → Transcribe → Extract (opens media wizard)
+
+Panels:
+
+Recent Proposals (status chips: Sent / Partially accepted / Declined)
+
+Notifications (declines, scope changes)
+
+Empty states:
+
+No clients → “Send Invite” button (copies Grant Link/Code)
+
+Navigation (show/hide)
+
+Client: Home, Weekly Board, Proposals, Progress, Rewards, Trainers, Settings
+
+Trainer: Home, Dashboard, Templates, Proposals, Clients, Settings
+(If you keep a mode toggle for demos, add a Mode switch in the user menu; otherwise drive from server claim.)
+
+Components & Files
+
+Shared/RoleGate.razor: wraps content; reads AuthState and UserRole. If unauthorized → show Login link. If 403 for a page → friendly message + back to Home.
+
+Pages/HomeClient.razor, Pages/HomeTrainer.razor: implement layouts above using MudPaper/MudCard/MudChip/MudProgressCircular.
+
+Shared/NavMenu.razor: computes visible items based on role; highlights current; mobile collapsible.
+
+Services/ApiClient.cs: strongly-typed calls.
+
+Visual details
+
+Use Mud themes; keep plenty of whitespace; card radius 2xl, subtle shadows.
+
+Chips: Summary (filled) vs Private (outlined).
+
+XP meter: MudProgressLinear; Streak as MudChip with icon.
+
+Skeleton loaders on first fetch; optimistic UI for Accept/Decline with rollback on error.
+
+Route protection & role detection
+
+Read role claim from auth token (role: client|trainer). Expose via AuthState service.
+
+App.razor routes:
+
+@page "/home": <RoleGate Client><HomeClient/></RoleGate> and <RoleGate Trainer><HomeTrainer/></RoleGate>; or redirect to the correct one based on role.
+
+Guard trainer-only pages (Templates, Clients, New Proposal) with RoleGate; show 403 panel otherwise.
+
+Empty states & errors
+
+401 → banner: “Your session expired. Sign in again.” + login button.
+
+403 → banner: “You don’t have access to this page in your current role.”
+
+No missions/proposals/clients → friendly illustration + CTA.
+
+Acceptance criteria
+
+Logging in as Client lands on Weekly Board with missions; proposals and badges visible; trainer scope management works (toggle + revoke).
+
+Logging in as Trainer lands on Clients Overview; can create a new proposal stub.
+
+Nav only shows pages for that role; deep-links to other role pages show a 403 panel.
+
+All lists have skeletons; actions are optimistic; errors show non-blocking snackbars.
+
+Quick improvement suggestions
+
+Default to role landing (not a generic “Welcome”). Ship /home → role redirect.
+
+Hide 404/401 spam: gate calls until the role is known; show skeletons.
+
+Use a compact topbar with a role badge and a clear Invite Client (trainer) / Add Trainer (client).
+
+Add search & filters on the Trainer Clients table (Summary shared vs Private).
+
+Mobile first: bottom tab bar for Client (Home/Board/Progress/Rewards) so it feels app-y.
