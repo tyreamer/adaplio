@@ -63,12 +63,23 @@ builder.Services.AddAuthentication(options =>
         ClockSkew = TimeSpan.Zero
     };
 
-    // Read token from HttpOnly cookie
+    // Read token from Authorization header or HttpOnly cookie
     options.Events = new JwtBearerEvents
     {
         OnMessageReceived = context =>
         {
-            context.Token = context.Request.Cookies["auth_token"];
+            // First try Authorization header (standard Bearer token)
+            var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+            if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
+            {
+                context.Token = authHeader.Substring("Bearer ".Length).Trim();
+            }
+            // Fallback to cookie for backward compatibility
+            else if (context.Request.Cookies.ContainsKey("auth_token"))
+            {
+                context.Token = context.Request.Cookies["auth_token"];
+            }
+
             return Task.CompletedTask;
         }
     };

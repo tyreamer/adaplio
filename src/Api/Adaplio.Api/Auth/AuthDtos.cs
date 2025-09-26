@@ -33,7 +33,8 @@ public record AuthResponse(
     string Message,
     string? UserType = null,
     string? UserId = null,
-    string? Alias = null
+    string? Alias = null,
+    string? Token = null
 );
 
 // JWT Claims

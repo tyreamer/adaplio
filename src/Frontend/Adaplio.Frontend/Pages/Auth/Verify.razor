@@ -89,15 +89,12 @@
                     var userInfo = new UserInfo
                     {
                         UserId = result.UserId ?? "",
-                        Email = "", // Will be fetched by AuthState.RefreshUserAsync
+                        Email = "", // Will be fetched if needed
                         UserType = result.UserType ?? "client",
                         Alias = result.Alias
                     };
-                    AuthState.SetUser(userInfo);
+                    await AuthState.SetUserAsync(userInfo, result.Token);
                 }
-
-                // Refresh user info from server
-                await AuthState.RefreshUserAsync();
 
                 Snackbar.Add($"Welcome {result?.Alias ?? "to Adaplio"}!", Severity.Success);
                 Navigation.NavigateTo("/home");
@@ -132,5 +129,6 @@
         public string? UserType { get; set; }
         public string? UserId { get; set; }
         public string? Alias { get; set; }
+        public string? Token { get; set; }
     }
 }

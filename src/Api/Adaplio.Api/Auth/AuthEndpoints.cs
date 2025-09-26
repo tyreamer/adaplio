@@ -157,7 +157,8 @@ public static class AuthEndpoints
                 "Login successful",
                 UserType: user.UserType,
                 UserId: user.Id.ToString(),
-                Alias: user.ClientProfile?.Alias
+                Alias: user.ClientProfile?.Alias,
+                Token: token
             ));
         }
         catch (Exception ex)
@@ -284,7 +285,8 @@ public static class AuthEndpoints
             return Results.Ok(new AuthResponse(
                 "Login successful",
                 UserType: user.UserType,
-                UserId: user.Id.ToString()
+                UserId: user.Id.ToString(),
+                Token: token
             ));
         }
         catch (Exception ex)
