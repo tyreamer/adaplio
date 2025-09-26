@@ -71,12 +71,13 @@
             }
             else
             {
-                <!-- Sign In button for unauthenticated users -->
-                <MudButton Variant="Variant.Outlined"
+                <!-- For therapists link for unauthenticated users -->
+                <MudButton Variant="Variant.Text"
                            Color="Color.Primary"
-                           StartIcon="@Icons.Material.Filled.Login"
-                           Href="/">
-                    Sign In
+                           Size="Size.Small"
+                           Href="/auth/trainer/login"
+                           Class="for-therapists-link">
+                    For therapists
                 </MudButton>
             }
         }
@@ -200,6 +201,19 @@
     text-transform: none !important;
     padding: 8px 20px !important;
     min-height: 44px !important;
+}
+
+.for-therapists-link {
+    opacity: 0.8;
+    font-weight: var(--font-weight-normal) !important;
+    text-transform: none !important;
+    text-decoration: underline !important;
+    padding: 4px 8px !important;
+}
+
+.for-therapists-link:hover {
+    opacity: 1;
+    background: transparent !important;
 }
 
 .app-drawer {

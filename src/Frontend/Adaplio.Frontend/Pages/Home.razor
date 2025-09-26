@@ -1,11 +1,16 @@
 @page "/"
 @page "/home"
 @using Adaplio.Frontend.Services
+@using System.ComponentModel.DataAnnotations
+@using System.Net.Http.Json
 @inject AuthStateService AuthState
 @inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
+@inject HttpClient HttpClient
 @implements IDisposable
 
-<PageTitle>Adaplio</PageTitle>
+<PageTitle>Start your PT plan - Adaplio</PageTitle>
 
 @if (!_isInitialized)
 {
@@ -19,100 +24,196 @@
 }
 else if (!AuthState.IsAuthenticated)
 {
-    <!-- Welcome/Landing page for unauthenticated users -->
-    <div class="welcome-page">
-        <MudContainer MaxWidth="MaxWidth.Large" Class="py-16">
-            <MudStack Spacing="8" AlignItems="AlignItems.Center">
+    <!-- Client-first landing page -->
+    <div class="landing-page">
+        <MudContainer MaxWidth="MaxWidth.Medium" Class="py-16">
+            <MudStack Spacing="6" AlignItems="AlignItems.Center">
                 <!-- Hero Section -->
-                <div class="hero-content text-center">
+                <div class="hero-section text-center">
                     <MudIcon Icon="@Icons.Material.Filled.FitnessCenter"
                             Size="Size.Large"
                             Color="Color.Primary"
                             Class="hero-icon mb-4" />
-                    <MudText Typo="Typo.h2" Class="hero-title mb-4">Welcome to Adaplio</MudText>
-                    <MudText Typo="Typo.h5" Color="Color.Secondary" Class="hero-subtitle mb-6">
-                        PT adherence made simple—smart plans, effortless logging, clear progress.
-                    </MudText>
-                    <MudText Typo="Typo.body1" Color="Color.Secondary" Class="hero-description">
-                        Whether you're a client managing your recovery journey or a physical therapist
-                        guiding your patients, Adaplio provides the tools you need for better outcomes.
+                    <MudText Typo="Typo.h2" Class="hero-title mb-4">Start your PT plan</MudText>
+                    <MudText Typo="Typo.h6" Color="Color.Secondary" Class="hero-subtitle mb-6">
+                        Choose how you'd like to connect with your therapist
                     </MudText>
                 </div>
 
-                <!-- CTA Buttons -->
-                <MudStack Row Spacing="3" Class="cta-buttons">
+                @if (!string.IsNullOrEmpty(_validationError))
+                {
+                    <MudAlert Severity="Severity.Error" Dense="true" Class="mb-4" Style="max-width: 500px;">
+                        @_validationError
+                    </MudAlert>
+                }
+
+                <!-- Three Entry Methods -->
+                <MudStack Spacing="4" Style="width: 100%; max-width: 500px;">
+
+                    <!-- QR Code Scanning -->
                     <MudButton Variant="Variant.Outlined"
-                              Color="Color.Primary"
-                              Size="Size.Large"
-                              StartIcon="@Icons.Material.Filled.FitnessCenter"
-                              OnClick="@(() => StartAuthFlow("client"))"
-                              Class="cta-secondary">
-                        I'm a Client
+                               Color="Color.Primary"
+                               Size="Size.Large"
+                               FullWidth="true"
+                               StartIcon="@Icons.Material.Filled.QrCodeScanner"
+                               OnClick="@StartQRScan"
+                               Disabled="@_isProcessing"
+                               Class="entry-method-button">
+                        <div class="entry-method-content">
+                            <MudText Typo="Typo.subtitle1" Class="font-weight-medium">Scan QR Code</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">Use your camera to scan</MudText>
+                        </div>
                     </MudButton>
-                    <MudButton Variant="Variant.Filled"
-                              Color="Color.Primary"
-                              Size="Size.Large"
-                              StartIcon="@Icons.Material.Filled.PersonAdd"
-                              OnClick="@(() => StartAuthFlow("trainer"))"
-                              Class="cta-primary">
-                        I'm a Trainer
+
+                    <!-- Manual Code Entry -->
+                    <MudButton Variant="@(_showCodeEntry ? Variant.Filled : Variant.Outlined)"
+                               Color="Color.Primary"
+                               Size="Size.Large"
+                               FullWidth="true"
+                               StartIcon="@Icons.Material.Filled.Password"
+                               OnClick="@ToggleCodeEntry"
+                               Disabled="@_isProcessing"
+                               Class="entry-method-button">
+                        <div class="entry-method-content">
+                            <MudText Typo="Typo.subtitle1" Class="font-weight-medium">Enter Code</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">Type your PT code manually</MudText>
+                        </div>
                     </MudButton>
+
+                    <!-- SMS Link -->
+                    <MudButton Variant="@(_showSMSEntry ? Variant.Filled : Variant.Outlined)"
+                               Color="Color.Primary"
+                               Size="Size.Large"
+                               FullWidth="true"
+                               StartIcon="@Icons.Material.Filled.Sms"
+                               OnClick="@ToggleSMSEntry"
+                               Disabled="@_isProcessing"
+                               Class="entry-method-button">
+                        <div class="entry-method-content">
+                            <MudText Typo="Typo.subtitle1" Class="font-weight-medium">Text Me the Link</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">Receive invite via SMS</MudText>
+                        </div>
+                    </MudButton>
+
                 </MudStack>
 
-                <!-- Features Grid -->
-                <MudGrid Class="features-grid mt-16" Spacing="4" Justify="Justify.Center">
-                    <MudItem xs="12" sm="6" md="4">
-                        <MudCard Class="feature-card h-100" Elevation="2">
-                            <MudCardContent Class="text-center">
-                                <MudIcon Icon="@Icons.Material.Filled.Assignment"
-                                        Size="Size.Large"
-                                        Color="Color.Primary"
-                                        Class="mb-3" />
-                                <MudText Typo="Typo.h6" Class="mb-2">Smart Exercise Plans</MudText>
-                                <MudText Typo="Typo.body2" Color="Color.Secondary">
-                                    Create and manage personalized therapy plans with intelligent tracking
-                                </MudText>
-                            </MudCardContent>
-                        </MudCard>
-                    </MudItem>
-                    <MudItem xs="12" sm="6" md="4">
-                        <MudCard Class="feature-card h-100" Elevation="2">
-                            <MudCardContent Class="text-center">
-                                <MudIcon Icon="@Icons.Material.Filled.TrendingUp"
-                                        Size="Size.Large"
-                                        Color="Color.Success"
-                                        Class="mb-3" />
-                                <MudText Typo="Typo.h6" Class="mb-2">Progress Tracking</MudText>
-                                <MudText Typo="Typo.body2" Color="Color.Secondary">
-                                    Monitor adherence and progress with detailed analytics and insights
-                                </MudText>
-                            </MudCardContent>
-                        </MudCard>
-                    </MudItem>
-                    <MudItem xs="12" sm="6" md="4">
-                        <MudCard Class="feature-card h-100" Elevation="2">
-                            <MudCardContent Class="text-center">
-                                <MudIcon Icon="@Icons.Material.Filled.EmojiEvents"
-                                        Size="Size.Large"
-                                        Color="Color.Warning"
-                                        Class="mb-3" />
-                                <MudText Typo="Typo.h6" Class="mb-2">Gamification</MudText>
-                                <MudText Typo="Typo.body2" Color="Color.Secondary">
-                                    Keep clients motivated with rewards, badges, and progress streaks
-                                </MudText>
-                            </MudCardContent>
-                        </MudCard>
-                    </MudItem>
-                </MudGrid>
+                <!-- Code Entry Form (Expandable) -->
+                @if (_showCodeEntry)
+                {
+                    <MudCollapse Expanded="_showCodeEntry">
+                        <MudPaper Class="pa-4" Style="width: 100%; max-width: 500px;" Elevation="1">
+                            <EditForm Model="@_codeModel" OnValidSubmit="@HandleCodeSubmit">
+                                <DataAnnotationsValidator />
+                                <MudStack Spacing="3">
+                                    <MudTextField @bind-Value="_codeModel.Code"
+                                                  @ref="_codeInputRef"
+                                                  For="@(() => _codeModel.Code)"
+                                                  Label="PT Code"
+                                                  Placeholder="Enter your code"
+                                                  Variant="Variant.Outlined"
+                                                  Immediate="true"
+                                                  InputType="InputType.Text"
+                                                  InputMode="InputMode.text"
+                                                  Disabled="@_isProcessing"
+                                                  HelperText="Ask your therapist if you don't have a code" />
+
+                                    <MudButton ButtonType="ButtonType.Submit"
+                                               Variant="Variant.Filled"
+                                               Color="Color.Primary"
+                                               Size="Size.Medium"
+                                               FullWidth="true"
+                                               Disabled="@(_isProcessing || string.IsNullOrWhiteSpace(_codeModel.Code))">
+                                        @if (_isProcessing)
+                                        {
+                                            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                                            <text>Validating...</text>
+                                        }
+                                        else
+                                        {
+                                            <text>Continue</text>
+                                        }
+                                    </MudButton>
+                                </MudStack>
+                            </EditForm>
+                        </MudPaper>
+                    </MudCollapse>
+                }
+
+                <!-- SMS Entry Form (Expandable) -->
+                @if (_showSMSEntry)
+                {
+                    <MudCollapse Expanded="_showSMSEntry">
+                        <MudPaper Class="pa-4" Style="width: 100%; max-width: 500px;" Elevation="1">
+                            <EditForm Model="@_smsModel" OnValidSubmit="@HandleSMSSubmit">
+                                <DataAnnotationsValidator />
+                                <MudStack Spacing="3">
+                                    <MudTextField @bind-Value="_smsModel.PhoneNumber"
+                                                  For="@(() => _smsModel.PhoneNumber)"
+                                                  Label="Phone Number"
+                                                  Placeholder="+1 (555) 123-4567"
+                                                  Variant="Variant.Outlined"
+                                                  InputType="InputType.Telephone"
+                                                  Disabled="@_isProcessing"
+                                                  HelperText="We'll send you a secure link to get started" />
+
+                                    <MudTextField @bind-Value="_smsModel.InviteCode"
+                                                  For="@(() => _smsModel.InviteCode)"
+                                                  Label="PT Code (Optional)"
+                                                  Placeholder="Enter code if you have one"
+                                                  Variant="Variant.Outlined"
+                                                  Disabled="@_isProcessing"
+                                                  HelperText="Leave blank if you don't have a code yet" />
+
+                                    <MudButton ButtonType="ButtonType.Submit"
+                                               Variant="Variant.Filled"
+                                               Color="Color.Primary"
+                                               Size="Size.Medium"
+                                               FullWidth="true"
+                                               Disabled="@(_isProcessing || string.IsNullOrWhiteSpace(_smsModel.PhoneNumber))">
+                                        @if (_isProcessing)
+                                        {
+                                            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                                            <text>Sending...</text>
+                                        }
+                                        else
+                                        {
+                                            <text>Send Link</text>
+                                        }
+                                    </MudButton>
+                                </MudStack>
+                            </EditForm>
+                        </MudPaper>
+                    </MudCollapse>
+                }
+
+                <!-- Minimal Feature Icons -->
+                <div class="feature-icons mt-8">
+                    <MudStack Row Justify="Justify.Center" Spacing="6">
+                        <MudTooltip Text="Smart Plans">
+                            <MudIcon Icon="@Icons.Material.Filled.Assignment" Color="Color.Primary" />
+                        </MudTooltip>
+                        <MudTooltip Text="Progress Tracking">
+                            <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Color="Color.Success" />
+                        </MudTooltip>
+                        <MudTooltip Text="Motivational Rewards">
+                            <MudIcon Icon="@Icons.Material.Filled.EmojiEvents" Color="Color.Warning" />
+                        </MudTooltip>
+                    </MudStack>
+                </div>
             </MudStack>
         </MudContainer>
     </div>
 }
 
 <style>
-.welcome-page {
+.landing-page {
     background: linear-gradient(135deg, var(--mud-palette-background) 0%, var(--mud-palette-background-grey) 100%);
     min-height: 100vh;
+}
+
+.hero-section {
+    max-width: 500px;
+    margin: 0 auto;
 }
 
 .hero-icon {
@@ -128,44 +229,92 @@ else if (!AuthState.IsAuthenticated)
 }
 
 .hero-subtitle {
-    max-width: 600px;
+    max-width: 400px;
     margin: 0 auto;
 }
 
-.hero-description {
-    max-width: 800px;
-    margin: 0 auto;
+.code-entry-form {
+    border-radius: var(--radius-xl) !important;
+    border: 1px solid var(--mud-palette-primary-lighten);
 }
 
-.cta-buttons {
-    margin-top: 2rem;
+.code-input {
+    font-size: 1.1rem;
+    text-align: center;
+    letter-spacing: 0.2em;
 }
 
-.cta-primary, .cta-secondary {
-    min-width: 180px;
-    padding: 12px 24px;
-    font-weight: var(--font-weight-medium);
+.start-button {
+    border-radius: var(--radius-lg) !important;
+    min-height: 48px !important;
+    font-weight: var(--font-weight-semibold) !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
-.features-grid {
-    max-width: 900px;
+.qr-section {
+    width: 100%;
+    max-width: 300px;
+    opacity: 0.7;
 }
 
-.feature-card {
-    transition: transform 0.2s ease-in-out;
+.qr-button {
+    border-radius: var(--radius-lg) !important;
+    font-weight: var(--font-weight-medium) !important;
 }
 
-.feature-card:hover {
-    transform: translateY(-4px);
+.feature-icons {
+    opacity: 0.6;
 }
 
-.feature-card .mud-card-content {
-    padding: 2rem !important;
+.feature-icons .mud-icon {
+    font-size: 1.5rem !important;
+}
+
+.entry-method-button {
+    border-radius: var(--radius-lg) !important;
+    padding: 16px 20px !important;
+    text-align: left !important;
+    justify-content: flex-start !important;
+    height: auto !important;
+    min-height: 64px !important;
+}
+
+.entry-method-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    flex: 1;
+}
+
+/* Mobile optimizations */
+@@media (max-width: 600px) {
+    .hero-title {
+        font-size: 2rem !important;
+    }
+
+    .code-entry-form {
+        margin: 0 16px;
+    }
+
+    .code-input {
+        font-size: 1rem;
+    }
 }
 </style>
 
 @code {
     private bool _isInitialized = false;
+    private readonly CodeEntryModel _codeModel = new();
+    private readonly SMSEntryModel _smsModel = new();
+    private MudTextField<string> _codeInputRef = default!;
+    private bool _isProcessing = false;
+    private string? _validationError;
+
+    // Entry method states
+    private bool _showCodeEntry = false;
+    private bool _showSMSEntry = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -175,14 +324,113 @@ else if (!AuthState.IsAuthenticated)
         await AuthState.InitializeAsync();
         _isInitialized = true;
 
+        // Check for invite parameter in URL
+        await CheckForInviteParameter();
+
         // Redirect based on role if authenticated
         await RedirectBasedOnRole();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !AuthState.IsAuthenticated)
+        {
+            // Auto-focus the code input
+            try
+            {
+                await Task.Delay(100); // Small delay to ensure DOM is ready
+                await _codeInputRef.FocusAsync();
+            }
+            catch
+            {
+                // Ignore focus errors
+            }
+        }
     }
 
     private async void HandleAuthStateChanged()
     {
         await RedirectBasedOnRole();
         StateHasChanged();
+    }
+
+    private async Task CheckForInviteParameter()
+    {
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var query = ParseQueryString(uri.Query);
+
+        if (query.TryGetValue("invite", out var inviteToken) && !string.IsNullOrWhiteSpace(inviteToken))
+        {
+            // Process invite token (opaque token, not grant code)
+            await ProcessInviteToken(inviteToken);
+        }
+    }
+
+    private async Task ProcessInviteToken(string inviteToken)
+    {
+        _isProcessing = true;
+        _validationError = null;
+
+        try
+        {
+            // Track analytics for invite link method
+            await TrackEntryMethod("invite_link");
+
+            // Validate the invite token
+            var response = await HttpClient.GetAsync($"/api/invites/validate/{inviteToken}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var inviteInfo = await response.Content.ReadFromJsonAsync<ValidateInviteTokenResponse>();
+                if (inviteInfo != null && inviteInfo.IsValid)
+                {
+                    // Valid token - start onboarding flow with invite info
+                    Navigation.NavigateTo($"/onboarding?code={Uri.EscapeDataString(inviteInfo.GrantCode)}&trainer={Uri.EscapeDataString(inviteInfo.TrainerName)}&clinic={Uri.EscapeDataString(inviteInfo.ClinicName)}");
+                }
+                else
+                {
+                    _validationError = "Unable to validate invite. Please try again.";
+                }
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                _validationError = "That invite link isn't valid or has expired.";
+            }
+            else
+            {
+                _validationError = "Unable to validate invite. Please try again.";
+            }
+        }
+        catch (Exception)
+        {
+            _validationError = "Unable to process invite. Please try again.";
+        }
+        finally
+        {
+            _isProcessing = false;
+        }
+    }
+
+    private static Dictionary<string, string> ParseQueryString(string query)
+    {
+        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        if (string.IsNullOrEmpty(query) || query == "?")
+            return result;
+
+        if (query.StartsWith("?"))
+            query = query.Substring(1);
+
+        var pairs = query.Split('&', StringSplitOptions.RemoveEmptyEntries);
+        foreach (var pair in pairs)
+        {
+            var parts = pair.Split('=', 2);
+            var key = Uri.UnescapeDataString(parts[0]);
+            var value = parts.Length > 1 ? Uri.UnescapeDataString(parts[1]) : "";
+            result[key] = value;
+        }
+
+        return result;
     }
 
     private async Task RedirectBasedOnRole()
@@ -206,19 +454,201 @@ else if (!AuthState.IsAuthenticated)
         }
     }
 
-    private async Task StartAuthFlow(string preferredRole)
+    private void ToggleCodeEntry()
     {
-        // Store the preferred role hint for first-time role selection
-        await AuthState.SetPreferredRoleAsync(preferredRole);
+        _showCodeEntry = !_showCodeEntry;
+        _showSMSEntry = false;
+        _validationError = null;
+    }
 
-        // Navigate to the appropriate auth page
-        if (preferredRole == "trainer")
+    private void ToggleSMSEntry()
+    {
+        _showSMSEntry = !_showSMSEntry;
+        _showCodeEntry = false;
+        _validationError = null;
+    }
+
+    private async Task HandleCodeSubmit()
+    {
+        if (string.IsNullOrWhiteSpace(_codeModel.Code))
+            return;
+
+        _isProcessing = true;
+        _validationError = null;
+
+        try
         {
-            Navigation.NavigateTo("/auth/trainer/register");
+            // Track analytics for code entry method
+            await TrackEntryMethod("code");
+
+            var response = await HttpClient.GetAsync($"/api/grants/{_codeModel.Code}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var grantInfo = await response.Content.ReadFromJsonAsync<GrantValidationResponse>();
+                if (grantInfo != null)
+                {
+                    // Valid code - start onboarding flow with grant info
+                    Navigation.NavigateTo($"/onboarding?code={_codeModel.Code}&trainer={Uri.EscapeDataString(grantInfo.TrainerName)}&clinic={Uri.EscapeDataString(grantInfo.ClinicName)}");
+                }
+                else
+                {
+                    _validationError = "Unable to validate code. Please try again.";
+                }
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                _validationError = "That code isn't valid or has expired.";
+            }
+            else
+            {
+                _validationError = "Unable to validate code. Please try again.";
+            }
         }
-        else
+        catch (Exception)
         {
-            Navigation.NavigateTo("/auth/client/login");
+            _validationError = "Unable to validate code. Please try again.";
+        }
+        finally
+        {
+            _isProcessing = false;
+        }
+    }
+
+    private async Task HandleSMSSubmit()
+    {
+        if (string.IsNullOrWhiteSpace(_smsModel.PhoneNumber))
+            return;
+
+        _isProcessing = true;
+        _validationError = null;
+
+        try
+        {
+            // Track analytics for SMS entry method
+            await TrackEntryMethod("sms");
+
+            var request = new
+            {
+                PhoneNumber = _smsModel.PhoneNumber,
+                InviteCode = _smsModel.InviteCode
+            };
+
+            var response = await HttpClient.PostAsJsonAsync("/api/invites/sms", request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add($"Invite link sent to {_smsModel.PhoneNumber}!", Severity.Success);
+                _smsModel.PhoneNumber = "";
+                _smsModel.InviteCode = "";
+                _showSMSEntry = false;
+            }
+            else
+            {
+                _validationError = "Failed to send SMS. Please try again.";
+            }
+        }
+        catch (Exception)
+        {
+            _validationError = "Failed to send SMS. Please try again.";
+        }
+        finally
+        {
+            _isProcessing = false;
+        }
+    }
+
+    private async Task StartQRScan()
+    {
+        _isProcessing = true;
+        _validationError = null;
+
+        try
+        {
+            // Track analytics for QR scan method
+            await TrackEntryMethod("qr");
+
+            // Request camera permission and start QR scanning
+            var hasPermission = await JSRuntime.InvokeAsync<bool>("navigator.permissions.query", new { name = "camera" });
+
+            if (hasPermission)
+            {
+                // TODO: Implement actual QR scanning with camera
+                // For now, show placeholder message
+                Snackbar.Add("QR scanner opening... (Camera functionality coming soon)", Severity.Info);
+
+                // Simulate QR scan result for testing
+                // In real implementation, this would be the URL from QR code
+                // var scannedUrl = await JSRuntime.InvokeAsync<string>("scanQRCode");
+                // await ProcessQRResult(scannedUrl);
+            }
+            else
+            {
+                _validationError = "Camera permission required for QR scanning. Please allow camera access or use another method.";
+            }
+        }
+        catch (Exception)
+        {
+            _validationError = "Camera access not available. Please try another method.";
+        }
+        finally
+        {
+            _isProcessing = false;
+        }
+    }
+
+    private async Task ProcessQRResult(string scannedUrl)
+    {
+        try
+        {
+            // Extract token from scanned URL
+            var uri = new Uri(scannedUrl);
+            var query = ParseQueryString(uri.Query);
+
+            if (query.TryGetValue("invite", out var token))
+            {
+                // Process as invite link
+                Navigation.NavigateTo($"/?invite={Uri.EscapeDataString(token)}");
+            }
+            else
+            {
+                _validationError = "Invalid QR code. Please scan the QR code provided by your therapist.";
+            }
+        }
+        catch (Exception)
+        {
+            _validationError = "Unable to process QR code. Please try again.";
+        }
+    }
+
+    private async Task TrackEntryMethod(string method)
+    {
+        try
+        {
+            // Send analytics event
+            var analyticsData = new
+            {
+                Event = "entry_method_used",
+                Method = method,
+                Timestamp = DateTimeOffset.UtcNow
+            };
+
+            // Fire and forget analytics call
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await HttpClient.PostAsJsonAsync("/api/analytics/events", analyticsData);
+                }
+                catch
+                {
+                    // Ignore analytics failures
+                }
+            });
+        }
+        catch
+        {
+            // Never let analytics break the main flow
         }
     }
 
@@ -226,4 +656,35 @@ else if (!AuthState.IsAuthenticated)
     {
         AuthState.OnAuthStateChanged -= HandleAuthStateChanged;
     }
+
+    public class CodeEntryModel
+    {
+        [Required(ErrorMessage = "Please enter your PT code")]
+        [MinLength(4, ErrorMessage = "Code must be at least 4 characters")]
+        public string Code { get; set; } = "";
+    }
+
+    public class SMSEntryModel
+    {
+        [Required(ErrorMessage = "Phone number is required")]
+        [Phone(ErrorMessage = "Please enter a valid phone number")]
+        public string PhoneNumber { get; set; } = "";
+
+        public string? InviteCode { get; set; }
+    }
+
+    public record GrantValidationResponse(
+        string TrainerName,
+        string ClinicName,
+        string? LogoUrl,
+        DateTimeOffset ExpiresAt
+    );
+
+    public record ValidateInviteTokenResponse(
+        bool IsValid,
+        string TrainerName,
+        string ClinicName,
+        string GrantCode,
+        DateTimeOffset ExpiresAt
+    );
 }

@@ -16,6 +16,7 @@ public class AppDbContext : DbContext
     public DbSet<ConsentGrant> ConsentGrants { get; set; }
     public DbSet<MagicLink> MagicLinks { get; set; }
     public DbSet<GrantCode> GrantCodes { get; set; }
+    public DbSet<InviteToken> InviteTokens { get; set; }
     public DbSet<MediaAsset> MediaAssets { get; set; }
     public DbSet<Transcript> Transcripts { get; set; }
     public DbSet<ExtractionResult> ExtractionResults { get; set; }
@@ -49,6 +50,10 @@ public class AppDbContext : DbContext
 
             modelBuilder.Entity<GrantCode>()
                 .Property(gc => gc.Id)
+                .UseIdentityColumn();
+
+            modelBuilder.Entity<InviteToken>()
+                .Property(it => it.Id)
                 .UseIdentityColumn();
 
             modelBuilder.Entity<ClientProfile>()

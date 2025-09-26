@@ -1,0 +1,21 @@
+Make onboarding patient-first with three entry methods.
+
+On public landing, show Scan QR, Enter code, and Text me the link.
+
+If URL has ?invite= token, skip the landing and start validation.
+
+Scan QR opens camera, scans a URL, and proceeds as if the link was tapped.
+
+Enter code validates a short code, then shows trainer identity and continues.
+
+Text me the link collects a phone number, sends the invite link via SMS, and shows a confirmation.
+
+For all paths, if the user isn’t authenticated, show lightweight auth (Google/email/passkey), then accept the grant and route to Weekly Board.
+
+Hide all trainer-only controls when signed out; show Invite Client only for authenticated trainers.
+
+Use an opaque, time-limited, single-use token; no PII in the URL/QR.
+
+Provide clear errors and retry; track which method was used (QR/code/SMS) for analytics.
+
+Keep component/file choices up to you; fit into the existing codebase and theme.

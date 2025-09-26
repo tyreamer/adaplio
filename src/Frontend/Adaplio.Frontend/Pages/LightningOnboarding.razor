@@ -1,0 +1,418 @@
+@page "/onboarding"
+@using Adaplio.Frontend.Services
+@using System.ComponentModel.DataAnnotations
+@using System.Net.Http.Json
+@inject AuthStateService AuthState
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject HttpClient HttpClient
+@inject IDialogService DialogService
+@implements IDisposable
+
+<PageTitle>Quick Setup - Adaplio</PageTitle>
+
+<div class="onboarding-page">
+    <MudContainer MaxWidth="MaxWidth.Medium" Class="py-8">
+        <MudStack Spacing="6" AlignItems="AlignItems.Center">
+
+            @if (!string.IsNullOrEmpty(_trainerName))
+            {
+                <!-- Trust Builder Header -->
+                <MudPaper Class="trust-header" Elevation="1" Width="100%" MaxWidth="500px">
+                    <MudCardContent Class="pa-6 text-center">
+                        <MudStack AlignItems="AlignItems.Center" Spacing="3">
+                            <MudAvatar Size="Size.Large" Color="Color.Primary">
+                                @if (!string.IsNullOrEmpty(_trainerName))
+                                {
+                                    @_trainerName.Substring(0, 1).ToUpper()
+                                }
+                                else
+                                {
+                                    <MudIcon Icon="@Icons.Material.Filled.Person" />
+                                }
+                            </MudAvatar>
+                            <div>
+                                <MudText Typo="Typo.h6" Class="mb-1">Connecting with @_trainerName</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">@_clinicName</MudText>
+                            </div>
+                            <MudIcon Icon="@Icons.Material.Filled.VerifiedUser" Color="Color.Success" Size="Size.Small" />
+                        </MudStack>
+                    </MudCardContent>
+                </MudPaper>
+            }
+
+            @if (_currentStep == OnboardingStep.Auth && !AuthState.IsAuthenticated)
+            {
+                <!-- Authentication Step -->
+                <MudPaper Class="onboarding-card" Elevation="2" Width="100%" MaxWidth="500px">
+                    <MudCardContent Class="pa-6">
+                        <MudStack Spacing="4" AlignItems="AlignItems.Center">
+                            <MudText Typo="Typo.h5" Class="text-center">Sign in to continue</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="text-center">
+                                We'll create your account automatically
+                            </MudText>
+
+                            <EditForm Model="@_authModel" OnValidSubmit="@HandleAuth">
+                                <DataAnnotationsValidator />
+                                <MudStack Spacing="3" Style="width: 100%">
+                                    <MudTextField @bind-Value="_authModel.Email"
+                                                  For="@(() => _authModel.Email)"
+                                                  Label="Email Address"
+                                                  Variant="Variant.Outlined"
+                                                  InputType="InputType.Email"
+                                                  Disabled="@_isProcessing" />
+
+                                    <MudButton ButtonType="ButtonType.Submit"
+                                               Variant="Variant.Filled"
+                                               Color="Color.Primary"
+                                               Size="Size.Large"
+                                               FullWidth="true"
+                                               Disabled="@_isProcessing">
+                                        @if (_isProcessing)
+                                        {
+                                            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                                            <text>Sending...</text>
+                                        }
+                                        else
+                                        {
+                                            <text>Continue with Email</text>
+                                        }
+                                    </MudButton>
+
+                                    <MudDivider Class="my-2">
+                                        <MudText Typo="Typo.body2" Color="Color.Secondary">or</MudText>
+                                    </MudDivider>
+
+                                    <MudButton Variant="Variant.Outlined"
+                                               Color="Color.Primary"
+                                               Size="Size.Large"
+                                               FullWidth="true"
+                                               StartIcon="@Icons.Material.Filled.AccountCircle"
+                                               OnClick="@StartGoogleAuth"
+                                               Disabled="@_isProcessing">
+                                        Continue with Google
+                                    </MudButton>
+                                </MudStack>
+                            </EditForm>
+                        </MudStack>
+                    </MudCardContent>
+                </MudPaper>
+            }
+            else if (_currentStep == OnboardingStep.Consent && AuthState.IsAuthenticated)
+            {
+                <!-- Consent & Preferences Step -->
+                <MudPaper Class="onboarding-card" Elevation="2" Width="100%" MaxWidth="500px">
+                    <MudCardContent Class="pa-6">
+                        <EditForm Model="@_consentModel" OnValidSubmit="@HandleConsent">
+                            <DataAnnotationsValidator />
+                            <MudStack Spacing="4">
+                                <MudText Typo="Typo.h5" Class="text-center mb-2">Quick setup</MudText>
+
+                                <!-- Sharing Consent -->
+                                <MudStack Spacing="2">
+                                    <MudCheckBox @bind-Value="_consentModel.ShareSummary"
+                                                 For="@(() => _consentModel.ShareSummary)"
+                                                 Color="Color.Primary"
+                                                 Dense="true">
+                                        <MudText Typo="Typo.body2">
+                                            <strong>Share summary with my PT</strong>
+                                        </MudText>
+                                    </MudCheckBox>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="ml-8">
+                                        Share completion % only. Raw logs remain private unless you opt in later.
+                                    </MudText>
+                                </MudStack>
+
+                                <!-- Notifications -->
+                                <MudStack Spacing="2">
+                                    <MudCheckBox @bind-Value="_consentModel.EnableNotifications"
+                                                 For="@(() => _consentModel.EnableNotifications)"
+                                                 Color="Color.Primary"
+                                                 Dense="true">
+                                        <MudText Typo="Typo.body2">
+                                            <strong>Enable reminders</strong>
+                                        </MudText>
+                                    </MudCheckBox>
+
+                                    @if (_consentModel.EnableNotifications)
+                                    {
+                                        <MudStack Row AlignItems="AlignItems.Center" Spacing="2" Class="ml-8">
+                                            <MudText Typo="Typo.body2">Remind me at</MudText>
+                                            <MudTimePicker @bind-Time="_consentModel.ReminderTime"
+                                                           For="@(() => _consentModel.ReminderTime)"
+                                                           Variant="Variant.Outlined"
+                                                           Dense="true"
+                                                           Style="max-width: 150px;" />
+                                        </MudStack>
+                                    }
+                                </MudStack>
+
+                                <!-- Optional Fields -->
+                                <MudDivider />
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">Optional (you can skip these)</MudText>
+
+                                <MudTextField @bind-Value="_consentModel.InjuryGoal"
+                                              For="@(() => _consentModel.InjuryGoal)"
+                                              Label="Injury or goal (optional)"
+                                              Variant="Variant.Outlined"
+                                              Placeholder="e.g., Left knee recovery, Return to running"
+                                              MaxLength="200" />
+
+                                <MudSelect @bind-Value="_consentModel.AffectedSide"
+                                           For="@(() => _consentModel.AffectedSide)"
+                                           Label="Affected side (optional)"
+                                           Variant="Variant.Outlined">
+                                    <MudSelectItem Value='""'>Not specified</MudSelectItem>
+                                    <MudSelectItem Value='"L"'>Left</MudSelectItem>
+                                    <MudSelectItem Value='"R"'>Right</MudSelectItem>
+                                    <MudSelectItem Value='"Both"'>Both</MudSelectItem>
+                                </MudSelect>
+
+                                <MudButton ButtonType="ButtonType.Submit"
+                                           Variant="Variant.Filled"
+                                           Color="Color.Primary"
+                                           Size="Size.Large"
+                                           FullWidth="true"
+                                           Disabled="@_isProcessing"
+                                           Class="mt-4">
+                                    @if (_isProcessing)
+                                    {
+                                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                                        <text>Setting up...</text>
+                                    }
+                                    else
+                                    {
+                                        <text>Start my plan</text>
+                                    }
+                                </MudButton>
+                            </MudStack>
+                        </EditForm>
+                    </MudCardContent>
+                </MudPaper>
+            }
+
+            <!-- Progress indicator -->
+            <MudStack Row Justify="Justify.Center" Spacing="2" Class="progress-dots">
+                <div class="@GetDotClass(OnboardingStep.Auth)"></div>
+                <div class="@GetDotClass(OnboardingStep.Consent)"></div>
+            </MudStack>
+        </MudStack>
+    </MudContainer>
+</div>
+
+<style>
+.onboarding-page {
+    background: linear-gradient(135deg, var(--mud-palette-background) 0%, var(--mud-palette-background-grey) 100%);
+    min-height: 100vh;
+}
+
+.trust-header {
+    border-radius: var(--radius-xl) !important;
+    border: 1px solid var(--mud-palette-success-lighten);
+    background: linear-gradient(135deg, var(--mud-palette-success-lighten) 0%, var(--mud-palette-background) 100%);
+}
+
+.onboarding-card {
+    border-radius: var(--radius-xl) !important;
+    border: 1px solid var(--mud-palette-primary-lighten);
+}
+
+.progress-dots .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.progress-dots .dot-active {
+    background: var(--mud-palette-primary);
+}
+
+.progress-dots .dot-inactive {
+    background: var(--mud-palette-grey-lighten);
+}
+
+.progress-dots .dot-completed {
+    background: var(--mud-palette-success);
+}
+</style>
+
+@code {
+    private enum OnboardingStep { Auth, Consent }
+
+    private OnboardingStep _currentStep = OnboardingStep.Auth;
+    private bool _isProcessing = false;
+    private string? _grantCode;
+    private string? _trainerName;
+    private string? _clinicName;
+
+    private readonly AuthModel _authModel = new();
+    private readonly ConsentModel _consentModel = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        AuthState.OnAuthStateChanged += HandleAuthStateChanged;
+
+        // Parse URL parameters
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var query = ParseQueryString(uri.Query);
+
+        if (query.TryGetValue("code", out var code))
+        {
+            _grantCode = code;
+        }
+
+        if (query.TryGetValue("trainer", out var trainer))
+        {
+            _trainerName = Uri.UnescapeDataString(trainer);
+        }
+
+        if (query.TryGetValue("clinic", out var clinic))
+        {
+            _clinicName = Uri.UnescapeDataString(clinic);
+        }
+
+        // If already authenticated, skip to consent
+        if (AuthState.IsAuthenticated)
+        {
+            _currentStep = OnboardingStep.Consent;
+        }
+    }
+
+    private async void HandleAuthStateChanged()
+    {
+        if (AuthState.IsAuthenticated && _currentStep == OnboardingStep.Auth)
+        {
+            _currentStep = OnboardingStep.Consent;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleAuth()
+    {
+        if (string.IsNullOrWhiteSpace(_authModel.Email))
+            return;
+
+        _isProcessing = true;
+
+        try
+        {
+            // Navigate to magic link flow
+            Navigation.NavigateTo($"/auth/client/login?email={Uri.EscapeDataString(_authModel.Email)}&returnUrl={Uri.EscapeDataString(Navigation.Uri)}");
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Authentication failed. Please try again.", Severity.Error);
+        }
+        finally
+        {
+            _isProcessing = false;
+        }
+    }
+
+    private async Task StartGoogleAuth()
+    {
+        _isProcessing = true;
+        try
+        {
+            Snackbar.Add("Google authentication coming soon! Please use email for now.", Severity.Info);
+        }
+        finally
+        {
+            _isProcessing = false;
+        }
+    }
+
+    private async Task HandleConsent()
+    {
+        if (string.IsNullOrEmpty(_grantCode))
+        {
+            Snackbar.Add("Missing grant code. Please start over.", Severity.Error);
+            Navigation.NavigateTo("/");
+            return;
+        }
+
+        _isProcessing = true;
+
+        try
+        {
+            // Save onboarding preferences (placeholder for now)
+            // TODO: Call onboarding API
+
+            // Accept the grant
+            var acceptRequest = new { GrantCode = _grantCode };
+            var response = await HttpClient.PostAsJsonAsync("/api/client/grants/accept", acceptRequest);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add("Welcome! Your plan is ready.", Severity.Success);
+                Navigation.NavigateTo("/home/client");
+            }
+            else
+            {
+                Snackbar.Add("Failed to connect with your therapist. Please try again.", Severity.Error);
+            }
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Setup failed. Please try again.", Severity.Error);
+        }
+        finally
+        {
+            _isProcessing = false;
+        }
+    }
+
+    private string GetDotClass(OnboardingStep step)
+    {
+        if (step < _currentStep) return "dot dot-completed";
+        if (step == _currentStep) return "dot dot-active";
+        return "dot dot-inactive";
+    }
+
+    private static Dictionary<string, string> ParseQueryString(string query)
+    {
+        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        if (string.IsNullOrEmpty(query) || query == "?")
+            return result;
+
+        if (query.StartsWith("?"))
+            query = query.Substring(1);
+
+        var pairs = query.Split('&', StringSplitOptions.RemoveEmptyEntries);
+        foreach (var pair in pairs)
+        {
+            var parts = pair.Split('=', 2);
+            var key = Uri.UnescapeDataString(parts[0]);
+            var value = parts.Length > 1 ? Uri.UnescapeDataString(parts[1]) : "";
+            result[key] = value;
+        }
+
+        return result;
+    }
+
+    public void Dispose()
+    {
+        AuthState.OnAuthStateChanged -= HandleAuthStateChanged;
+    }
+
+    public class AuthModel
+    {
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Please enter a valid email")]
+        public string Email { get; set; } = "";
+    }
+
+    public class ConsentModel
+    {
+        public bool ShareSummary { get; set; } = true;
+        public bool EnableNotifications { get; set; } = true;
+        public TimeSpan? ReminderTime { get; set; } = new TimeSpan(19, 0, 0); // 7 PM default
+
+        [MaxLength(200)]
+        public string? InjuryGoal { get; set; }
+
+        public string? AffectedSide { get; set; }
+    }
+}

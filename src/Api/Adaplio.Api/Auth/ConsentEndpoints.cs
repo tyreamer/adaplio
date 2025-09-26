@@ -19,6 +19,10 @@ public static class ConsentEndpoints
             .WithName("CreateGrant");
 
 
+        // Public grant validation (no auth required)
+        consentGroup.MapGet("/grants/{code}", ValidateGrant)
+            .WithName("ValidateGrant");
+
         // Client endpoints
         consentGroup.MapPost("/client/grants/accept", AcceptGrant)
             .RequireAuthorization()
@@ -89,6 +93,36 @@ public static class ConsentEndpoints
         catch (Exception ex)
         {
             return Results.Problem("Failed to create grant code. Please try again.");
+        }
+    }
+
+    private static async Task<IResult> ValidateGrant(
+        string code,
+        AppDbContext context)
+    {
+        try
+        {
+            var grantCode = await context.GrantCodes
+                .Include(g => g.TrainerProfile)
+                .FirstOrDefaultAsync(g => g.Code == code && g.ExpiresAt > DateTimeOffset.UtcNow && g.UsedAt == null);
+
+            if (grantCode == null)
+            {
+                return Results.NotFound(new { error = "Invalid or expired code" });
+            }
+
+            var response = new GrantValidationResponse(
+                TrainerName: grantCode.TrainerProfile?.FullName ?? "Unknown Trainer",
+                ClinicName: grantCode.TrainerProfile?.PracticeName ?? "Unknown Clinic",
+                LogoUrl: null,
+                ExpiresAt: grantCode.ExpiresAt
+            );
+
+            return Results.Ok(response);
+        }
+        catch (Exception)
+        {
+            return Results.Problem("Failed to validate grant code");
         }
     }
 

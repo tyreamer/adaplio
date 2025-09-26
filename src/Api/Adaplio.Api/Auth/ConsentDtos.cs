@@ -11,6 +11,14 @@ public record CreateGrantResponse(
     DateTimeOffset ExpiresAt
 );
 
+// Grant validation (public)
+public record GrantValidationResponse(
+    string TrainerName,
+    string ClinicName,
+    string? LogoUrl,
+    DateTimeOffset ExpiresAt
+);
+
 // Client grant acceptance
 public record AcceptGrantRequest(
     [Required, MaxLength(20)] string GrantCode

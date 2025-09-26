@@ -1,16 +1,86 @@
 @page "/home/client"
 @using Adaplio.Frontend.Services
+@using System.Net.Http.Json
 @inject AuthStateService AuthState
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
+@inject HttpClient HttpClient
 
 <PageTitle>Your Weekly Board - Adaplio</PageTitle>
 
 <RoleGate ClientOnly="true">
 
 <div class="client-home">
-    <!-- Header Section -->
-    <MudPaper Class="header-section" Elevation="1">
+    @if (_isLoading)
+    {
+        <!-- Loading state -->
+        <MudContainer MaxWidth="MaxWidth.Large" Class="py-8">
+            <MudStack AlignItems="AlignItems.Center" Spacing="4">
+                <MudProgressCircular Indeterminate="true" Size="Size.Large" Color="Color.Primary" />
+                <MudText Typo="Typo.h6" Color="Color.Secondary">Loading your plan...</MudText>
+            </MudStack>
+        </MudContainer>
+    }
+    else if (!(_weeklyBoard?.HasPlan ?? false))
+    {
+        <!-- Waiting state for clients without plans -->
+        <MudContainer MaxWidth="MaxWidth.Medium" Class="py-12">
+            <MudStack AlignItems="AlignItems.Center" Spacing="6">
+                <div class="waiting-state text-center">
+                    <MudIcon Icon="@Icons.Material.Filled.AutoAwesome"
+                             Size="Size.Large"
+                             Color="Color.Primary"
+                             Class="waiting-icon mb-4" />
+                    <MudText Typo="Typo.h4" Class="mb-4">@(_weeklyBoard?.Message ?? "Your PT is preparing your plan 🔜")</MudText>
+                    <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-6">
+                        Your therapist is creating a personalized treatment plan just for you.
+                        You'll be notified as soon as it's ready!
+                    </MudText>
+
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               Size="Size.Large"
+                               StartIcon="@Icons.Material.Filled.NotificationsActive"
+                               OnClick="@NotifyPTReady"
+                               Disabled="@_isNotifying"
+                               Class="notify-button">
+                        @if (_isNotifying)
+                        {
+                            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                            <text>Sending...</text>
+                        }
+                        else
+                        {
+                            <text>Notify my PT I'm ready</text>
+                        }
+                    </MudButton>
+
+                    @if (_hasNotified)
+                    {
+                        <MudAlert Severity="Severity.Success" Class="mt-4" MaxWidth="400px">
+                            Your therapist has been notified that you're ready to start!
+                        </MudAlert>
+                    }
+                </div>
+
+                @if (AuthState.IsClient && string.IsNullOrWhiteSpace(AuthState.DisplayName))
+                {
+                    <MudDivider Class="my-4" />
+                    <MudButton Variant="Variant.Text"
+                               Color="Color.Secondary"
+                               StartIcon="@Icons.Material.Filled.Edit"
+                               Href="/settings"
+                               Size="Size.Small">
+                        Set a nickname while you wait
+                    </MudButton>
+                }
+            </MudStack>
+        </MudContainer>
+    }
+    else
+    {
+        <!-- Header Section with plan -->
+        <MudPaper Class="header-section" Elevation="1">
         <MudContainer MaxWidth="MaxWidth.Large" Class="py-4">
             <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-2">
                 <div>
@@ -290,7 +360,28 @@
             </MudItem>
         </MudGrid>
     </MudContainer>
+    }
 </div>
+
+<style>
+.waiting-state {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.waiting-icon {
+    font-size: 4rem !important;
+    opacity: 0.8;
+}
+
+.notify-button {
+    border-radius: var(--radius-lg) !important;
+    min-height: 48px !important;
+    font-weight: var(--font-weight-semibold) !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+</style>
 
 <style>
 .client-home {
@@ -348,7 +439,10 @@
 
 @code {
     private bool _isLoading = true;
+    private bool _isNotifying = false;
+    private bool _hasNotified = false;
     private string _grantCode = "";
+    private WeeklyBoardResponse? _weeklyBoard;
 
     // Mock data - replace with actual API calls
     private int _currentStreak = 5;
@@ -371,10 +465,27 @@
         _isLoading = true;
         StateHasChanged();
 
-        // Simulate API delay
-        await Task.Delay(1000);
+        try
+        {
+            // Load weekly board
+            var response = await HttpClient.GetAsync("/api/client/weekly-board");
+            if (response.IsSuccessStatusCode)
+            {
+                _weeklyBoard = await response.Content.ReadFromJsonAsync<WeeklyBoardResponse>();
+            }
+            else
+            {
+                // Fallback to default state
+                _weeklyBoard = new WeeklyBoardResponse(false, Array.Empty<MissionDto>(), "Your PT is preparing your plan 🔜");
+            }
+        }
+        catch
+        {
+            // Fallback to default state
+            _weeklyBoard = new WeeklyBoardResponse(false, Array.Empty<MissionDto>(), "Your PT is preparing your plan 🔜");
+        }
 
-        // Mock data
+        // Mock data for existing components if plan exists
         _missions = new List<Mission>
         {
             new() { Id = 1, ExerciseName = "Knee Extension", Prescription = "3×15 reps", IsDueToday = true, TargetDays = new[] {"Monday", "Wednesday", "Friday"}, Side = "Right" },
@@ -472,6 +583,47 @@
         public string Name { get; set; } = "";
         public bool SharesSummary { get; set; }
     }
+
+    private async Task NotifyPTReady()
+    {
+        _isNotifying = true;
+
+        try
+        {
+            var response = await HttpClient.PostAsync("/api/client/ready", null);
+            if (response.IsSuccessStatusCode)
+            {
+                _hasNotified = true;
+                Snackbar.Add("Your therapist has been notified!", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add("Failed to notify therapist. Please try again.", Severity.Error);
+            }
+        }
+        catch
+        {
+            Snackbar.Add("Failed to notify therapist. Please try again.", Severity.Error);
+        }
+        finally
+        {
+            _isNotifying = false;
+        }
+    }
+
+    // DTOs to match API
+    public record WeeklyBoardResponse(
+        bool HasPlan,
+        MissionDto[] Missions,
+        string? Message = null
+    );
+
+    public record MissionDto(
+        string Name,
+        string Description,
+        bool IsCompleted,
+        string Difficulty
+    );
 }
 
 </RoleGate>

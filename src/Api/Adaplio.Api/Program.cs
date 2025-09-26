@@ -1,3 +1,4 @@
+using Adaplio.Api.Analytics;
 using Adaplio.Api.Auth;
 using Adaplio.Api.Data;
 using Adaplio.Api.Dev;
@@ -31,10 +32,12 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // Add HTTP client for Resend
 builder.Services.AddHttpClient<EmailService>();
+builder.Services.AddHttpClient<SMSService>();
 
 // Add authentication services
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<ISMSService, SMSService>();
 builder.Services.AddScoped<IAliasService, AliasService>();
 builder.Services.AddScoped<IProgressService, ProgressService>();
 builder.Services.AddScoped<IPlanService, PlanService>();
@@ -265,6 +268,12 @@ app.MapAuthEndpoints();
 // Map consent endpoints
 app.MapConsentEndpoints();
 
+// Map invite endpoints
+app.MapInviteEndpoints();
+
+// Map onboarding endpoints
+app.MapOnboardingEndpoints();
+
 // Map progress endpoints
 app.MapProgressEndpoints();
 
@@ -273,6 +282,9 @@ app.MapPlanEndpoints();
 
 // Map gamification endpoints
 app.MapGamificationEndpoints();
+
+// Map analytics endpoints
+app.MapAnalyticsEndpoints();
 
 app.MapGet("/health", () => Results.Ok(new { ok = true }));
 
