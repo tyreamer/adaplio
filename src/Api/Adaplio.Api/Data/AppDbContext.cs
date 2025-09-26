@@ -38,9 +38,86 @@ public class AppDbContext : DbContext
         // Configure PostgreSQL type conversions
         if (Database.ProviderName == "Npgsql.EntityFrameworkCore.PostgreSQL")
         {
-            // Configure auto-increment for primary keys
+            // Configure auto-increment for all primary keys
             modelBuilder.Entity<AppUser>()
                 .Property(u => u.Id)
+                .UseIdentityColumn();
+
+            modelBuilder.Entity<MagicLink>()
+                .Property(ml => ml.Id)
+                .UseIdentityColumn();
+
+            modelBuilder.Entity<GrantCode>()
+                .Property(gc => gc.Id)
+                .UseIdentityColumn();
+
+            modelBuilder.Entity<ClientProfile>()
+                .Property(cp => cp.Id)
+                .UseIdentityColumn();
+
+            modelBuilder.Entity<TrainerProfile>()
+                .Property(tp => tp.Id)
+                .UseIdentityColumn();
+
+            modelBuilder.Entity<ConsentGrant>()
+                .Property(cg => cg.Id)
+                .UseIdentityColumn();
+
+            // Add all other entities with Id fields
+            modelBuilder.Entity<MediaAsset>()
+                .Property(ma => ma.Id)
+                .UseIdentityColumn();
+
+            modelBuilder.Entity<Transcript>()
+                .Property(t => t.Id)
+                .UseIdentityColumn();
+
+            modelBuilder.Entity<ExtractionResult>()
+                .Property(er => er.Id)
+                .UseIdentityColumn();
+
+            modelBuilder.Entity<Exercise>()
+                .Property(e => e.Id)
+                .UseIdentityColumn();
+
+            modelBuilder.Entity<PlanTemplate>()
+                .Property(pt => pt.Id)
+                .UseIdentityColumn();
+
+            modelBuilder.Entity<PlanTemplateItem>()
+                .Property(pti => pti.Id)
+                .UseIdentityColumn();
+
+            modelBuilder.Entity<PlanProposal>()
+                .Property(pp => pp.Id)
+                .UseIdentityColumn();
+
+            modelBuilder.Entity<PlanInstance>()
+                .Property(pi => pi.Id)
+                .UseIdentityColumn();
+
+            modelBuilder.Entity<ExerciseInstance>()
+                .Property(ei => ei.Id)
+                .UseIdentityColumn();
+
+            modelBuilder.Entity<PlanItemAcceptance>()
+                .Property(pia => pia.Id)
+                .UseIdentityColumn();
+
+            modelBuilder.Entity<ProgressEvent>()
+                .Property(pe => pe.Id)
+                .UseIdentityColumn();
+
+            modelBuilder.Entity<AdherenceWeek>()
+                .Property(aw => aw.Id)
+                .UseIdentityColumn();
+
+            modelBuilder.Entity<Domain.Gamification>()
+                .Property(g => g.Id)
+                .UseIdentityColumn();
+
+            modelBuilder.Entity<XpAward>()
+                .Property(xa => xa.Id)
                 .UseIdentityColumn();
 
             // Boolean to integer conversion for is_verified column
