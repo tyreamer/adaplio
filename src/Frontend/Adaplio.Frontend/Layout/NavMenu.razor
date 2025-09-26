@@ -96,7 +96,7 @@
                 <MudText Typo="Typo.body2" Color="Color.Secondary">
                     Signed in as @(AuthState.IsClient ? AuthState.Alias : AuthState.FullName)
                 </MudText>
-                <MudChip Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined">
+                <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined">
                     @(AuthState.IsClient ? "Client" : "Trainer")
                 </MudChip>
             </div>

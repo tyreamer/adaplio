@@ -19,7 +19,7 @@
 
             <MudStack Row Spacing="3" AlignItems="AlignItems.Center">
                 <!-- Streak -->
-                <MudChip Icon="@Icons.Material.Filled.Whatshot"
+                <MudChip T="string" Icon="@Icons.Material.Filled.Whatshot"
                          Color="Color.Warning"
                          Variant="Variant.Filled"
                          Size="Size.Medium">
@@ -51,7 +51,7 @@
                         <MudText Typo="Typo.h6" Class="fw-semibold">Today's Missions</MudText>
                         @if (_missions.Any())
                         {
-                            <MudChip Size="Size.Small" Color="Color.Info">@_missions.Count(m => m.IsDueToday) due today</MudChip>
+                            <MudChip T="string" Size="Size.Small" Color="Color.Info">@_missions.Count(m => m.IsDueToday) due today</MudChip>
                         }
                     </div>
 
@@ -108,11 +108,11 @@
                                                 <MudText Typo="Typo.h6">@mission.ExerciseName</MudText>
                                                 @if (mission.IsDueToday)
                                                 {
-                                                    <MudChip Size="Size.Small" Color="Color.Warning" Variant="Variant.Outlined">Due Today</MudChip>
+                                                    <MudChip T="string" Size="Size.Small" Color="Color.Warning" Variant="Variant.Outlined">Due Today</MudChip>
                                                 }
                                                 @if (mission.Side != null)
                                                 {
-                                                    <MudChip Size="Size.Small" Color="Color.Info">@mission.Side</MudChip>
+                                                    <MudChip T="string" Size="Size.Small" Color="Color.Info">@mission.Side</MudChip>
                                                 }
                                             </MudStack>
 
@@ -123,7 +123,7 @@
                                             <MudStack Row Spacing="1" Class="mb-2">
                                                 @foreach (var day in mission.TargetDays)
                                                 {
-                                                    <MudChip Size="Size.Small"
+                                                    <MudChip T="string" Size="Size.Small"
                                                             Color="@(day == DateTime.Now.DayOfWeek.ToString() ? Color.Primary : Color.Default)"
                                                             Variant="Variant.Outlined">
                                                         @day
@@ -253,7 +253,7 @@
                                         <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
                                             <div>
                                                 <MudText Typo="Typo.subtitle2">@trainer.Name</MudText>
-                                                <MudChip Size="Size.Small"
+                                                <MudChip T="string" Size="Size.Small"
                                                         Color="@(trainer.SharesSummary ? Color.Success : Color.Default)"
                                                         Variant="@(trainer.SharesSummary ? Variant.Filled : Variant.Outlined)">
                                                     @(trainer.SharesSummary ? "Summary" : "Private")

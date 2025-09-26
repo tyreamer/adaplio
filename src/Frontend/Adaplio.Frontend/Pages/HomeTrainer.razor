@@ -123,7 +123,7 @@
                                         </MudStack>
                                     </MudTd>
                                     <MudTd DataLabel="Scope">
-                                        <MudChip Color="@(client.SharesSummary ? Color.Success : Color.Default)"
+                                        <MudChip T="string" Color="@(client.SharesSummary ? Color.Success : Color.Default)"
                                                 Variant="@(client.SharesSummary ? Variant.Filled : Variant.Outlined)"
                                                 Size="Size.Small">
                                             @(client.SharesSummary ? "Summary" : "Private")
@@ -226,7 +226,7 @@
                                                 <MudText Typo="Typo.subtitle2">@proposal.ClientAlias</MudText>
                                                 <MudText Typo="Typo.body2" Color="Color.Secondary">@proposal.Name</MudText>
                                             </div>
-                                            <MudChip Size="Size.Small"
+                                            <MudChip T="string" Size="Size.Small"
                                                     Color="@GetProposalStatusColor(proposal.Status)"
                                                     Variant="Variant.Outlined">
                                                 @proposal.Status
@@ -262,7 +262,7 @@
                             {
                                 @foreach (var notification in _notifications.Take(5))
                                 {
-                                    <MudPaper Class="notification-item pa-3 mb-2 @(notification.IsRead ? "read" : "unread")" Elevation="0">
+                                    <MudPaper Class="@GetNotificationClass(notification)" Elevation="0">
                                         <MudText Typo="Typo.body2">@notification.Message</MudText>
                                         <MudText Typo="Typo.caption" Color="Color.Secondary">
                                             @GetRelativeTime(notification.CreatedAt)
@@ -421,6 +421,13 @@
                timeSpan.TotalHours < 24 ? $"{(int)timeSpan.TotalHours}h ago" :
                timeSpan.TotalDays < 7 ? $"{(int)timeSpan.TotalDays}d ago" :
                dateTime.ToString("MMM dd");
+    }
+
+    private string GetNotificationClass(Notification notification)
+    {
+        return notification.IsRead
+            ? "notification-item pa-3 mb-2 read"
+            : "notification-item pa-3 mb-2 unread";
     }
 
     // Data models
