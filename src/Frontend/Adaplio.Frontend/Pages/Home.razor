@@ -179,7 +179,7 @@ else if (!AuthState.IsAuthenticated)
         await RedirectBasedOnRole();
     }
 
-    private async Task HandleAuthStateChanged()
+    private async void HandleAuthStateChanged()
     {
         await RedirectBasedOnRole();
         StateHasChanged();

@@ -11,16 +11,10 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped(sp =>
 {
-    var httpClient = new HttpClient(new HttpClientHandler()
-    {
-        UseCookies = true
-    })
+    var httpClient = new HttpClient()
     {
         BaseAddress = new Uri("https://adaplio.onrender.com") // Production API URL
     };
-
-    // Ensure credentials (cookies) are included in cross-origin requests
-    httpClient.DefaultRequestHeaders.Add("credentials", "include");
 
     return httpClient;
 });
