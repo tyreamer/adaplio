@@ -214,6 +214,68 @@ public class AuthStateService
         return false;
     }
 
+    public async Task SetPreferredRoleAsync(string preferredRole)
+    {
+        try
+        {
+            await _jsRuntime.InvokeVoidAsync("localStorage.setItem", "preferred_role", preferredRole);
+        }
+        catch
+        {
+            // Ignore storage errors
+        }
+    }
+
+    public async Task<string?> GetPreferredRoleAsync()
+    {
+        try
+        {
+            return await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", "preferred_role");
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public async Task ClearPreferredRoleAsync()
+    {
+        try
+        {
+            await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", "preferred_role");
+        }
+        catch
+        {
+            // Ignore storage errors
+        }
+    }
+
+    public async Task<bool> SetUserRoleAsync(string role)
+    {
+        try
+        {
+            var request = new { Role = role };
+            var response = await _httpClient.PostAsJsonAsync("/auth/role", request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                // Update the current user info
+                if (_currentUser != null)
+                {
+                    _currentUser.UserType = role;
+                    NotifyAuthStateChanged();
+                }
+                return true;
+            }
+        }
+        catch
+        {
+            // Ignore errors for now
+        }
+
+        return false;
+    }
+
     private void NotifyAuthStateChanged()
     {
         OnAuthStateChanged?.Invoke();

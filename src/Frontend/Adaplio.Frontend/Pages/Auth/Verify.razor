@@ -6,6 +6,7 @@
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
 @inject AuthStateService AuthState
+@inject IDialogService DialogService
 
 <PageTitle>Verify Code - Adaplio</PageTitle>
 
@@ -90,14 +91,27 @@
                     {
                         UserId = result.UserId ?? "",
                         Email = "", // Will be fetched if needed
-                        UserType = result.UserType ?? "client",
+                        UserType = result.UserType ?? "",
                         Alias = result.Alias
                     };
                     await AuthState.SetUserAsync(userInfo, result.Token);
-                }
 
-                Snackbar.Add($"Welcome {result?.Alias ?? "to Adaplio"}!", Severity.Success);
-                Navigation.NavigateTo("/home");
+                    // Check if user needs to select a role
+                    if (string.IsNullOrEmpty(result.UserType))
+                    {
+                        await ShowRoleSelectionDialog();
+                    }
+                    else
+                    {
+                        Snackbar.Add($"Welcome {result.Alias ?? "to Adaplio"}!", Severity.Success);
+                        Navigation.NavigateTo("/home");
+                    }
+                }
+                else
+                {
+                    Snackbar.Add("Welcome to Adaplio!", Severity.Success);
+                    Navigation.NavigateTo("/home");
+                }
             }
             else
             {
@@ -112,6 +126,48 @@
         finally
         {
             _isLoading = false;
+        }
+    }
+
+    private async Task ShowRoleSelectionDialog()
+    {
+        // Get preferred role hint if available
+        var preferredRole = await AuthState.GetPreferredRoleAsync();
+
+        var parameters = new DialogParameters<Shared.RoleSelectionDialog>
+        {
+            { x => x.PreferredRole, preferredRole }
+        };
+
+        var options = new DialogOptions
+        {
+            CloseButton = false,
+            BackdropClick = false,
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true
+        };
+
+        var dialog = await DialogService.ShowAsync<Shared.RoleSelectionDialog>("Choose Your Role", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is string selectedRole)
+        {
+            // Role was successfully set, navigate to appropriate home
+            Snackbar.Add($"Welcome! You're all set as a {selectedRole}.", Severity.Success);
+
+            if (selectedRole == "client")
+            {
+                Navigation.NavigateTo("/home/client");
+            }
+            else
+            {
+                Navigation.NavigateTo("/home/trainer");
+            }
+        }
+        else
+        {
+            // User canceled or error occurred, redirect to landing
+            Navigation.NavigateTo("/");
         }
     }
 

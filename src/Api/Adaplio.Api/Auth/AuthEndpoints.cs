@@ -28,6 +28,9 @@ public static class AuthEndpoints
         // Update profile endpoint
         authGroup.MapPut("/profile", UpdateProfile).RequireAuthorization();
 
+        // Set user role endpoint (for first-time users)
+        authGroup.MapPost("/role", SetUserRole).RequireAuthorization();
+
         // Logout endpoint
         authGroup.MapPost("/logout", Logout);
     }
@@ -105,28 +108,16 @@ public static class AuthEndpoints
 
             if (user == null)
             {
-                // Create new client user
+                // Create new user without role (for first-time role selection)
                 user = new AppUser
                 {
                     Email = magicLink.Email,
-                    UserType = "client",
+                    UserType = "", // Empty string to trigger role selection
                     IsVerified = true
                 };
 
                 context.AppUsers.Add(user);
                 await context.SaveChangesAsync();
-
-                // Create client profile with alias
-                var clientProfile = new ClientProfile
-                {
-                    UserId = user.Id,
-                    Alias = GenerateClientAlias()
-                };
-
-                context.ClientProfiles.Add(clientProfile);
-                await context.SaveChangesAsync();
-
-                user.ClientProfile = clientProfile;
             }
             else
             {
@@ -384,6 +375,76 @@ public static class AuthEndpoints
         catch (Exception ex)
         {
             return Results.Problem("Failed to update profile. Please try again.");
+        }
+    }
+
+    private static async Task<IResult> SetUserRole(
+        SetUserRoleRequest request,
+        HttpContext httpContext,
+        AppDbContext context)
+    {
+        try
+        {
+            var userIdClaim = httpContext.User.FindFirst("UserId")?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+            {
+                return Results.Unauthorized();
+            }
+
+            var user = await context.AppUsers
+                .Include(u => u.ClientProfile)
+                .Include(u => u.TrainerProfile)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null)
+            {
+                return Results.Unauthorized();
+            }
+
+            // Validate role
+            if (request.Role != "client" && request.Role != "trainer")
+            {
+                return Results.BadRequest(new AuthResponse("Invalid role. Must be 'client' or 'trainer'."));
+            }
+
+            // Only allow setting role if user doesn't have one yet
+            if (!string.IsNullOrEmpty(user.UserType))
+            {
+                return Results.BadRequest(new AuthResponse("User role has already been set."));
+            }
+
+            // Set the user role
+            user.UserType = request.Role;
+            user.UpdatedAt = DateTimeOffset.UtcNow;
+
+            // Create appropriate profile if needed
+            if (request.Role == "client" && user.ClientProfile == null)
+            {
+                var clientProfile = new ClientProfile
+                {
+                    UserId = user.Id,
+                    Alias = GenerateClientAlias()
+                };
+                context.ClientProfiles.Add(clientProfile);
+            }
+            else if (request.Role == "trainer" && user.TrainerProfile == null)
+            {
+                var trainerProfile = new TrainerProfile
+                {
+                    UserId = user.Id,
+                    FullName = user.Email, // Default to email, user can update later
+                    PracticeName = "Practice" // Default, user can update later
+                };
+                context.TrainerProfiles.Add(trainerProfile);
+            }
+
+            await context.SaveChangesAsync();
+
+            return Results.Ok(new AuthResponse("Role set successfully."));
+        }
+        catch (Exception ex)
+        {
+            return Results.Problem("Failed to set user role. Please try again.");
         }
     }
 

@@ -1,7 +1,10 @@
 ﻿@inherits LayoutComponentBase
 @using Adaplio.Frontend.Theme
+@using Adaplio.Frontend.Services
 @inject ThemeService ThemeService
 @inject IJSRuntime JSRuntime
+@inject AuthStateService AuthState
+@inject NavigationManager Navigation
 
 <MudLayout Class="app-layout">
     <MudAppBar Elevation="0" Class="app-bar backdrop-blur">
@@ -24,20 +27,59 @@
 
         <MudSpacer />
 
-        <!-- Primary CTA -->
-        <MudButton Variant="Variant.Filled"
-                   Color="Color.Primary"
-                   Class="mr-4 primary-cta btn-scale"
-                   StartIcon="@Icons.Material.Filled.PersonAdd">
-            Invite Client
-        </MudButton>
+        @if (!_isAuthStateLoading)
+        {
+            @if (AuthState.IsAuthenticated)
+            {
+                <!-- Role-specific action buttons -->
+                @if (AuthState.IsTrainer)
+                {
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               Class="mr-4 primary-cta btn-scale"
+                               StartIcon="@Icons.Material.Filled.PersonAdd"
+                               Href="/invite-client">
+                        Invite Client
+                    </MudButton>
+                }
+                else if (AuthState.IsClient)
+                {
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               Class="mr-4 primary-cta btn-scale"
+                               StartIcon="@Icons.Material.Filled.PersonAdd"
+                               Href="/add-trainer">
+                        Add Trainer
+                    </MudButton>
+                }
 
-        <!-- Help -->
-        <MudTooltip Text="Help & Support">
-            <MudIconButton Icon="@Icons.Material.Filled.Help"
-                           Color="Color.Inherit"
-                           aria-label="Help and support" />
-        </MudTooltip>
+                <!-- Role chip -->
+                <MudChip T="string"
+                         Size="Size.Small"
+                         Color="Color.Primary"
+                         Variant="Variant.Outlined"
+                         Class="mr-4">
+                    @(AuthState.IsClient ? "Client" : "Trainer")
+                </MudChip>
+
+                <!-- Profile Menu -->
+                <MudMenu Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit" aria-label="User menu">
+                    <MudMenuItem Icon="@Icons.Material.Filled.Settings" OnClick="@(() => Navigation.NavigateTo("/settings"))">Settings</MudMenuItem>
+                    <MudDivider />
+                    <MudMenuItem Icon="@Icons.Material.Filled.Logout" OnClick="@LogoutAsync">Sign Out</MudMenuItem>
+                </MudMenu>
+            }
+            else
+            {
+                <!-- Sign In button for unauthenticated users -->
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Login"
+                           Href="/">
+                    Sign In
+                </MudButton>
+            }
+        }
 
         <!-- Theme Toggle -->
         <MudTooltip Text="@(_isDarkMode ? "Switch to light mode" : "Switch to dark mode")">
@@ -46,16 +88,9 @@
                                  ToggledIcon="@Icons.Material.Filled.DarkMode"
                                  Color="Color.Inherit"
                                  ToggledChanged="OnThemeToggled"
-                                 aria-label="Toggle theme" />
+                                 aria-label="Toggle theme"
+                                 Class="ml-2" />
         </MudTooltip>
-
-        <!-- Profile Menu -->
-        <MudMenu Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit" aria-label="User menu">
-            <MudMenuItem Icon="@Icons.Material.Filled.Person">Profile</MudMenuItem>
-            <MudMenuItem Icon="@Icons.Material.Filled.Settings">Settings</MudMenuItem>
-            <MudDivider />
-            <MudMenuItem Icon="@Icons.Material.Filled.Logout">Sign Out</MudMenuItem>
-        </MudMenu>
     </MudAppBar>
 
     <MudDrawer @bind-Open="_drawerOpen"
@@ -86,7 +121,7 @@
 </MudLayout>
 
 <!-- Bottom Navigation for Mobile (Client Role) -->
-@if (_isSmallScreen && _isClientRole)
+@if (_isSmallScreen && AuthState.IsClient)
 {
     <div class="bottom-nav elevation-3">
         <MudPaper Class="bottom-nav-paper" Elevation="0">
@@ -244,15 +279,26 @@
     private bool _isDarkMode = false;
     private bool _isLoading = false;
     private bool _isSmallScreen = false;
-    private bool _isClientRole = true; // TODO: Get from auth service
+    private bool _isAuthStateLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
         _isDarkMode = ThemeService.IsDarkMode;
         ThemeService.OnThemeChanged += StateHasChanged;
+        AuthState.OnAuthStateChanged += HandleAuthStateChanged;
+
+        // Initialize auth state
+        await AuthState.InitializeAsync();
+        _isAuthStateLoading = false;
 
         // Check screen size
         await CheckScreenSize();
+    }
+
+    private void HandleAuthStateChanged()
+    {
+        _isAuthStateLoading = false;
+        StateHasChanged();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -273,6 +319,12 @@
     private void DrawerToggle()
     {
         _drawerOpen = !_drawerOpen;
+    }
+
+    private async Task LogoutAsync()
+    {
+        await AuthState.LogoutAsync();
+        Navigation.NavigateTo("/");
     }
 
     private async Task CheckScreenSize()
@@ -297,5 +349,6 @@
     public void Dispose()
     {
         ThemeService.OnThemeChanged -= StateHasChanged;
+        AuthState.OnAuthStateChanged -= HandleAuthStateChanged;
     }
 }

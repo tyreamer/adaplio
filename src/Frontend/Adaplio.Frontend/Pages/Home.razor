@@ -31,7 +31,7 @@ else if (!AuthState.IsAuthenticated)
                             Class="hero-icon mb-4" />
                     <MudText Typo="Typo.h2" Class="hero-title mb-4">Welcome to Adaplio</MudText>
                     <MudText Typo="Typo.h5" Color="Color.Secondary" Class="hero-subtitle mb-6">
-                        Transform your physical therapy practice with intelligent adherence tracking
+                        PT adherence made simple—smart plans, effortless logging, clear progress.
                     </MudText>
                     <MudText Typo="Typo.body1" Color="Color.Secondary" Class="hero-description">
                         Whether you're a client managing your recovery journey or a physical therapist
@@ -41,21 +41,21 @@ else if (!AuthState.IsAuthenticated)
 
                 <!-- CTA Buttons -->
                 <MudStack Row Spacing="3" Class="cta-buttons">
+                    <MudButton Variant="Variant.Outlined"
+                              Color="Color.Primary"
+                              Size="Size.Large"
+                              StartIcon="@Icons.Material.Filled.FitnessCenter"
+                              OnClick="@(() => StartAuthFlow("client"))"
+                              Class="cta-secondary">
+                        I'm a Client
+                    </MudButton>
                     <MudButton Variant="Variant.Filled"
                               Color="Color.Primary"
                               Size="Size.Large"
                               StartIcon="@Icons.Material.Filled.PersonAdd"
-                              Href="/auth/trainer/register"
+                              OnClick="@(() => StartAuthFlow("trainer"))"
                               Class="cta-primary">
-                        Start as Trainer
-                    </MudButton>
-                    <MudButton Variant="Variant.Outlined"
-                              Color="Color.Primary"
-                              Size="Size.Large"
-                              StartIcon="@Icons.Material.Filled.Login"
-                              Href="/auth/client/login"
-                              Class="cta-secondary">
-                        I'm a Client
+                        I'm a Trainer
                     </MudButton>
                 </MudStack>
 
@@ -203,6 +203,22 @@ else if (!AuthState.IsAuthenticated)
                     Navigation.NavigateTo("/home/trainer");
                 }
             }
+        }
+    }
+
+    private async Task StartAuthFlow(string preferredRole)
+    {
+        // Store the preferred role hint for first-time role selection
+        await AuthState.SetPreferredRoleAsync(preferredRole);
+
+        // Navigate to the appropriate auth page
+        if (preferredRole == "trainer")
+        {
+            Navigation.NavigateTo("/auth/trainer/register");
+        }
+        else
+        {
+            Navigation.NavigateTo("/auth/client/login");
         }
     }
 

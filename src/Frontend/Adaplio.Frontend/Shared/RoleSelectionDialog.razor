@@ -1,0 +1,177 @@
+@using Adaplio.Frontend.Services
+@inject AuthStateService AuthState
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <div class="role-selection-content">
+            <MudStack Spacing="6" AlignItems="AlignItems.Center">
+                <!-- Header -->
+                <MudStack AlignItems="AlignItems.Center" Spacing="3">
+                    <MudIcon Icon="@Icons.Material.Filled.PersonAdd"
+                             Size="Size.Large"
+                             Color="Color.Primary" />
+                    <MudText Typo="Typo.h5" Class="text-center">
+                        Choose Your Role
+                    </MudText>
+                    <MudText Typo="Typo.body1" Color="Color.Secondary" Class="text-center">
+                        To personalize your experience, please select your role below.
+                    </MudText>
+                </MudStack>
+
+                <!-- Role Options -->
+                <MudGrid Spacing="3" Justify="Justify.Center" Class="role-options">
+                    <MudItem xs="12" sm="6">
+                        <MudCard Class="@GetCardClass("client")"
+                                 @onclick="@(() => SelectRole("client"))"
+                                 Style="cursor: pointer; min-height: 200px;">
+                            <MudCardContent Class="text-center">
+                                <MudStack AlignItems="AlignItems.Center" Spacing="3">
+                                    <MudIcon Icon="@Icons.Material.Filled.FitnessCenter"
+                                             Size="Size.Large"
+                                             Color="@(SelectedRole == "client" ? Color.Primary : Color.Default)" />
+                                    <MudText Typo="Typo.h6" Color="@(SelectedRole == "client" ? Color.Primary : Color.Default)">
+                                        I'm a Client
+                                    </MudText>
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="text-center">
+                                        Track your recovery journey, log exercises, and stay connected with your physical therapist.
+                                    </MudText>
+                                </MudStack>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudCard Class="@GetCardClass("trainer")"
+                                 @onclick="@(() => SelectRole("trainer"))"
+                                 Style="cursor: pointer; min-height: 200px;">
+                            <MudCardContent Class="text-center">
+                                <MudStack AlignItems="AlignItems.Center" Spacing="3">
+                                    <MudIcon Icon="@Icons.Material.Filled.PersonAdd"
+                                             Size="Size.Large"
+                                             Color="@(SelectedRole == "trainer" ? Color.Primary : Color.Default)" />
+                                    <MudText Typo="Typo.h6" Color="@(SelectedRole == "trainer" ? Color.Primary : Color.Default)">
+                                        I'm a Trainer
+                                    </MudText>
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="text-center">
+                                        Manage clients, create treatment plans, and monitor adherence progress.
+                                    </MudText>
+                                </MudStack>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+                </MudGrid>
+            </MudStack>
+        </div>
+    </DialogContent>
+
+    <DialogActions>
+        <MudSpacer />
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   OnClick="ConfirmRole"
+                   Disabled="@(string.IsNullOrEmpty(SelectedRole) || _isSaving)">
+            @if (_isSaving)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                <text>Setting up...</text>
+            }
+            else
+            {
+                <text>Continue</text>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+<style>
+.role-selection-content {
+    padding: 1rem;
+    min-width: 400px;
+}
+
+.role-options .mud-card {
+    transition: all 0.2s ease-in-out;
+}
+
+.role-options .mud-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--elevation-4);
+}
+
+.role-selected {
+    border: 2px solid var(--mud-palette-primary) !important;
+    background: var(--mud-palette-primary-lighten) !important;
+}
+
+@@media (max-width: 600px) {
+    .role-selection-content {
+        min-width: unset;
+        padding: 0.5rem;
+    }
+}
+</style>
+
+@code {
+    [CascadingParameter] MudBlazor.IDialogReference MudDialog { get; set; } = null!;
+
+    [Parameter] public string? PreferredRole { get; set; }
+
+    public string? SelectedRole { get; set; }
+    private bool _isSaving = false;
+
+    protected override void OnInitialized()
+    {
+        // Set default selection based on preferred role hint
+        SelectedRole = PreferredRole;
+    }
+
+    private void SelectRole(string role)
+    {
+        SelectedRole = role;
+    }
+
+    private string GetCardClass(string role)
+    {
+        var baseClass = "role-card";
+        if (SelectedRole == role)
+        {
+            return $"{baseClass} role-selected";
+        }
+        return baseClass;
+    }
+
+    private async Task ConfirmRole()
+    {
+        if (string.IsNullOrEmpty(SelectedRole))
+            return;
+
+        _isSaving = true;
+
+        try
+        {
+            var success = await AuthState.SetUserRoleAsync(SelectedRole);
+
+            if (success)
+            {
+                // Clear the preferred role hint
+                await AuthState.ClearPreferredRoleAsync();
+
+                // Close dialog with success result
+                MudDialog.Close(DialogResult.Ok(SelectedRole));
+            }
+            else
+            {
+                Snackbar.Add("Failed to set role. Please try again.", Severity.Error);
+            }
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("An error occurred while setting your role.", Severity.Error);
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+}

@@ -41,6 +41,10 @@ public record UpdateProfileRequest(
     [MaxLength(100)] string? DisplayName = null
 );
 
+public record SetUserRoleRequest(
+    [Required] string Role
+);
+
 // JWT Claims
 public record JwtClaims(
     string UserId,
