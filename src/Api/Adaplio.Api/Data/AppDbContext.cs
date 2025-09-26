@@ -179,6 +179,99 @@ public class AppDbContext : DbContext
             modelBuilder.Entity<ConsentGrant>()
                 .Property(cg => cg.RevokedAt)
                 .HasColumnType("timestamp with time zone");
+
+            // Configure all other entities with DateTimeOffset properties
+            // MediaAsset, Exercise, ExerciseInstance, PlanTemplate, PlanTemplateItem
+            // PlanProposal, PlanInstance, ProgressEvent, Gamification, XpAward
+            // ExtractionResult
+            modelBuilder.Entity<MediaAsset>()
+                .Property(ma => ma.CreatedAt)
+                .HasColumnType("timestamp with time zone");
+
+            modelBuilder.Entity<Exercise>()
+                .Property(e => e.CreatedAt)
+                .HasColumnType("timestamp with time zone");
+            modelBuilder.Entity<Exercise>()
+                .Property(e => e.UpdatedAt)
+                .HasColumnType("timestamp with time zone");
+
+            modelBuilder.Entity<ExerciseInstance>()
+                .Property(ei => ei.CreatedAt)
+                .HasColumnType("timestamp with time zone");
+            modelBuilder.Entity<ExerciseInstance>()
+                .Property(ei => ei.UpdatedAt)
+                .HasColumnType("timestamp with time zone");
+
+            modelBuilder.Entity<PlanTemplate>()
+                .Property(pt => pt.CreatedAt)
+                .HasColumnType("timestamp with time zone");
+            modelBuilder.Entity<PlanTemplate>()
+                .Property(pt => pt.UpdatedAt)
+                .HasColumnType("timestamp with time zone");
+
+            modelBuilder.Entity<PlanTemplateItem>()
+                .Property(pti => pti.CreatedAt)
+                .HasColumnType("timestamp with time zone");
+
+            modelBuilder.Entity<PlanProposal>()
+                .Property(pp => pp.CreatedAt)
+                .HasColumnType("timestamp with time zone");
+            modelBuilder.Entity<PlanProposal>()
+                .Property(pp => pp.ExpiresAt)
+                .HasColumnType("timestamp with time zone");
+            modelBuilder.Entity<PlanProposal>()
+                .Property(pp => pp.AcceptedAt)
+                .HasColumnType("timestamp with time zone");
+            modelBuilder.Entity<PlanProposal>()
+                .Property(pp => pp.RejectedAt)
+                .HasColumnType("timestamp with time zone");
+
+            modelBuilder.Entity<PlanInstance>()
+                .Property(pi => pi.CreatedAt)
+                .HasColumnType("timestamp with time zone");
+            modelBuilder.Entity<PlanInstance>()
+                .Property(pi => pi.UpdatedAt)
+                .HasColumnType("timestamp with time zone");
+
+            modelBuilder.Entity<ProgressEvent>()
+                .Property(pe => pe.CreatedAt)
+                .HasColumnType("timestamp with time zone");
+
+            modelBuilder.Entity<Domain.Gamification>()
+                .Property(g => g.CreatedAt)
+                .HasColumnType("timestamp with time zone");
+            modelBuilder.Entity<Domain.Gamification>()
+                .Property(g => g.UpdatedAt)
+                .HasColumnType("timestamp with time zone");
+
+            modelBuilder.Entity<XpAward>()
+                .Property(xa => xa.CreatedAt)
+                .HasColumnType("timestamp with time zone");
+
+            modelBuilder.Entity<ExtractionResult>()
+                .Property(er => er.CreatedAt)
+                .HasColumnType("timestamp with time zone");
+
+            modelBuilder.Entity<AdherenceWeek>()
+                .Property(aw => aw.UpdatedAt)
+                .HasColumnType("timestamp with time zone");
+
+            // Configure JSON columns for PostgreSQL
+            modelBuilder.Entity<ClientProfile>()
+                .Property(cp => cp.PreferencesJson)
+                .HasColumnType("jsonb");
+
+            modelBuilder.Entity<Exercise>()
+                .Property(e => e.Parameters)
+                .HasColumnType("jsonb");
+
+            modelBuilder.Entity<PlanTemplateItem>()
+                .Property(pti => pti.DaysOfWeek)
+                .HasColumnType("jsonb");
+
+            modelBuilder.Entity<ExerciseInstance>()
+                .Property(ei => ei.DaysOfWeek)
+                .HasColumnType("jsonb");
         }
 
         // Configure unique constraints
@@ -189,7 +282,7 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<ClientProfile>()
             .HasIndex(c => c.Alias)
             .IsUnique()
-            .HasFilter("[alias] IS NOT NULL");
+            .HasFilter("alias IS NOT NULL");
 
         modelBuilder.Entity<ClientProfile>()
             .HasIndex(c => c.UserId)
@@ -207,7 +300,7 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<ConsentGrant>()
             .HasIndex(cg => new { cg.ClientProfileId, cg.TrainerProfileId, cg.Scope })
             .IsUnique()
-            .HasFilter("[revoked_at] IS NULL");
+            .HasFilter("revoked_at IS NULL");
 
         modelBuilder.Entity<AdherenceWeek>()
             .HasIndex(aw => new { aw.ClientProfileId, aw.Year, aw.WeekNumber })
@@ -227,26 +320,31 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<GrantCode>()
             .HasIndex(gc => new { gc.TrainerProfileId, gc.CreatedAt });
 
-        // Configure decimal precision
+        // Configure decimal precision for PostgreSQL compatibility
         modelBuilder.Entity<Transcript>()
             .Property(t => t.ConfidenceScore)
-            .HasPrecision(5, 4);
+            .HasPrecision(5, 4)
+            .HasColumnType("decimal(5,4)");
 
         modelBuilder.Entity<ExtractionResult>()
             .Property(er => er.ConfidenceScore)
-            .HasPrecision(5, 4);
+            .HasPrecision(5, 4)
+            .HasColumnType("decimal(5,4)");
 
         modelBuilder.Entity<AdherenceWeek>()
             .Property(aw => aw.AdherencePercentage)
-            .HasPrecision(5, 2);
+            .HasPrecision(5, 2)
+            .HasColumnType("decimal(5,2)");
 
         modelBuilder.Entity<AdherenceWeek>()
             .Property(aw => aw.AverageDifficultyRating)
-            .HasPrecision(3, 1);
+            .HasPrecision(3, 1)
+            .HasColumnType("decimal(3,1)");
 
         modelBuilder.Entity<AdherenceWeek>()
             .Property(aw => aw.AveragePainLevel)
-            .HasPrecision(3, 1);
+            .HasPrecision(3, 1)
+            .HasColumnType("decimal(3,1)");
 
         // Configure cascade delete behaviors to prevent cycles
         modelBuilder.Entity<ClientProfile>()
@@ -270,7 +368,7 @@ public class AppDbContext : DbContext
             .HasForeignKey<Transcript>(t => t.MediaAssetId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Configure DateOnly conversion for SQLite (PostgreSQL handles DateOnly natively)
+        // Configure DateOnly conversion for both SQLite and PostgreSQL
         if (Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
         {
             modelBuilder.Entity<PlanInstance>()
@@ -292,6 +390,33 @@ public class AppDbContext : DbContext
             modelBuilder.Entity<Domain.Gamification>()
                 .Property(g => g.LastActivityDate)
                 .HasConversion<DateOnlyConverter>();
+        }
+        else if (Database.ProviderName == "Npgsql.EntityFrameworkCore.PostgreSQL")
+        {
+            // PostgreSQL explicit date column configuration
+            modelBuilder.Entity<PlanInstance>()
+                .Property(pi => pi.StartDate)
+                .HasColumnType("date");
+
+            modelBuilder.Entity<PlanInstance>()
+                .Property(pi => pi.PlannedEndDate)
+                .HasColumnType("date");
+
+            modelBuilder.Entity<PlanInstance>()
+                .Property(pi => pi.ActualEndDate)
+                .HasColumnType("date");
+
+            modelBuilder.Entity<AdherenceWeek>()
+                .Property(aw => aw.WeekStartDate)
+                .HasColumnType("date");
+
+            modelBuilder.Entity<PlanProposal>()
+                .Property(pp => pp.StartsOn)
+                .HasColumnType("date");
+
+            modelBuilder.Entity<Domain.Gamification>()
+                .Property(g => g.LastActivityDate)
+                .HasColumnType("date");
         }
     }
 
