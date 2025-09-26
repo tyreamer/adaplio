@@ -76,6 +76,19 @@
                 }
             });
         }
+
+        // Suppress font visibility and source map warnings in development
+        if (window.console && window.console.warn) {
+            const originalWarn = console.warn;
+            console.warn = function(message) {
+                if (typeof message === 'string' &&
+                    (message.includes('font "Helvetica" blocked at visibility level') ||
+                     message.includes('Source map error'))) {
+                    return; // Suppress these warnings
+                }
+                originalWarn.apply(console, arguments);
+            };
+        }
     </script>
     <script src="_framework/blazor.webassembly.js"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
