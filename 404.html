@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Adaplio</title>
+    <script type="text/javascript">
+        // GitHub Pages SPA redirect
+        // https://github.com/rafgraph/spa-github-pages
+        // This script takes the current url and converts the path and query
+        // string into just a query string, and then redirects the browser
+        // to the new url with the converted query string and hash fragment
+
+        // If you're creating a new repo at github.com/username/repo-name
+        // and you want to use GitHub Pages for the repository, you'll need to:
+        // 1. Set segmentCount to 1 in the script below for a repository hosted at github.com/username/repo-name/
+        // 2. Set segmentCount to 0 in the script below for a repository hosted at username.github.io
+
+        var segmentCount = 1;
+
+        var l = window.location;
+        l.replace(
+            l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+            l.pathname.split('/').slice(0, 1 + segmentCount).join('/') + '/?/' +
+            l.pathname.slice(1).split('/').slice(segmentCount).join('/').replace(/&/g, '~and~') +
+            (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+            l.hash
+        );
+    </script>
+</head>
+<body>
+</body>
+</html>
