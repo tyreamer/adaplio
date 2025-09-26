@@ -1,5 +1,5 @@
 self.assetsManifest = {
-  "version": "EMy3p+Rx",
+  "version": "Zw8gYrYs",
   "assets": [
     {
       "hash": "sha256-HnYjBCmGQ2jfv4I3J45XeWEjZyb/PfILVJgLc2SXFog=",
@@ -14,7 +14,7 @@ self.assetsManifest = {
       "url": "_content/MudBlazor/MudBlazor.min.js"
     },
     {
-      "hash": "sha256-Pap0bXCWotg2rZIiScNDFxzu+0JhQKAmGoRY1w1Td8w=",
+      "hash": "sha256-7xnUib8m6vB8c7Qy5jqCahdkOFF5nAHioKlz7dgqJjo=",
       "url": "_framework/Adaplio.Frontend.wasm"
     },
     {
@@ -86,7 +86,7 @@ self.assetsManifest = {
       "url": "_framework/Microsoft.JSInterop.wasm"
     },
     {
-      "hash": "sha256-czteV/0nO85trW9j0f2EoMfVVTvnOPRmtZtWNknWyzM=",
+      "hash": "sha256-RdybKzF4Og0bMKFP3+VNkSa6noewOZ/l/8woXvXzXd0=",
       "url": "_framework/MudBlazor.wasm"
     },
     {
@@ -142,7 +142,7 @@ self.assetsManifest = {
       "url": "_framework/System.Net.Http.Json.wasm"
     },
     {
-      "hash": "sha256-z5x+uR2yF2SXj6lI66w48/IF83X7WBbSOt9/0bDl3g4=",
+      "hash": "sha256-vdwVH1leUOha3k/xpDzLIM3vXxvk3/e3gGuW3GxVLOA=",
       "url": "_framework/System.Net.Http.wasm"
     },
     {
@@ -154,7 +154,7 @@ self.assetsManifest = {
       "url": "_framework/System.ObjectModel.wasm"
     },
     {
-      "hash": "sha256-MuHojd+N3SBzk4CnnTTf1HaOWaabppJCMJWg4KXkh/g=",
+      "hash": "sha256-Kxm4dijQuiRZsv5cOgXiDea87vgUn3q38/vAt8OQ08o=",
       "url": "_framework/System.Private.CoreLib.wasm"
     },
     {
@@ -166,7 +166,7 @@ self.assetsManifest = {
       "url": "_framework/System.Runtime.InteropServices.JavaScript.wasm"
     },
     {
-      "hash": "sha256-ajBod3nEriRqN/5V5pn7i3dVvf1CZBisE8epcCaSBGg=",
+      "hash": "sha256-0sJ6S3TezDbE20aayyhkkiEOBQGgDiuXSqplaNh7+Qw=",
       "url": "_framework/System.Runtime.wasm"
     },
     {
@@ -190,7 +190,7 @@ self.assetsManifest = {
       "url": "_framework/System.wasm"
     },
     {
-      "hash": "sha256-dFzp2nqUhHwhqsYXlH+JqQXEiwVPc4/A1ZgZfqEsgjw=",
+      "hash": "sha256-sh9/XkqLTN2fOfQHNLzSTcR7Ulj/R/v5NtczN1XlSZw=",
       "url": "_framework/blazor.boot.json"
     },
     {
