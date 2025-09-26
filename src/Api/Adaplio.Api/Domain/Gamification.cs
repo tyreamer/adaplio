@@ -33,7 +33,7 @@ public class Gamification
     public int LongestWeeklyStreak { get; set; } = 0;
 
     [Column("last_activity_date")]
-    public DateTime? LastActivityDate { get; set; }
+    public DateOnly? LastActivityDate { get; set; }
 
     [Column("badges_earned")]
     public string BadgesEarned { get; set; } = "[]";

@@ -166,7 +166,20 @@ using (var scope = app.Services.CreateScope())
                     "ALTER TABLE trainer_profile ALTER COLUMN created_at TYPE timestamptz USING created_at::timestamptz;",
                     "ALTER TABLE trainer_profile ALTER COLUMN updated_at TYPE timestamptz USING updated_at::timestamptz;",
                     "ALTER TABLE consent_grant ALTER COLUMN created_at TYPE timestamptz USING created_at::timestamptz;",
-                    "ALTER TABLE consent_grant ALTER COLUMN revoked_at TYPE timestamptz USING revoked_at::timestamptz;"
+                    "ALTER TABLE consent_grant ALTER COLUMN revoked_at TYPE timestamptz USING revoked_at::timestamptz;",
+
+                    // Additional timestamp columns that might be stored as text
+                    "ALTER TABLE consent_grant ALTER COLUMN granted_at TYPE timestamptz USING granted_at::timestamptz;",
+                    "ALTER TABLE transcript ALTER COLUMN created_at TYPE timestamptz USING created_at::timestamptz;",
+                    "ALTER TABLE plan_item_acceptance ALTER COLUMN accepted_at TYPE timestamptz USING accepted_at::timestamptz;",
+                    "ALTER TABLE exercise ALTER COLUMN created_at TYPE timestamptz USING created_at::timestamptz;",
+                    "ALTER TABLE exercise ALTER COLUMN updated_at TYPE timestamptz USING updated_at::timestamptz;",
+                    "ALTER TABLE plan_template ALTER COLUMN created_at TYPE timestamptz USING created_at::timestamptz;",
+                    "ALTER TABLE plan_template ALTER COLUMN updated_at TYPE timestamptz USING updated_at::timestamptz;",
+                    "ALTER TABLE plan_template_item ALTER COLUMN created_at TYPE timestamptz USING created_at::timestamptz;",
+                    "ALTER TABLE plan_proposal ALTER COLUMN proposed_at TYPE timestamptz USING proposed_at::timestamptz;",
+                    "ALTER TABLE plan_proposal ALTER COLUMN expires_at TYPE timestamptz USING expires_at::timestamptz;",
+                    "ALTER TABLE plan_proposal ALTER COLUMN responded_at TYPE timestamptz USING responded_at::timestamptz;"
                 };
 
                 foreach (var sql in sqlCommands)

@@ -120,9 +120,25 @@ public class AppDbContext : DbContext
                 .Property(xa => xa.Id)
                 .UseIdentityColumn();
 
-            // Boolean to integer conversion for is_verified column
+            // Boolean to integer conversions for all boolean columns
             modelBuilder.Entity<AppUser>()
                 .Property(u => u.IsVerified)
+                .HasConversion<int>();
+
+            modelBuilder.Entity<PlanTemplate>()
+                .Property(pt => pt.IsPublic)
+                .HasConversion<int>();
+
+            modelBuilder.Entity<PlanTemplate>()
+                .Property(pt => pt.IsDeleted)
+                .HasConversion<int>();
+
+            modelBuilder.Entity<PlanItemAcceptance>()
+                .Property(pia => pia.Accepted)
+                .HasConversion<int>();
+
+            modelBuilder.Entity<TrainerProfile>()
+                .Property(tp => tp.MfaEnabled)
                 .HasConversion<int>();
 
             // Configure all DateTimeOffset columns to use proper PostgreSQL timestamp type
@@ -280,6 +296,19 @@ public class AppDbContext : DbContext
 
             modelBuilder.Entity<PlanTemplateItem>()
                 .Property(pti => pti.DaysOfWeek)
+                .HasColumnType("jsonb");
+
+            // Additional JSON columns
+            modelBuilder.Entity<Transcript>()
+                .Property(t => t.SegmentsJson)
+                .HasColumnType("jsonb");
+
+            modelBuilder.Entity<ExtractionResult>()
+                .Property(er => er.ExtractedDataJson)
+                .HasColumnType("jsonb");
+
+            modelBuilder.Entity<Domain.Gamification>()
+                .Property(g => g.BadgesEarned)
                 .HasColumnType("jsonb");
         }
 

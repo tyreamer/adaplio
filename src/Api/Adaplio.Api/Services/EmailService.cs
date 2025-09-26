@@ -24,9 +24,26 @@ public class EmailService : IEmailService
     {
         try
         {
+            var smtpHost = _configuration["Email:SmtpHost"];
+            var smtpPortStr = _configuration["Email:SmtpPort"];
+            var username = _configuration["Email:Username"];
+            var password = _configuration["Email:Password"];
+
+            // Check if email is properly configured
+            if (string.IsNullOrEmpty(smtpHost))
+            {
+                _logger.LogWarning("Email not configured - SMTP host missing. Magic link code for {Email}: {Code}", email, code);
+
+                // In development/testing, just log the code instead of sending email
+                Console.WriteLine($"=== MAGIC LINK CODE for {email} ===");
+                Console.WriteLine($"CODE: {code}");
+                Console.WriteLine($"=====================================");
+                return;
+            }
+
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress("Adaplio",
-                _configuration["Email:FromEmail"] ?? "noreply@adaplio.local"));
+                _configuration["Email:FromEmail"] ?? "noreply@adaplio.com"));
             message.To.Add(new MailboxAddress("", email));
             message.Subject = "Your Adaplio Login Code";
 
@@ -62,12 +79,13 @@ public class EmailService : IEmailService
 
             using var client = new SmtpClient();
 
-            var smtpHost = _configuration["Email:SmtpHost"] ?? "localhost";
-            var smtpPort = int.Parse(_configuration["Email:SmtpPort"] ?? "1025");
-            var username = _configuration["Email:Username"];
-            var password = _configuration["Email:Password"];
+            var smtpPort = int.Parse(smtpPortStr ?? "587");
+            var useSSL = bool.Parse(_configuration["Email:UseSSL"] ?? "true");
+            var secureOptions = useSSL ? SecureSocketOptions.StartTls : SecureSocketOptions.None;
 
-            await client.ConnectAsync(smtpHost, smtpPort, SecureSocketOptions.None);
+            _logger.LogInformation("Connecting to SMTP server {Host}:{Port} with SSL={UseSSL}", smtpHost, smtpPort, useSSL);
+
+            await client.ConnectAsync(smtpHost, smtpPort, secureOptions);
 
             if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
             {
@@ -81,7 +99,15 @@ public class EmailService : IEmailService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send magic link to {Email}", email);
+            _logger.LogError(ex, "Failed to send magic link to {Email}. SMTP Host: {Host}, Port: {Port}",
+                email, _configuration["Email:SmtpHost"], _configuration["Email:SmtpPort"]);
+
+            // For development/testing, still log the code so the user can proceed
+            _logger.LogWarning("Magic link code for testing: {Code}", code);
+            Console.WriteLine($"=== MAGIC LINK CODE for {email} (due to email failure) ===");
+            Console.WriteLine($"CODE: {code}");
+            Console.WriteLine($"=========================================================");
+
             throw;
         }
     }
