@@ -57,6 +57,18 @@
         <a class="dismiss">🗙</a>
     </div>
     <script>
+        // GitHub Pages SPA redirect handler
+        (function(l) {
+            if (l.search[1] === '/' ) {
+                var decoded = l.search.slice(1).split('&').map(function(s) {
+                    return s.replace(/~and~/g, '&')
+                }).join('?');
+                window.history.replaceState(null, null,
+                    l.pathname.slice(0, -1) + decoded + l.hash
+                );
+            }
+        }(window.location));
+
         // Fix for "handleEvent is not callable" error
         (function() {
             const originalAddEventListener = EventTarget.prototype.addEventListener;
@@ -68,13 +80,24 @@
             };
         })();
 
-        // Disable service worker completely
+        // Completely disable and clear service worker
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function(registrations) {
                 for(let registration of registrations) {
-                    registration.unregister();
+                    registration.unregister().then(function() {
+                        console.log('Service Worker unregistered');
+                    });
                 }
             });
+
+            // Clear all caches
+            if ('caches' in window) {
+                caches.keys().then(function(cacheNames) {
+                    cacheNames.forEach(function(cacheName) {
+                        caches.delete(cacheName);
+                    });
+                });
+            }
         }
 
         // Suppress font visibility and source map warnings in development
