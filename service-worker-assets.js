@@ -1,5 +1,5 @@
 self.assetsManifest = {
-  "version": "spn/Mvw7",
+  "version": "tcwP/w6V",
   "assets": [
     {
       "hash": "sha256-HnYjBCmGQ2jfv4I3J45XeWEjZyb/PfILVJgLc2SXFog=",
@@ -14,7 +14,7 @@ self.assetsManifest = {
       "url": "_content/MudBlazor/MudBlazor.min.js"
     },
     {
-      "hash": "sha256-ib8iK8yhvrZA60xfj2RCIgSD8NWbH/AWvcLX94cP65Y=",
+      "hash": "sha256-9LxFbR4cl0Csp4ZT/PAHpJs68Wk/RaLVc5x2ZpTFw+I=",
       "url": "_framework/Adaplio.Frontend.wasm"
     },
     {
@@ -102,7 +102,7 @@ self.assetsManifest = {
       "url": "_framework/System.Collections.wasm"
     },
     {
-      "hash": "sha256-iLQXobVteviRlSvdej5d+329KeXkhpo8CMooBzz7UlA=",
+      "hash": "sha256-0KRQCYw/Cyq1bVEaI/yGeUs2NPKHyWYVWcKMPhgA+6A=",
       "url": "_framework/System.ComponentModel.Annotations.wasm"
     },
     {
@@ -154,7 +154,7 @@ self.assetsManifest = {
       "url": "_framework/System.ObjectModel.wasm"
     },
     {
-      "hash": "sha256-Kxm4dijQuiRZsv5cOgXiDea87vgUn3q38/vAt8OQ08o=",
+      "hash": "sha256-gmpb1QyInHAIoYfgriACatmLQ5rp9YuCrfok8kVUkac=",
       "url": "_framework/System.Private.CoreLib.wasm"
     },
     {
@@ -190,7 +190,7 @@ self.assetsManifest = {
       "url": "_framework/System.wasm"
     },
     {
-      "hash": "sha256-ODkZN7K8omP4vzrNlh2As2b7ASOkXAMwF8ggwfsiOPI=",
+      "hash": "sha256-ig9FUYfQpZ8evskD7Qrl44NVDhXAvcgmG1ln665YEws=",
       "url": "_framework/blazor.boot.json"
     },
     {
