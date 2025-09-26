@@ -163,7 +163,7 @@ public class GamificationService : IGamificationService
         }
         else
         {
-            var lastActivity = DateOnly.FromDateTime(gamification.LastActivityDate.Value);
+            var lastActivity = gamification.LastActivityDate.Value;
             var daysDiff = eventDate.DayNumber - lastActivity.DayNumber;
 
             if (daysDiff == 1)
@@ -200,7 +200,7 @@ public class GamificationService : IGamificationService
             gamification.LongestWeeklyStreak = gamification.WeeklyStreaks;
         }
 
-        gamification.LastActivityDate = eventDate.ToDateTime(TimeOnly.MinValue);
+        gamification.LastActivityDate = eventDate;
     }
 
     private static bool IsStartOfWeek(DateOnly date)

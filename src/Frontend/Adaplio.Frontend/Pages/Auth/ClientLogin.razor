@@ -33,10 +33,17 @@
                            Color="Color.Primary"
                            Size="Size.Large"
                            FullWidth="true"
-                           Loading="@_isLoading"
-                           LoadingText="Sending login code...">
-                    <MudIcon Icon="@Icons.Material.Filled.Email" Class="mr-2" />
-                    Send Login Code
+                           Disabled="@_isLoading">
+                    @if (_isLoading)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                        <text>Sending login code...</text>
+                    }
+                    else
+                    {
+                        <MudIcon Icon="@Icons.Material.Filled.Email" Class="mr-2" />
+                        <text>Send Login Code</text>
+                    }
                 </MudButton>
             </MudStack>
         </EditForm>

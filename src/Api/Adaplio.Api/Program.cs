@@ -29,6 +29,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     }
 });
 
+// Add HTTP client for Resend
+builder.Services.AddHttpClient<EmailService>();
+
 // Add authentication services
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IEmailService, EmailService>();

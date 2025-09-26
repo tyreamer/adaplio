@@ -59,10 +59,17 @@
                            Color="Color.Primary"
                            Size="Size.Large"
                            FullWidth="true"
-                           Loading="@_isLoading"
-                           LoadingText="Creating account...">
-                    <MudIcon Icon="@Icons.Material.Filled.PersonAdd" Class="mr-2" />
-                    Create Account
+                           Disabled="@_isLoading">
+                    @if (_isLoading)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                        <text>Creating account...</text>
+                    }
+                    else
+                    {
+                        <MudIcon Icon="@Icons.Material.Filled.PersonAdd" Class="mr-2" />
+                        <text>Create Account</text>
+                    }
                 </MudButton>
             </MudStack>
         </EditForm>

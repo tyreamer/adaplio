@@ -1,6 +1,5 @@
-using MailKit.Net.Smtp;
-using MailKit.Security;
-using MimeKit;
+using System.Text;
+using System.Text.Json;
 
 namespace Adaplio.Api.Services;
 
@@ -11,11 +10,13 @@ public interface IEmailService
 
 public class EmailService : IEmailService
 {
+    private readonly HttpClient _httpClient;
     private readonly IConfiguration _configuration;
     private readonly ILogger<EmailService> _logger;
 
-    public EmailService(IConfiguration configuration, ILogger<EmailService> logger)
+    public EmailService(HttpClient httpClient, IConfiguration configuration, ILogger<EmailService> logger)
     {
+        _httpClient = httpClient;
         _configuration = configuration;
         _logger = logger;
     }
@@ -24,15 +25,13 @@ public class EmailService : IEmailService
     {
         try
         {
-            var smtpHost = _configuration["Email:SmtpHost"];
-            var smtpPortStr = _configuration["Email:SmtpPort"];
-            var username = _configuration["Email:Username"];
-            var password = _configuration["Email:Password"];
+            var resendApiKey = Environment.GetEnvironmentVariable("RESEND_API_KEY") ?? _configuration["Resend:ApiKey"];
+            var fromEmail = Environment.GetEnvironmentVariable("RESEND_FROM_EMAIL") ?? _configuration["Resend:FromEmail"] ?? "noreply@adaplio.com";
 
-            // Check if email is properly configured
-            if (string.IsNullOrEmpty(smtpHost))
+            // Check if Resend is properly configured
+            if (string.IsNullOrEmpty(resendApiKey))
             {
-                _logger.LogWarning("Email not configured - SMTP host missing. Magic link code for {Email}: {Code}", email, code);
+                _logger.LogWarning("Resend not configured - API key missing. Magic link code for {Email}: {Code}", email, code);
 
                 // In development/testing, just log the code instead of sending email
                 Console.WriteLine($"=== MAGIC LINK CODE for {email} ===");
@@ -41,28 +40,32 @@ public class EmailService : IEmailService
                 return;
             }
 
-            var message = new MimeMessage();
-            message.From.Add(new MailboxAddress("Adaplio",
-                _configuration["Email:FromEmail"] ?? "noreply@adaplio.com"));
-            message.To.Add(new MailboxAddress("", email));
-            message.Subject = "Your Adaplio Login Code";
-
-            var bodyBuilder = new BodyBuilder
+            var emailData = new
             {
-                HtmlBody = $"""
-                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                        <h2 style="color: #2563eb;">Welcome to Adaplio</h2>
-                        <p>Your login code is:</p>
-                        <div style="background: #f3f4f6; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;">
-                            <h1 style="font-size: 32px; letter-spacing: 4px; color: #1f2937; margin: 0;">{code}</h1>
+                from = fromEmail,
+                to = new[] { email },
+                subject = "Your Adaplio Login Code",
+                html = $"""
+                    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #ffffff;">
+                        <div style="text-align: center; margin-bottom: 40px;">
+                            <h1 style="color: #2E90FA; font-size: 28px; font-weight: 700; margin: 0;">Adaplio</h1>
+                            <p style="color: #64748B; font-size: 16px; margin: 8px 0 0 0;">Your Physical Therapy Companion</p>
                         </div>
-                        <p>This code will expire in 15 minutes.</p>
-                        <p>If you didn't request this login, please ignore this email.</p>
-                        <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
-                        <p style="color: #6b7280; font-size: 12px;">Adaplio - Your Physical Therapy Companion</p>
+
+                        <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 32px; margin: 32px 0; text-align: center;">
+                            <h2 style="color: #1E293B; font-size: 20px; font-weight: 600; margin: 0 0 16px 0;">Your Login Code</h2>
+                            <div style="background: #FFFFFF; border: 2px dashed #CBD5E1; border-radius: 8px; padding: 20px; margin: 20px 0;">
+                                <span style="font-family: 'SF Mono', Monaco, monospace; font-size: 36px; font-weight: 700; letter-spacing: 8px; color: #0F172A;">{code}</span>
+                            </div>
+                            <p style="color: #64748B; font-size: 14px; margin: 16px 0 0 0;">This code will expire in 15 minutes</p>
+                        </div>
+
+                        <div style="text-align: center; padding-top: 32px; border-top: 1px solid #E2E8F0;">
+                            <p style="color: #64748B; font-size: 14px; margin: 0;">If you didn't request this login code, please ignore this email.</p>
+                        </div>
                     </div>
                     """,
-                TextBody = $"""
+                text = $"""
                     Welcome to Adaplio
 
                     Your login code is: {code}
@@ -71,36 +74,35 @@ public class EmailService : IEmailService
 
                     If you didn't request this login, please ignore this email.
 
+                    ---
                     Adaplio - Your Physical Therapy Companion
                     """
             };
 
-            message.Body = bodyBuilder.ToMessageBody();
+            var json = JsonSerializer.Serialize(emailData);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            using var client = new SmtpClient();
+            _httpClient.DefaultRequestHeaders.Clear();
+            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {resendApiKey}");
 
-            var smtpPort = int.Parse(smtpPortStr ?? "587");
-            var useSSL = bool.Parse(_configuration["Email:UseSSL"] ?? "true");
-            var secureOptions = useSSL ? SecureSocketOptions.StartTls : SecureSocketOptions.None;
+            var response = await _httpClient.PostAsync("https://api.resend.com/emails", content);
 
-            _logger.LogInformation("Connecting to SMTP server {Host}:{Port} with SSL={UseSSL}", smtpHost, smtpPort, useSSL);
-
-            await client.ConnectAsync(smtpHost, smtpPort, secureOptions);
-
-            if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
+            if (response.IsSuccessStatusCode)
             {
-                await client.AuthenticateAsync(username, password);
+                var responseContent = await response.Content.ReadAsStringAsync();
+                _logger.LogInformation("Magic link sent successfully to {Email} via Resend. Response: {Response}", email, responseContent);
             }
-
-            await client.SendAsync(message);
-            await client.DisconnectAsync(true);
-
-            _logger.LogInformation("Magic link sent successfully to {Email}", email);
+            else
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogError("Failed to send magic link via Resend. Status: {StatusCode}, Error: {Error}",
+                    response.StatusCode, errorContent);
+                throw new InvalidOperationException($"Failed to send email: {errorContent}");
+            }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send magic link to {Email}. SMTP Host: {Host}, Port: {Port}",
-                email, _configuration["Email:SmtpHost"], _configuration["Email:SmtpPort"]);
+            _logger.LogError(ex, "Failed to send magic link to {Email} via Resend", email);
 
             // For development/testing, still log the code so the user can proceed
             _logger.LogWarning("Magic link code for testing: {Code}", code);

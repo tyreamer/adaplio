@@ -5,6 +5,10 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
+
+    <!-- Suppress source map warnings -->
+    <BlazorWebAssemblyEnableDebugging Condition="'$(Configuration)' != 'Debug'">false</BlazorWebAssemblyEnableDebugging>
+    <BlazorWebAssemblyLoadBootResource>false</BlazorWebAssemblyLoadBootResource>
   </PropertyGroup>
 
   <ItemGroup>

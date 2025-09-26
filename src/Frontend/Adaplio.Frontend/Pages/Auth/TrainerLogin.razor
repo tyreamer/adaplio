@@ -40,10 +40,17 @@
                            Color="Color.Primary"
                            Size="Size.Large"
                            FullWidth="true"
-                           Loading="@_isLoading"
-                           LoadingText="Signing in...">
-                    <MudIcon Icon="@Icons.Material.Filled.Login" Class="mr-2" />
-                    Sign In
+                           Disabled="@_isLoading">
+                    @if (_isLoading)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                        <text>Signing in...</text>
+                    }
+                    else
+                    {
+                        <MudIcon Icon="@Icons.Material.Filled.Login" Class="mr-2" />
+                        <text>Sign In</text>
+                    }
                 </MudButton>
             </MudStack>
         </EditForm>
