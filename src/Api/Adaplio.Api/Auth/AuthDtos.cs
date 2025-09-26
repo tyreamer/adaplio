@@ -37,6 +37,10 @@ public record AuthResponse(
     string? Token = null
 );
 
+public record UpdateProfileRequest(
+    [MaxLength(100)] string? DisplayName = null
+);
+
 // JWT Claims
 public record JwtClaims(
     string UserId,

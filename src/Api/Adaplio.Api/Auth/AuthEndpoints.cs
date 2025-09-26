@@ -25,6 +25,9 @@ public static class AuthEndpoints
         // Get current user info endpoint
         authGroup.MapGet("/me", GetCurrentUser).RequireAuthorization();
 
+        // Update profile endpoint
+        authGroup.MapPut("/profile", UpdateProfile).RequireAuthorization();
+
         // Logout endpoint
         authGroup.MapPost("/logout", Logout);
     }
@@ -323,6 +326,7 @@ public static class AuthEndpoints
                 email = user.Email,
                 userType = user.UserType,
                 alias = user.ClientProfile?.Alias,
+                displayName = user.ClientProfile?.DisplayName,
                 fullName = user.TrainerProfile?.FullName,
                 practiceName = user.TrainerProfile?.PracticeName,
                 isVerified = user.IsVerified
@@ -333,6 +337,53 @@ public static class AuthEndpoints
         catch (Exception ex)
         {
             return Results.Problem("Failed to get user information.");
+        }
+    }
+
+    private static async Task<IResult> UpdateProfile(
+        UpdateProfileRequest request,
+        HttpContext httpContext,
+        AppDbContext context)
+    {
+        try
+        {
+            var userIdClaim = httpContext.User.FindFirst("UserId")?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+            {
+                return Results.Unauthorized();
+            }
+
+            var user = await context.AppUsers
+                .Include(u => u.ClientProfile)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null)
+            {
+                return Results.Unauthorized();
+            }
+
+            // Only clients can update their profile
+            if (user.UserType != "client" || user.ClientProfile == null)
+            {
+                return Results.BadRequest("Only clients can update their profile.");
+            }
+
+            // Update display name
+            if (request.DisplayName != null)
+            {
+                user.ClientProfile.DisplayName = string.IsNullOrWhiteSpace(request.DisplayName)
+                    ? null
+                    : request.DisplayName.Trim();
+                user.ClientProfile.UpdatedAt = DateTimeOffset.UtcNow;
+            }
+
+            await context.SaveChangesAsync();
+
+            return Results.Ok(new AuthResponse("Profile updated successfully."));
+        }
+        catch (Exception ex)
+        {
+            return Results.Problem("Failed to update profile. Please try again.");
         }
     }
 

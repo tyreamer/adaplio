@@ -115,7 +115,9 @@
                                                 @client.Alias.Substring(0, 2).ToUpper()
                                             </MudAvatar>
                                             <div>
-                                                <MudText Typo="Typo.subtitle2">@client.Alias</MudText>
+                                                <MudText Typo="Typo.subtitle2">
+                                                    @GetClientDisplayName(client)
+                                                </MudText>
                                                 <MudText Typo="Typo.caption" Color="Color.Secondary">
                                                     @client.Email
                                                 </MudText>
@@ -334,9 +336,9 @@
         // Mock data
         _clients = new List<ClientData>
         {
-            new() { Id = 1, Alias = "C-AB12", Email = "client1@email.com", SharesSummary = true, AdherencePercent = 85, LastActivity = DateTime.Now.AddHours(-2) },
-            new() { Id = 2, Alias = "C-CD34", Email = "client2@email.com", SharesSummary = false, AdherencePercent = 92, LastActivity = DateTime.Now.AddDays(-1) },
-            new() { Id = 3, Alias = "C-EF56", Email = "client3@email.com", SharesSummary = true, AdherencePercent = 67, LastActivity = DateTime.Now.AddDays(-3) }
+            new() { Id = 1, Alias = "C-AB12", DisplayName = "Sarah's Recovery", Email = "client1@email.com", SharesSummary = true, AdherencePercent = 85, LastActivity = DateTime.Now.AddHours(-2) },
+            new() { Id = 2, Alias = "C-CD34", DisplayName = null, Email = "client2@email.com", SharesSummary = false, AdherencePercent = 92, LastActivity = DateTime.Now.AddDays(-1) },
+            new() { Id = 3, Alias = "C-EF56", DisplayName = "Getting Stronger 💪", Email = "client3@email.com", SharesSummary = true, AdherencePercent = 67, LastActivity = DateTime.Now.AddDays(-3) }
         };
 
         _recentProposals = new List<RecentProposal>
@@ -430,11 +432,21 @@
             : "notification-item pa-3 mb-2 unread";
     }
 
+    private string GetClientDisplayName(ClientData client)
+    {
+        if (!string.IsNullOrWhiteSpace(client.DisplayName))
+        {
+            return $"{client.DisplayName} ({client.Alias})";
+        }
+        return client.Alias;
+    }
+
     // Data models
     public class ClientData
     {
         public int Id { get; set; }
         public string Alias { get; set; } = "";
+        public string? DisplayName { get; set; }
         public string Email { get; set; } = "";
         public bool SharesSummary { get; set; }
         public int AdherencePercent { get; set; }

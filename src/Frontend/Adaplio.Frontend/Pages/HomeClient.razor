@@ -11,7 +11,20 @@
     <MudPaper Class="header-section" Elevation="1">
         <MudContainer MaxWidth="MaxWidth.Large" Class="py-4">
             <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-2">
-                <MudText Typo="Typo.h5" Class="fw-bold">This Week</MudText>
+                <div>
+                    <MudText Typo="Typo.h5" Class="fw-bold">This Week</MudText>
+                    @if (AuthState.IsClient && string.IsNullOrWhiteSpace(AuthState.DisplayName))
+                    {
+                        <MudButton Variant="Variant.Text"
+                                   Color="Color.Secondary"
+                                   Size="Size.Small"
+                                   StartIcon="@Icons.Material.Filled.Edit"
+                                   Href="/settings"
+                                   Class="mt-1">
+                            Set a nickname
+                        </MudButton>
+                    }
+                </div>
                 <MudText Typo="Typo.body2" Color="Color.Secondary">
                     @DateTime.Now.ToString("dddd, MMMM dd")
                 </MudText>

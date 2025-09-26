@@ -1,0 +1,93 @@
+Context: Blazor WASM + MudBlazor, ASP.NET Core API with JWT. We need a proper public landing and a role-aware header. No trainer-only controls when signed out. First-time users must choose a role and then be routed to the correct home.
+
+Implement the following behaviors (don’t assume file names or structure; fit into the existing app):
+
+1) Public landing (signed out)
+
+Show a hero with brief value prop.
+
+Primary CTAs:
+
+I’m a Client
+
+I’m a Trainer
+
+Both CTAs open the auth flow (Google or email). Record which CTA started the flow as a preferredRole hint for first-time role selection.
+
+Keep the three feature cards with tighter copy; keep design consistent with current theme.
+
+No trainer-only buttons (e.g., “Invite Client”) anywhere while signed out.
+
+2) Header / top bar
+
+Signed out: logo + Sign In button only.
+
+Signed in:
+
+Show a compact role chip (Client/Trainer) near avatar.
+
+If role = Trainer → show Invite Client button.
+
+If role = Client → show Add Trainer button.
+
+While auth state is resolving, don’t flash the wrong buttons—hide actions or show a small skeleton/placeholder.
+
+3) First-login role selection
+
+After successful auth, if the user has no role:
+
+Show a modal dialog to choose Client or Trainer.
+
+Default selection uses the CTA hint (preferredRole) if present.
+
+Persist the role (via existing endpoint; if none, create a minimal one).
+
+After saving, route to the correct home for that role.
+
+4) Routing & redirects
+
+Hitting “/”:
+
+If signed out → show public landing.
+
+If signed in → redirect to the user’s role home (client or trainer).
+
+If a user navigates to a page for the other role, show a friendly 403 panel with a button like “Go to my home”.
+
+5) Navigation gating
+
+Signed out: minimal nav (no app sections).
+
+Client: only Client sections (Home/Weekly Board/Proposals/Progress/Rewards/Settings).
+
+Trainer: only Trainer sections (Home/Dashboard/Templates/Proposals/Clients/Settings).
+
+6) API usage (adapt to current backend; example shapes only)
+
+Read user/role: GET /api/auth/me → { userId, displayName, role? }
+
+Set role (first login only): POST /api/auth/role { role: "client" | "trainer" } → 204
+
+Ensure all app API calls include JWT; landing should make no privileged calls.
+
+7) UX details
+
+Keep whitespace and current aesthetic; mobile-friendly hero + stacked feature cards.
+
+Clear copy for CTAs; brief tagline (e.g., “PT adherence made simple—smart plans, effortless logging, clear progress.”).
+
+Snackbars for auth/role errors; retry option if role save fails.
+
+8) Acceptance criteria
+
+Public landing never shows Invite Client or other trainer tools.
+
+Both CTAs launch auth; first-time users must choose a role before entering the app.
+
+Returning users skip role selection and land directly on the right home.
+
+Header buttons are always correct for the current auth/role and do not flicker.
+
+Deep-linking to the wrong role view yields a 403 panel with a “Go to my home” button.
+
+Notes: Keep code cohesive with existing services; do not rename or move files unless necessary. Favor small, testable units and minimal changes to achieve the behaviors above.

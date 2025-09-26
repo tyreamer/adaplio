@@ -94,7 +94,7 @@
 
             <div class="user-info">
                 <MudText Typo="Typo.body2" Color="Color.Secondary">
-                    Signed in as @(AuthState.IsClient ? AuthState.Alias : AuthState.FullName)
+                    Signed in as @GetUserDisplayName()
                 </MudText>
                 <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined">
                     @(AuthState.IsClient ? "Client" : "Trainer")
@@ -253,6 +253,24 @@
     {
         await AuthState.LogoutAsync();
         Navigation.NavigateTo("/");
+    }
+
+    private string GetUserDisplayName()
+    {
+        if (AuthState.IsClient)
+        {
+            // For clients, show nickname if available, otherwise show alias
+            if (!string.IsNullOrWhiteSpace(AuthState.DisplayName))
+            {
+                return AuthState.DisplayName;
+            }
+            return AuthState.Alias ?? "Client";
+        }
+        else
+        {
+            // For trainers, show full name or email
+            return AuthState.FullName ?? AuthState.Email ?? "Trainer";
+        }
     }
 
     public void Dispose()

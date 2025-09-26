@@ -27,6 +27,7 @@ public class AuthStateService
     public string? UserId => _currentUser?.UserId;
     public string? Email => _currentUser?.Email;
     public string? Alias => _currentUser?.Alias;
+    public string? DisplayName => _currentUser?.DisplayName;
     public string? FullName => _currentUser?.FullName;
     public bool IsClient => UserRole == "client";
     public bool IsTrainer => UserRole == "trainer";
@@ -187,6 +188,32 @@ public class AuthStateService
         _httpClient.DefaultRequestHeaders.Authorization = null;
     }
 
+    public async Task<bool> UpdateProfileAsync(string? displayName)
+    {
+        try
+        {
+            var request = new { DisplayName = displayName };
+            var response = await _httpClient.PutAsJsonAsync("/auth/profile", request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                // Update the current user info
+                if (_currentUser != null)
+                {
+                    _currentUser.DisplayName = displayName;
+                    NotifyAuthStateChanged();
+                }
+                return true;
+            }
+        }
+        catch
+        {
+            // Ignore errors for now
+        }
+
+        return false;
+    }
+
     private void NotifyAuthStateChanged()
     {
         OnAuthStateChanged?.Invoke();
@@ -199,6 +226,7 @@ public class UserInfo
     public string Email { get; set; } = "";
     public string UserType { get; set; } = "";
     public string? Alias { get; set; }
+    public string? DisplayName { get; set; }
     public string? FullName { get; set; }
     public string? PracticeName { get; set; }
     public bool IsVerified { get; set; }
