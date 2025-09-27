@@ -154,6 +154,26 @@ using (var scope = app.Services.CreateScope())
         {
             try
             {
+                // First fix confidence_score columns that might be TEXT type
+                var confidenceScoreCommands = new[]
+                {
+                    "ALTER TABLE transcript ALTER COLUMN confidence_score TYPE decimal(5,4) USING CASE WHEN confidence_score ~ '^[0-9]*\\.?[0-9]+$' THEN confidence_score::decimal(5,4) ELSE NULL END;",
+                    "ALTER TABLE extraction_result ALTER COLUMN confidence_score TYPE decimal(5,4) USING CASE WHEN confidence_score ~ '^[0-9]*\\.?[0-9]+$' THEN confidence_score::decimal(5,4) ELSE NULL END;"
+                };
+
+                foreach (var sql in confidenceScoreCommands)
+                {
+                    try
+                    {
+                        context.Database.ExecuteSqlRaw(sql);
+                        Console.WriteLine($"Successfully executed: {sql}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Skipped (column already correct or doesn't exist): {sql} - {ex.Message}");
+                    }
+                }
+
                 // Fix auto-increment for all primary key columns AND fix timestamp column types
                 var sqlCommands = new[]
                 {
