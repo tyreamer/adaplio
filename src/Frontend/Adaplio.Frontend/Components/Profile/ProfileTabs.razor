@@ -2,6 +2,7 @@
 @using Adaplio.Frontend.Components.Common
 @inject AuthStateService AuthState
 @inject AuthorizationService Authorization
+@inject ISnackbar Snackbar
 
 <MudTabs Elevation="0"
          Rounded="true"
@@ -118,19 +119,19 @@
                         <MudList T="string" Dense="true">
                             <MudListItem T="string" Icon="@Icons.Material.Filled.QuestionAnswer"
                                         Text="FAQ"
-                                        Href="/help/faq" />
+                                        OnClick="@(() => ShowComingSoon("FAQ"))" />
                             <MudListItem T="string" Icon="@Icons.Material.Filled.ContactSupport"
                                         Text="Contact Support"
-                                        Href="/help/contact" />
+                                        OnClick="@(() => ShowComingSoon("Contact Support"))" />
                             <MudListItem T="string" Icon="@Icons.Material.Filled.Book"
                                         Text="User Guide"
-                                        Href="/help/guide" />
+                                        OnClick="@(() => ShowComingSoon("User Guide"))" />
                             <MudListItem T="string" Icon="@Icons.Material.Filled.Security"
                                         Text="Privacy Policy"
-                                        Href="/privacy" />
+                                        OnClick="@(() => ShowComingSoon("Privacy Policy"))" />
                             <MudListItem T="string" Icon="@Icons.Material.Filled.Gavel"
                                         Text="Terms of Service"
-                                        Href="/terms" />
+                                        OnClick="@(() => ShowComingSoon("Terms of Service"))" />
                         </MudList>
                     </MudStack>
                 </MudPaper>
@@ -236,5 +237,10 @@
     private string GetPersonalTabTitle()
     {
         return AuthState.IsClient ? "Personal" : "Clinic";
+    }
+
+    private void ShowComingSoon(string feature)
+    {
+        Snackbar.Add($"{feature} coming soon! We're working on this feature.", Severity.Info);
     }
 }

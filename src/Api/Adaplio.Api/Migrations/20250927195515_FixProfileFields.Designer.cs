@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Adaplio.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250926203459_AddProfileFields")]
-    partial class AddProfileFields
+    [Migration("20250927195515_FixProfileFields")]
+    partial class FixProfileFields
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

@@ -6,11 +6,64 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Adaplio.Api.Migrations
 {
     /// <inheritdoc />
-    public partial class AddProfileFields : Migration
+    public partial class FixProfileFields : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // Handle PostgreSQL TEXT to decimal conversion manually
+            if (migrationBuilder.ActiveProvider == "Npgsql.EntityFrameworkCore.PostgreSQL")
+            {
+                migrationBuilder.Sql(@"
+                    ALTER TABLE transcript
+                    ALTER COLUMN confidence_score TYPE decimal(5,4)
+                    USING CASE
+                        WHEN confidence_score ~ '^[0-9]*\.?[0-9]+$'
+                        THEN confidence_score::decimal(5,4)
+                        ELSE NULL
+                    END;
+                ");
+
+                migrationBuilder.Sql(@"
+                    ALTER TABLE extraction_result
+                    ALTER COLUMN confidence_score TYPE decimal(5,4)
+                    USING CASE
+                        WHEN confidence_score ~ '^[0-9]*\.?[0-9]+$'
+                        THEN confidence_score::decimal(5,4)
+                        ELSE NULL
+                    END;
+                ");
+
+                migrationBuilder.Sql(@"
+                    ALTER TABLE adherence_week
+                    ALTER COLUMN average_pain_level TYPE decimal(3,1)
+                    USING CASE
+                        WHEN average_pain_level ~ '^[0-9]*\.?[0-9]+$'
+                        THEN average_pain_level::decimal(3,1)
+                        ELSE NULL
+                    END;
+                ");
+
+                migrationBuilder.Sql(@"
+                    ALTER TABLE adherence_week
+                    ALTER COLUMN average_difficulty_rating TYPE decimal(3,1)
+                    USING CASE
+                        WHEN average_difficulty_rating ~ '^[0-9]*\.?[0-9]+$'
+                        THEN average_difficulty_rating::decimal(3,1)
+                        ELSE NULL
+                    END;
+                ");
+
+                migrationBuilder.Sql(@"
+                    ALTER TABLE adherence_week
+                    ALTER COLUMN adherence_percentage TYPE decimal(5,2)
+                    USING CASE
+                        WHEN adherence_percentage ~ '^[0-9]*\.?[0-9]+$'
+                        THEN adherence_percentage::decimal(5,2)
+                        ELSE 0
+                    END;
+                ");
+            }
             migrationBuilder.DropColumn(
                 name: "milestones_reached",
                 table: "gamification");
@@ -33,18 +86,22 @@ namespace Adaplio.Api.Migrations
                 table: "gamification",
                 newName: "longest_weekly_streak");
 
-            migrationBuilder.AlterColumn<decimal>(
-                name: "confidence_score",
-                table: "transcript",
-                type: "decimal(5,4)",
-                precision: 5,
-                scale: 4,
-                nullable: true,
-                oldClrType: typeof(decimal),
-                oldType: "TEXT",
-                oldPrecision: 5,
-                oldScale: 4,
-                oldNullable: true);
+            // Handled manually above for PostgreSQL
+            if (migrationBuilder.ActiveProvider != "Npgsql.EntityFrameworkCore.PostgreSQL")
+            {
+                migrationBuilder.AlterColumn<decimal>(
+                    name: "confidence_score",
+                    table: "transcript",
+                    type: "decimal(5,4)",
+                    precision: 5,
+                    scale: 4,
+                    nullable: true,
+                    oldClrType: typeof(decimal),
+                    oldType: "TEXT",
+                    oldPrecision: 5,
+                    oldScale: 4,
+                    oldNullable: true);
+            }
 
             migrationBuilder.AddColumn<string>(
                 name: "availability_json",
@@ -103,18 +160,22 @@ namespace Adaplio.Api.Migrations
                 oldType: "TEXT",
                 oldNullable: true);
 
-            migrationBuilder.AlterColumn<decimal>(
-                name: "confidence_score",
-                table: "extraction_result",
-                type: "decimal(5,4)",
-                precision: 5,
-                scale: 4,
-                nullable: true,
-                oldClrType: typeof(decimal),
-                oldType: "TEXT",
-                oldPrecision: 5,
-                oldScale: 4,
-                oldNullable: true);
+            // Handled manually above for PostgreSQL
+            if (migrationBuilder.ActiveProvider != "Npgsql.EntityFrameworkCore.PostgreSQL")
+            {
+                migrationBuilder.AlterColumn<decimal>(
+                    name: "confidence_score",
+                    table: "extraction_result",
+                    type: "decimal(5,4)",
+                    precision: 5,
+                    scale: 4,
+                    nullable: true,
+                    oldClrType: typeof(decimal),
+                    oldType: "TEXT",
+                    oldPrecision: 5,
+                    oldScale: 4,
+                    oldNullable: true);
+            }
 
             migrationBuilder.AddColumn<string>(
                 name: "avatar_url",
@@ -137,43 +198,47 @@ namespace Adaplio.Api.Migrations
                 maxLength: 50,
                 nullable: true);
 
-            migrationBuilder.AlterColumn<decimal>(
-                name: "average_pain_level",
-                table: "adherence_week",
-                type: "decimal(3,1)",
-                precision: 3,
-                scale: 1,
-                nullable: true,
-                oldClrType: typeof(decimal),
-                oldType: "TEXT",
-                oldPrecision: 3,
-                oldScale: 1,
-                oldNullable: true);
+            // Handled manually above for PostgreSQL
+            if (migrationBuilder.ActiveProvider != "Npgsql.EntityFrameworkCore.PostgreSQL")
+            {
+                migrationBuilder.AlterColumn<decimal>(
+                    name: "average_pain_level",
+                    table: "adherence_week",
+                    type: "decimal(3,1)",
+                    precision: 3,
+                    scale: 1,
+                    nullable: true,
+                    oldClrType: typeof(decimal),
+                    oldType: "TEXT",
+                    oldPrecision: 3,
+                    oldScale: 1,
+                    oldNullable: true);
 
-            migrationBuilder.AlterColumn<decimal>(
-                name: "average_difficulty_rating",
-                table: "adherence_week",
-                type: "decimal(3,1)",
-                precision: 3,
-                scale: 1,
-                nullable: true,
-                oldClrType: typeof(decimal),
-                oldType: "TEXT",
-                oldPrecision: 3,
-                oldScale: 1,
-                oldNullable: true);
+                migrationBuilder.AlterColumn<decimal>(
+                    name: "average_difficulty_rating",
+                    table: "adherence_week",
+                    type: "decimal(3,1)",
+                    precision: 3,
+                    scale: 1,
+                    nullable: true,
+                    oldClrType: typeof(decimal),
+                    oldType: "TEXT",
+                    oldPrecision: 3,
+                    oldScale: 1,
+                    oldNullable: true);
 
-            migrationBuilder.AlterColumn<decimal>(
-                name: "adherence_percentage",
-                table: "adherence_week",
-                type: "decimal(5,2)",
-                precision: 5,
-                scale: 2,
-                nullable: false,
-                oldClrType: typeof(decimal),
-                oldType: "TEXT",
-                oldPrecision: 5,
-                oldScale: 2);
+                migrationBuilder.AlterColumn<decimal>(
+                    name: "adherence_percentage",
+                    table: "adherence_week",
+                    type: "decimal(5,2)",
+                    precision: 5,
+                    scale: 2,
+                    nullable: false,
+                    oldClrType: typeof(decimal),
+                    oldType: "TEXT",
+                    oldPrecision: 5,
+                    oldScale: 2);
+            }
 
             migrationBuilder.CreateTable(
                 name: "invite_token",
