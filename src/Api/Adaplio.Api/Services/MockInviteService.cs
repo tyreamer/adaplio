@@ -16,12 +16,14 @@ public class MockInviteService : IInviteService
         // Mock implementation - in a real system this would create database records
         _logger.LogInformation("Mock: Creating invite for trainer {TrainerId}", trainerId);
 
+        var token = "MOCK-TOKEN-" + Guid.NewGuid().ToString("N")[..8].ToUpper();
         return new InviteResponse
         {
-            Token = "MOCK-TOKEN-" + Guid.NewGuid().ToString("N")[..8].ToUpper(),
+            Token = token,
             ExpiresAt = DateTime.UtcNow.AddDays(7),
-            QrCodeUrl = "/api/qr/MOCK-TOKEN",
-            InviteUrl = "/join?invite=MOCK-TOKEN"
+            QrPngUrl = $"/api/qr/{token}",
+            DeepLink = $"/join?invite={token}",
+            ShortCode = token[..6]
         };
     }
 
