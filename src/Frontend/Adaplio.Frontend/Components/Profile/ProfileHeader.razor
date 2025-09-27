@@ -1,0 +1,305 @@
+@using Adaplio.Frontend.Services
+@inject AuthStateService AuthState
+
+<div class="profile-header-content">
+    <MudStack Row AlignItems="AlignItems.Center" Spacing="4">
+        <!-- Avatar/Logo -->
+        <div class="profile-avatar">
+            @if (!string.IsNullOrEmpty(_avatarUrl))
+            {
+                <MudAvatar Size="Size.Large"
+                          Image="@_avatarUrl"
+                          Alt="@(_displayName ?? "Profile")"
+                          Class="profile-avatar-image" />
+            }
+            else
+            {
+                <MudAvatar Size="Size.Large"
+                          Color="Color.Primary"
+                          Class="profile-avatar-placeholder">
+                    <MudIcon Icon="@(AuthState.IsClient ? Icons.Material.Filled.Person : Icons.Material.Filled.Business)"
+                            Size="Size.Large" />
+                </MudAvatar>
+            }
+
+            <!-- Upload overlay -->
+            <div class="avatar-upload-overlay">
+                <MudIconButton Icon="@Icons.Material.Filled.CameraAlt"
+                              Size="Size.Small"
+                              Color="Color.Surface"
+                              Class="avatar-upload-btn"
+                              aria-label="@(AuthState.IsClient ? "Change avatar" : "Change logo")"
+                              OnClick="OnAvatarUploadClick" />
+            </div>
+        </div>
+
+        <!-- Profile Info -->
+        <div class="profile-info">
+            <MudStack Spacing="1">
+                <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                    <MudText Typo="Typo.h5" Class="profile-name">
+                        @(_displayName ?? "No name set")
+                    </MudText>
+                    <MudChip Size="Size.Small"
+                            Color="@(AuthState.IsClient ? Color.Info : Color.Success)"
+                            Variant="Variant.Filled"
+                            Class="role-chip">
+                        @(AuthState.IsClient ? "Client" : "Trainer")
+                    </MudChip>
+                </MudStack>
+
+                @if (AuthState.IsClient)
+                {
+                    <MudText Typo="Typo.body2" Color="Color.TextSecondary">
+                        @if (!string.IsNullOrEmpty(_timezone))
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.Schedule" Size="Size.Small" Class="mr-1" />
+                            @_timezone
+                        }
+                        else
+                        {
+                            <span class="text-muted">Timezone not set</span>
+                        }
+                    </MudText>
+                }
+                else if (AuthState.IsTrainer)
+                {
+                    <MudText Typo="Typo.body2" Color="Color.TextSecondary">
+                        @if (!string.IsNullOrEmpty(_clinicName))
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.Business" Size="Size.Small" Class="mr-1" />
+                            @_clinicName
+                        }
+                        @if (!string.IsNullOrEmpty(_location))
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.LocationOn" Size="Size.Small" Class="mr-1 ml-3" />
+                            @_location
+                        }
+                    </MudText>
+                }
+
+                <!-- Profile completion indicator -->
+                <div class="profile-completion mt-2">
+                    <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                        <MudProgressLinear Color="@GetCompletionColor()"
+                                          Striped="false"
+                                          Size="Size.Small"
+                                          Value="@_profileCompletionPercentage"
+                                          Class="completion-bar" />
+                        <MudText Typo="Typo.caption" Color="Color.TextSecondary">
+                            @_profileCompletionPercentage% complete
+                        </MudText>
+                    </MudStack>
+                </div>
+            </MudStack>
+        </div>
+
+        <MudSpacer />
+
+        <!-- Quick Actions -->
+        <div class="profile-actions">
+            <MudStack Spacing="2">
+                @if (AuthState.IsTrainer)
+                {
+                    <MudButton Variant="Variant.Outlined"
+                              Color="Color.Primary"
+                              Size="Size.Small"
+                              StartIcon="@Icons.Material.Filled.PersonAdd"
+                              Href="/invite-client">
+                        Invite Client
+                    </MudButton>
+                }
+                else if (AuthState.IsClient)
+                {
+                    <MudButton Variant="Variant.Outlined"
+                              Color="Color.Primary"
+                              Size="Size.Small"
+                              StartIcon="@Icons.Material.Filled.PersonAdd"
+                              Href="/add-trainer">
+                        Add Trainer
+                    </MudButton>
+                }
+            </MudStack>
+        </div>
+    </MudStack>
+</div>
+
+<style>
+.profile-header-content {
+    width: 100%;
+}
+
+.profile-avatar {
+    position: relative;
+    cursor: pointer;
+}
+
+.profile-avatar:hover .avatar-upload-overlay {
+    opacity: 1;
+}
+
+.profile-avatar-image,
+.profile-avatar-placeholder {
+    width: 80px !important;
+    height: 80px !important;
+    border: 3px solid var(--mud-palette-surface);
+    box-shadow: var(--shadow-md);
+}
+
+.avatar-upload-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.avatar-upload-btn {
+    background: rgba(255, 255, 255, 0.9) !important;
+    color: var(--mud-palette-dark) !important;
+}
+
+.profile-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.profile-name {
+    font-weight: var(--font-weight-semibold) !important;
+    margin: 0;
+}
+
+.role-chip {
+    font-weight: var(--font-weight-medium) !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.completion-bar {
+    width: 200px;
+    height: 6px !important;
+    border-radius: var(--radius-sm);
+}
+
+.profile-actions {
+    min-width: fit-content;
+}
+
+@media (max-width: 768px) {
+    .profile-header-content {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--space-lg);
+    }
+
+    .profile-info {
+        text-align: center;
+    }
+
+    .completion-bar {
+        width: 150px;
+    }
+
+    .profile-actions {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-avatar-image,
+    .profile-avatar-placeholder {
+        width: 60px !important;
+        height: 60px !important;
+    }
+
+    .completion-bar {
+        width: 120px;
+    }
+}
+</style>
+
+@code {
+    private string? _displayName;
+    private string? _avatarUrl;
+    private string? _timezone;
+    private string? _clinicName;
+    private string? _location;
+    private int _profileCompletionPercentage = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProfileData();
+    }
+
+    private async Task LoadProfileData()
+    {
+        // TODO: Load actual profile data from API
+        // For now, use placeholder data based on auth state
+
+        if (AuthState.IsClient)
+        {
+            _displayName = "John Doe"; // TODO: Load from profile API
+            _timezone = "America/New_York";
+            _profileCompletionPercentage = CalculateClientProfileCompletion();
+        }
+        else if (AuthState.IsTrainer)
+        {
+            _displayName = "Dr. Sarah Johnson"; // TODO: Load from profile API
+            _clinicName = "Healing Hands Physical Therapy";
+            _location = "Austin, TX";
+            _profileCompletionPercentage = CalculateTrainerProfileCompletion();
+        }
+    }
+
+    private int CalculateClientProfileCompletion()
+    {
+        // TODO: Calculate based on actual profile data
+        int completedFields = 0;
+        int totalFields = 8; // display name, timezone, injury, affected side, emergency contact, avatar, etc.
+
+        if (!string.IsNullOrEmpty(_displayName)) completedFields++;
+        if (!string.IsNullOrEmpty(_timezone)) completedFields++;
+        if (!string.IsNullOrEmpty(_avatarUrl)) completedFields++;
+        // TODO: Add other field checks
+
+        return (completedFields * 100) / totalFields;
+    }
+
+    private int CalculateTrainerProfileCompletion()
+    {
+        // TODO: Calculate based on actual profile data
+        int completedFields = 0;
+        int totalFields = 10; // display name, clinic, location, bio, credentials, etc.
+
+        if (!string.IsNullOrEmpty(_displayName)) completedFields++;
+        if (!string.IsNullOrEmpty(_clinicName)) completedFields++;
+        if (!string.IsNullOrEmpty(_location)) completedFields++;
+        if (!string.IsNullOrEmpty(_avatarUrl)) completedFields++;
+        // TODO: Add other field checks
+
+        return (completedFields * 100) / totalFields;
+    }
+
+    private Color GetCompletionColor()
+    {
+        return _profileCompletionPercentage switch
+        {
+            >= 80 => Color.Success,
+            >= 50 => Color.Warning,
+            _ => Color.Error
+        };
+    }
+
+    private async Task OnAvatarUploadClick()
+    {
+        // TODO: Implement avatar upload functionality
+        // This will trigger the image upload component
+    }
+}

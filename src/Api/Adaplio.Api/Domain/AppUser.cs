@@ -33,6 +33,18 @@ public class AppUser
     [Column("updated_at")]
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 
+    [Column("display_name")]
+    [MaxLength(100)]
+    public string? DisplayName { get; set; }
+
+    [Column("timezone")]
+    [MaxLength(50)]
+    public string? Timezone { get; set; }
+
+    [Column("avatar_url")]
+    [MaxLength(500)]
+    public string? AvatarUrl { get; set; }
+
     // Navigation properties
     public ClientProfile? ClientProfile { get; set; }
     public TrainerProfile? TrainerProfile { get; set; }

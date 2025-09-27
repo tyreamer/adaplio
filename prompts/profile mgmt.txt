@@ -1,0 +1,333 @@
+Context: Blazor WASM + MudBlazor front end, ASP.NET Core API with JWT. Roles: client, trainer. We need robust profile management for both roles with clean UX, correct permissions, and privacy scopes.
+
+Objectives (behavior, not structure)
+
+Add a Profile area reachable from Settings for any authenticated user.
+
+Support view & edit of user details appropriate to their role.
+
+Respect existing sharing scopes (client → trainer: view_summary default, view_details optional).
+
+Include notifications & reminders settings.
+
+Support avatar/clinic logo upload via pre-signed URLs.
+
+Provide audit trail, validation, and secure endpoints.
+
+UX requirements
+
+Common layout: profile header (avatar/logo, display name, role chip) + tabs/sections:
+
+Personal / Clinic (role-specific fields)
+
+Notifications
+
+Privacy & Sharing
+
+Account (auth + email/passkey)
+(Use your existing styling; no strict file names.)
+
+Instant feedback: Save button with optimistic UI and snackbars. Disable Save until dirty+valid.
+
+Avatar/Logo: Upload → preview → crop → save. Drag-drop + paste supported.
+
+Mobile friendly (single column) and desktop (2-column where reasonable).
+
+Fields by role (edit rules)
+
+Client can edit (examples):
+
+Display name
+
+Timezone (defaults from browser)
+
+Preferred reminder time (HH:mm)
+
+Reminders: enable push/email/SMS (per-channel toggles)
+
+Injury/goal (short text)
+
+Affected side: Left / Right / Both
+
+Accessibility: large text toggle
+
+Emergency contact (name + phone) (optional)
+
+Avatar image
+
+Client read-only (computed or managed elsewhere):
+
+Connected trainers list (with scope chip: Summary or Private); manage = revoke or change scope
+
+Trainer can edit (examples):
+
+Display name + credentials (e.g., DPT, OCS)
+
+Clinic name
+
+Location (city/state/country) and timezone
+
+Bio / specialties / focus areas (tags)
+
+Website, phone (click-to-copy)
+
+Default client reminder time (used when inviting)
+
+Availability windows (weekday + time ranges) (for future scheduling)
+
+Clinic logo
+
+Trainer read-only (for now):
+
+NPI/license fields optional (text), store as strings; simple client-side mask
+
+Privacy & permissions
+
+Client → Trainer sharing:
+
+view_summary (default ON): trainer sees weekly adherence %, streak, and last activity.
+
+view_details (OFF by default): when ON, trainer can see raw event details (timestamps, notes).
+
+Clear toggles + helper text; changes apply immediately.
+
+Clients can revoke trainer access from this screen (confirm dialog).
+
+Trainer cannot edit client’s personal/medical fields. Provide a private “PT notes” field visible only to that trainer (stored per trainer↔client relationship).
+
+Notifications
+
+Channels: push, email, SMS (enable/disable per channel)
+
+Reminder time (local TZ)
+
+Quiet hours window (optional, start–end)
+
+Test notification button for each enabled channel
+
+Account
+
+Show current email (for magic link). Change email flow: new email → send verify → on success swap.
+
+Passkey: add/remove (if supported).
+
+2FA for trainers (TOTP): setup/disable.
+
+Export my data (JSON) and Delete my account (2-step confirm) — stub if backend not ready.
+
+API contracts (adapt names to your codebase; example shapes)
+// Read profile (role-merged)
+GET /api/me/profile
+{
+  "role": "client" | "trainer",
+  "displayName": "Riley Park",
+  "timezone": "America/New_York",
+  "avatarUrl": "...",
+  "client": {
+    "injury": "ACL repair",
+    "side": "Both",
+    "reminders": { "enabled": true, "time": "19:00", "channels": { "push": true, "email": true, "sms": false }, "quietHours": { "start": "22:00", "end": "07:00" } },
+    "trainers": [{ "trainerId": "t1", "displayName": "Jamie Lee, DPT", "scope": { "view_summary": true, "view_details": false } }]
+  },
+  "trainer": {
+    "clinicName": "Riverbend PT",
+    "location": "Austin, TX",
+    "credentials": "DPT, OCS",
+    "specialties": ["Knee", "Shoulder"],
+    "website": "https://...",
+    "phone": "+1-555-123-4567",
+    "availability": [{ "day": "Mon", "start": "09:00", "end": "17:00" }],
+    "defaultReminderTime": "19:00",
+    "logoUrl": "..."
+  }
+}
+
+// Update profile
+PATCH /api/me/profile
+{ /* send only changed fields; server merges and audits */ }
+
+// Toggle sharing scope (client -> specific trainer)
+PATCH /api/client/trainers/{trainerId}/scope
+{ "view_summary": true, "view_details": false }
+
+// Revoke trainer access
+DELETE /api/client/trainers/{trainerId}
+
+// Pre-signed upload (avatar/logo)
+POST /api/uploads/presign { "kind": "avatar|logo", "contentType": "image/png" }
+{ "uploadUrl": "...", "publicUrl": "..." }
+
+Validation & constraints
+
+Display name: 2–60 chars
+
+Phone: E.164 only; format on display
+
+Timezone: IANA string
+
+Reminder time: 00:00–23:59
+
+Images: PNG/JPEG/WebP, ≤ 2MB, max 1024×1024 (client-side downscale OK)
+
+Strings sanitized; reject HTML in bio/notes
+
+Rate-limit updates (e.g., 10/min) and log audits { userId, field, old, new, ts }
+
+Security
+
+Role-based authorization on endpoints.
+
+Clients can only manage their own sharing scopes; trainers cannot elevate access.
+
+Uploads via short-lived pre-signed URLs; store only the final public URL.
+
+No PHI in URLs or tokens.
+
+Edge cases
+
+Missing timezone → default from browser, allow override.
+
+If view_summary is OFF, also force view_details OFF.
+
+If image upload fails after presign, allow retry/revoke.
+
+If SMS not configured, hide SMS toggle.
+
+Acceptance criteria
+
+Authenticated users can view & edit their profile with role-appropriate fields.
+
+Clients can manage trainer sharing (summary/details) and revoke access.
+
+Notification preferences persist and trigger test notifications.
+
+Avatar/logo upload works end-to-end via pre-signed URLs.
+
+All changes are validated, auditable, and gated by role.
+
+No trainer-only UI appears for clients and vice-versa; signed-out users see none of it.
+
+Please implement the front-end components, API endpoints, and minimal data models to satisfy the behaviors above. Keep naming consistent with our codebase, avoid large refactors, and prefer incremental, testable changes.
+
+Implementation Tasks
+
+Backend Development
+
+1. Profile API Infrastructure
+   - Create ProfileController with endpoints:
+     - GET /api/me/profile (role-merged profile data)
+     - PATCH /api/me/profile (update profile fields)
+     - PATCH /api/client/trainers/{trainerId}/scope (client sharing controls)
+     - DELETE /api/client/trainers/{trainerId} (revoke trainer access)
+   - Add role-based authorization attributes
+   - Implement request/response DTOs matching the API contracts above
+
+2. Data Models & Database
+   - Create/update User entity with profile fields (display name, timezone, avatar URL)
+   - Create ClientProfile entity (injury, affected side, emergency contact, reminder settings)
+   - Create TrainerProfile entity (clinic info, credentials, specialties, availability)
+   - Create ClientTrainerScope entity (view_summary, view_details permissions)
+   - Add EF migrations for new profile tables
+
+3. Upload Service
+   - Implement pre-signed URL service for avatar/logo uploads
+   - Create POST /api/uploads/presign endpoint
+   - Add image validation (size, format, dimensions)
+   - Integrate with cloud storage (Azure Blob/AWS S3)
+
+4. Audit & Security
+   - Create audit logging service for profile changes
+   - Add rate limiting for profile updates (10/min)
+   - Implement field-level validation and sanitization
+   - Add authorization checks for cross-user data access
+
+Frontend Development
+
+5. Profile Components Structure
+   - Create Pages/Profile.razor (main profile page)
+   - Create Components/Profile/ProfileHeader.razor (avatar, name, role chip)
+   - Create Components/Profile/ProfileTabs.razor (Personal/Clinic, Notifications, Privacy, Account)
+   - Create Components/Profile/ImageUpload.razor (drag-drop, crop, preview)
+
+6. Role-Specific Forms
+   - Create Components/Profile/ClientProfileForm.razor
+     - Display name, timezone, injury/goal, affected side
+     - Emergency contact, accessibility settings
+     - Reminder preferences with time picker
+   - Create Components/Profile/TrainerProfileForm.razor
+     - Display name, credentials, clinic info
+     - Bio, specialties (tag input), contact info
+     - Availability schedule, default reminder time
+
+7. Privacy & Sharing UI
+   - Create Components/Profile/PrivacySettings.razor
+   - Show connected trainers list with scope chips
+   - Toggle switches for view_summary/view_details
+   - Revoke access buttons with confirmation dialogs
+   - Real-time scope updates with optimistic UI
+
+8. Notifications Management
+   - Create Components/Profile/NotificationSettings.razor
+   - Channel toggles (push, email, SMS)
+   - Time pickers for reminders and quiet hours
+   - Test notification buttons for each channel
+   - Form validation for time ranges
+
+9. Account Settings
+   - Create Components/Profile/AccountSettings.razor
+   - Email change workflow (verify new email)
+   - Passkey management (add/remove)
+   - 2FA setup for trainers (TOTP)
+   - Data export and account deletion (stubs)
+
+Integration & User Experience
+
+10. API Integration
+    - Create ProfileService for API calls
+    - Implement optimistic UI updates with rollback on errors
+    - Add proper error handling with user-friendly messages
+    - Cache profile data and sync changes across components
+
+11. Form Management
+    - Implement dirty state tracking across all forms
+    - Enable/disable Save buttons based on validation
+    - Show unsaved changes warnings
+    - Auto-save drafts for long forms
+
+12. Mobile Responsiveness
+    - Implement single-column layout for mobile
+    - Add responsive tab navigation
+    - Optimize image upload for mobile (camera integration)
+    - Test touch interactions and swipe gestures
+
+13. Navigation & Access
+    - Add Profile link to main navigation/settings menu
+    - Implement role-based component rendering
+    - Add breadcrumb navigation within profile sections
+    - Handle deep linking to specific profile tabs
+
+Testing & Quality Assurance
+
+14. Backend Testing
+    - Unit tests for ProfileController endpoints
+    - Integration tests for profile update workflows
+    - Authorization tests for cross-role access attempts
+    - Validation tests for all input fields
+
+15. Frontend Testing
+    - Component tests for profile forms
+    - E2E tests for complete profile update flow
+    - Image upload testing with various file types
+    - Responsive design testing across devices
+
+16. Security Testing
+    - Test role-based access controls
+    - Verify client cannot access trainer-only fields
+    - Test rate limiting and input sanitization
+    - Validate pre-signed URL security
+
+17. User Acceptance Testing
+    - Test complete client profile management flow
+    - Test trainer profile setup and management
+    - Verify privacy settings work correctly
+    - Test notification preferences and delivery

@@ -1,0 +1,84 @@
+@page "/profile"
+@page "/settings"
+@using Adaplio.Frontend.Services
+@using Adaplio.Frontend.Components.Profile
+@inject AuthStateService AuthState
+@inject NavigationManager Navigation
+
+<PageTitle>Profile | Adaplio</PageTitle>
+
+@if (!AuthState.IsAuthenticated)
+{
+    <MudContainer MaxWidth="MaxWidth.Small" Class="mt-8">
+        <MudPaper Class="pa-8 text-center">
+            <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Large" Color="Color.Primary" />
+            <MudText Typo="Typo.h5" Class="mt-4 mb-2">Authentication Required</MudText>
+            <MudText Typo="Typo.body1" Color="Color.TextSecondary" Class="mb-4">
+                Please sign in to access your profile settings.
+            </MudText>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/auth/client/login">
+                Sign In
+            </MudButton>
+        </MudPaper>
+    </MudContainer>
+}
+else
+{
+    <MudContainer MaxWidth="MaxWidth.Large" Class="profile-container">
+        <!-- Profile Header -->
+        <div class="profile-header mb-6">
+            <MudPaper Class="pa-6" Elevation="1">
+                <ProfileHeader />
+            </MudPaper>
+        </div>
+
+        <!-- Profile Tabs -->
+        <MudPaper Elevation="1" Class="profile-tabs-container">
+            <ProfileTabs />
+        </MudPaper>
+    </MudContainer>
+}
+
+<style>
+.profile-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: var(--space-lg);
+}
+
+.profile-header {
+    border-radius: var(--radius-xl);
+}
+
+.profile-tabs-container {
+    border-radius: var(--radius-xl);
+    min-height: 600px;
+}
+
+@media (max-width: 600px) {
+    .profile-container {
+        padding: var(--space-md);
+    }
+
+    .profile-header {
+        margin-bottom: var(--space-lg) !important;
+    }
+}
+</style>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        // Ensure auth state is loaded
+        if (!AuthState.IsInitialized)
+        {
+            await AuthState.InitializeAsync();
+        }
+
+        // Redirect if not authenticated
+        if (!AuthState.IsAuthenticated)
+        {
+            return;
+        }
+    }
+}

@@ -1,0 +1,330 @@
+@using Adaplio.Frontend.Services
+@inject ISnackbar Snackbar
+@inject ProfileService ProfileService
+
+<MudStack Spacing="6">
+    <!-- Header -->
+    <div class="form-header">
+        <MudText Typo="Typo.h6" Class="form-title">Privacy & Sharing</MudText>
+        <MudText Typo="Typo.body2" Color="Color.TextSecondary">
+            Manage how your data is shared with your trainers.
+        </MudText>
+    </div>
+
+    <!-- Connected Trainers -->
+    <MudPaper Class="pa-6" Variant="Variant.Outlined">
+        <MudStack Spacing="4">
+            <MudText Typo="Typo.subtitle1" Class="section-title">Connected Trainers</MudText>
+
+            @if (_connectedTrainers.Any())
+            {
+                <MudStack Spacing="3">
+                    @foreach (var trainer in _connectedTrainers)
+                    {
+                        <MudPaper Class="pa-4 trainer-card" Variant="Variant.Text" Elevation="1">
+                            <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                                <MudStack Row AlignItems="AlignItems.Center" Spacing="3">
+                                    <MudAvatar Size="Size.Medium" Color="Color.Primary">
+                                        <MudIcon Icon="@Icons.Material.Filled.Person" />
+                                    </MudAvatar>
+                                    <div>
+                                        <MudText Typo="Typo.body1" Class="trainer-name">@trainer.Name</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.TextSecondary">@trainer.Clinic</MudText>
+                                    </div>
+                                </MudStack>
+
+                                <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                                    <MudChip Size="Size.Small"
+                                            Color="@(trainer.ViewSummary ? Color.Success : Color.Default)"
+                                            Variant="@(trainer.ViewSummary ? Variant.Filled : Variant.Outlined)">
+                                        Summary
+                                    </MudChip>
+                                    <MudChip Size="Size.Small"
+                                            Color="@(trainer.ViewDetails ? Color.Info : Color.Default)"
+                                            Variant="@(trainer.ViewDetails ? Variant.Filled : Variant.Outlined)">
+                                        Details
+                                    </MudChip>
+                                    <MudButton Variant="Variant.Text"
+                                              Size="Size.Small"
+                                              StartIcon="@Icons.Material.Filled.Settings"
+                                              OnClick="() => OpenTrainerSettings(trainer)">
+                                        Manage
+                                    </MudButton>
+                                </MudStack>
+                            </MudStack>
+                        </MudPaper>
+                    }
+                </MudStack>
+            }
+            else
+            {
+                <MudPaper Class="pa-8 text-center" Variant="Variant.Text">
+                    <MudIcon Icon="@Icons.Material.Filled.PersonAdd" Size="Size.Large" Color="Color.Primary" />
+                    <MudText Typo="Typo.h6" Class="mt-4 mb-2">No Trainers Connected</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.TextSecondary" Class="mb-4">
+                        Connect with a trainer to start sharing your progress data.
+                    </MudText>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/add-trainer">
+                        Add Trainer
+                    </MudButton>
+                </MudPaper>
+            }
+        </MudStack>
+    </MudPaper>
+
+    <!-- Data Sharing Explanation -->
+    <MudPaper Class="pa-6" Variant="Variant.Outlined">
+        <MudStack Spacing="4">
+            <MudText Typo="Typo.subtitle1" Class="section-title">Data Sharing Levels</MudText>
+
+            <MudStack Spacing="3">
+                <div class="sharing-level">
+                    <MudStack Row AlignItems="AlignItems.Start" Spacing="3">
+                        <MudIcon Icon="@Icons.Material.Filled.BarChart" Color="Color.Success" Size="Size.Medium" />
+                        <div>
+                            <MudText Typo="Typo.body1" Class="level-title">Summary Sharing</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.TextSecondary">
+                                Your trainer can see your weekly adherence percentage, streak count, and last activity date.
+                                This is the default and recommended level for most clients.
+                            </MudText>
+                        </div>
+                    </MudStack>
+                </div>
+
+                <MudDivider />
+
+                <div class="sharing-level">
+                    <MudStack Row AlignItems="AlignItems.Start" Spacing="3">
+                        <MudIcon Icon="@Icons.Material.Filled.Visibility" Color="Color.Info" Size="Size.Medium" />
+                        <div>
+                            <MudText Typo="Typo.body1" Class="level-title">Detailed Sharing</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.TextSecondary">
+                                Your trainer can see detailed exercise logs, timestamps, notes, and specific progress metrics.
+                                Enable this for more personalized coaching and feedback.
+                            </MudText>
+                        </div>
+                    </MudStack>
+                </div>
+            </MudStack>
+        </MudStack>
+    </MudPaper>
+
+    <!-- Privacy Controls -->
+    <MudPaper Class="pa-6" Variant="Variant.Outlined">
+        <MudStack Spacing="4">
+            <MudText Typo="Typo.subtitle1" Class="section-title">Privacy Controls</MudText>
+
+            <MudStack Spacing="3">
+                <MudSwitch @bind-Value="_allowDataAnalytics"
+                          Label="Allow Anonymous Data Analytics"
+                          Color="Color.Primary"
+                          HelperText="Help improve the app by sharing anonymous usage data" />
+
+                <MudSwitch @bind-Value="_allowResearchParticipation"
+                          Label="Research Participation"
+                          Color="Color.Primary"
+                          HelperText="Participate in research studies to advance physical therapy (optional)" />
+            </MudStack>
+        </MudStack>
+    </MudPaper>
+</MudStack>
+
+<!-- Trainer Settings Dialog -->
+<MudDialog @bind-IsVisible="_showTrainerDialog" Options="_dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Manage @_selectedTrainer?.Name</MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (_selectedTrainer != null)
+        {
+            <MudStack Spacing="4">
+                <MudText Typo="Typo.body2" Color="Color.TextSecondary">
+                    Control what data you share with @_selectedTrainer.Name
+                </MudText>
+
+                <MudStack Spacing="3">
+                    <MudSwitch @bind-Value="_selectedTrainer.ViewSummary"
+                              Label="Summary Access"
+                              Color="Color.Success"
+                              HelperText="Allow viewing weekly progress summaries" />
+
+                    <MudSwitch @bind-Value="_selectedTrainer.ViewDetails"
+                              Label="Detailed Access"
+                              Color="Color.Info"
+                              HelperText="Allow viewing detailed exercise logs and notes"
+                              Disabled="@(!_selectedTrainer.ViewSummary)" />
+
+                    @if (!_selectedTrainer.ViewSummary)
+                    {
+                        <MudAlert Severity="Severity.Info" Dense="true">
+                            Detailed access requires summary access to be enabled.
+                        </MudAlert>
+                    }
+                </MudStack>
+
+                <MudDivider />
+
+                <MudAlert Severity="Severity.Warning" Dense="true">
+                    <MudText Typo="Typo.body2">
+                        <strong>Remove Trainer Access:</strong> This will revoke all data sharing permissions.
+                        You can always reconnect later by using their invite code.
+                    </MudText>
+                </MudAlert>
+
+                <MudButton Variant="Variant.Outlined"
+                          Color="Color.Error"
+                          StartIcon="@Icons.Material.Filled.PersonRemove"
+                          FullWidth="true"
+                          OnClick="() => RemoveTrainer(_selectedTrainer)">
+                    Remove Trainer Access
+                </MudButton>
+            </MudStack>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseTrainerDialog">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="SaveTrainerSettings">
+            Save Changes
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+<style>
+.form-header {
+    margin-bottom: var(--space-md);
+}
+
+.form-title {
+    font-weight: var(--font-weight-semibold) !important;
+    margin-bottom: var(--space-xs);
+}
+
+.section-title {
+    font-weight: var(--font-weight-medium) !important;
+    color: var(--mud-palette-primary);
+}
+
+.trainer-card {
+    border: 1px solid var(--mud-palette-divider);
+    border-radius: var(--radius-lg);
+    transition: all 0.2s ease;
+}
+
+.trainer-card:hover {
+    border-color: var(--mud-palette-primary-lighten);
+    background: var(--mud-palette-surface-lighten);
+}
+
+.trainer-name {
+    font-weight: var(--font-weight-medium) !important;
+}
+
+.sharing-level {
+    padding: var(--space-sm) 0;
+}
+
+.level-title {
+    font-weight: var(--font-weight-medium) !important;
+    margin-bottom: var(--space-xs);
+}
+</style>
+
+@code {
+    private List<ConnectedTrainer> _connectedTrainers = new();
+    private bool _allowDataAnalytics = true;
+    private bool _allowResearchParticipation = false;
+
+    private bool _showTrainerDialog = false;
+    private ConnectedTrainer? _selectedTrainer;
+    private DialogOptions _dialogOptions = new() { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadConnectedTrainers();
+    }
+
+    private async Task LoadConnectedTrainers()
+    {
+        try
+        {
+            var profile = await ProfileService.GetProfileAsync();
+
+            if (profile?.ConnectedTrainers != null)
+            {
+                _connectedTrainers = profile.ConnectedTrainers.Select(t => new ConnectedTrainer
+                {
+                    Id = t.Id,
+                    Name = t.Name,
+                    Clinic = t.Clinic ?? "",
+                    ViewSummary = t.Scope >= TrainerSharingScope.Summary,
+                    ViewDetails = t.Scope >= TrainerSharingScope.Detailed
+                }).ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to load connected trainers: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void OpenTrainerSettings(ConnectedTrainer trainer)
+    {
+        _selectedTrainer = trainer;
+        _showTrainerDialog = true;
+    }
+
+    private void CloseTrainerDialog()
+    {
+        _showTrainerDialog = false;
+        _selectedTrainer = null;
+    }
+
+    private async Task SaveTrainerSettings()
+    {
+        if (_selectedTrainer == null) return;
+
+        try
+        {
+            var scope = TrainerSharingScope.None;
+            if (_selectedTrainer.ViewSummary)
+                scope = TrainerSharingScope.Summary;
+            if (_selectedTrainer.ViewDetails)
+                scope = TrainerSharingScope.Detailed;
+
+            await ProfileService.UpdateTrainerSharingAsync(_selectedTrainer.Id, scope);
+
+            Snackbar.Add($"Settings updated for {_selectedTrainer.Name}", Severity.Success);
+            CloseTrainerDialog();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to update settings: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task RemoveTrainer(ConnectedTrainer trainer)
+    {
+        try
+        {
+            await ProfileService.RemoveTrainerAsync(trainer.Id);
+
+            _connectedTrainers.Remove(trainer);
+            Snackbar.Add($"Access revoked for {trainer.Name}", Severity.Info);
+            CloseTrainerDialog();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to remove trainer: {ex.Message}", Severity.Error);
+        }
+    }
+
+    public class ConnectedTrainer
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = "";
+        public string Clinic { get; set; } = "";
+        public bool ViewSummary { get; set; }
+        public bool ViewDetails { get; set; }
+    }
+}

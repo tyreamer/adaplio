@@ -1,0 +1,160 @@
+@using Adaplio.Frontend.Services
+@inject AuthStateService AuthState
+@inject NavigationManager Navigation
+
+<div class="profile-navigation">
+    <MudBreadcrumbs Items="_breadcrumbItems" Separator=">" Class="profile-breadcrumbs" />
+
+    @if (ShowBackButton)
+    {
+        <MudButton Variant="Variant.Text"
+                  StartIcon="@Icons.Material.Filled.ArrowBack"
+                  Size="Size.Small"
+                  OnClick="NavigateBack"
+                  Class="profile-back-button">
+            Back
+        </MudButton>
+    }
+
+    <div class="profile-nav-actions">
+        @if (AuthState.IsAuthenticated)
+        {
+            <MudMenu Icon="@Icons.Material.Filled.MoreVert"
+                    Size="Size.Small"
+                    Class="profile-menu">
+                <ChildContent>
+                    <MudMenuItem OnClick="ExportData">
+                        <div class="d-flex align-center">
+                            <MudIcon Icon="@Icons.Material.Filled.Download" Class="mr-3" Size="Size.Small" />
+                            Export Data
+                        </div>
+                    </MudMenuItem>
+                    <MudMenuItem OnClick="ViewHelp">
+                        <div class="d-flex align-center">
+                            <MudIcon Icon="@Icons.Material.Filled.Help" Class="mr-3" Size="Size.Small" />
+                            Help & Support
+                        </div>
+                    </MudMenuItem>
+                    <MudDivider />
+                    <MudMenuItem OnClick="NavigateToSettings">
+                        <div class="d-flex align-center">
+                            <MudIcon Icon="@Icons.Material.Filled.Settings" Class="mr-3" Size="Size.Small" />
+                            Account Settings
+                        </div>
+                    </MudMenuItem>
+                </ChildContent>
+            </MudMenu>
+        }
+    </div>
+</div>
+
+<style>
+.profile-navigation {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md);
+    background: var(--mud-palette-surface);
+    border-bottom: 1px solid var(--mud-palette-divider);
+    margin-bottom: var(--space-lg);
+}
+
+.profile-breadcrumbs {
+    flex: 1;
+}
+
+.profile-back-button {
+    margin-right: var(--space-md);
+}
+
+.profile-nav-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.profile-menu {
+    z-index: 1000;
+}
+
+/* Mobile responsive */
+@media (max-width: 600px) {
+    .profile-navigation {
+        padding: var(--space-sm) var(--space-md);
+    }
+
+    .profile-breadcrumbs {
+        font-size: 0.875rem;
+    }
+
+    .profile-back-button .mud-button-label {
+        display: none;
+    }
+}
+
+/* Hide breadcrumbs on very small screens */
+@media (max-width: 400px) {
+    .profile-breadcrumbs {
+        display: none;
+    }
+}
+</style>
+
+@code {
+    [Parameter] public bool ShowBackButton { get; set; } = false;
+    [Parameter] public string CurrentSection { get; set; } = "Profile";
+    [Parameter] public EventCallback OnExportData { get; set; }
+
+    private List<BreadcrumbItem> _breadcrumbItems = new();
+
+    protected override void OnInitialized()
+    {
+        UpdateBreadcrumbs();
+    }
+
+    protected override void OnParametersSet()
+    {
+        UpdateBreadcrumbs();
+    }
+
+    private void UpdateBreadcrumbs()
+    {
+        _breadcrumbItems.Clear();
+
+        _breadcrumbItems.Add(new BreadcrumbItem("Home", href: "/", icon: Icons.Material.Filled.Home));
+
+        if (AuthState.IsTrainer)
+        {
+            _breadcrumbItems.Add(new BreadcrumbItem("Trainer Dashboard", href: "/dashboard"));
+        }
+        else if (AuthState.IsClient)
+        {
+            _breadcrumbItems.Add(new BreadcrumbItem("Client Dashboard", href: "/dashboard"));
+        }
+
+        _breadcrumbItems.Add(new BreadcrumbItem(CurrentSection, href: null));
+    }
+
+    private void NavigateBack()
+    {
+        Navigation.NavigateTo("/dashboard");
+    }
+
+    private async Task ExportData()
+    {
+        if (OnExportData.HasDelegate)
+        {
+            await OnExportData.InvokeAsync();
+        }
+    }
+
+    private void ViewHelp()
+    {
+        Navigation.NavigateTo("/help/profile");
+    }
+
+    private void NavigateToSettings()
+    {
+        Navigation.NavigateTo("/profile?tab=account");
+    }
+}

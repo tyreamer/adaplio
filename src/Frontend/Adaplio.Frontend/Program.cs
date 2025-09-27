@@ -22,5 +22,12 @@ builder.Services.AddThemeService();
 
 // Add authentication services
 builder.Services.AddScoped<AuthStateService>();
+builder.Services.AddScoped<AuthorizationService>();
+
+// Add profile management services
+builder.Services.AddScoped<ProfileService>();
+builder.Services.AddScoped<NotificationService>();
+builder.Services.AddScoped<FormValidationService>();
+builder.Services.AddScoped<FormStateService>();
 
 await builder.Build().RunAsync();

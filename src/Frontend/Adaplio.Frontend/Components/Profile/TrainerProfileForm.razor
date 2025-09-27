@@ -1,0 +1,361 @@
+@inject ISnackbar Snackbar
+
+<MudStack Spacing="6">
+    <!-- Header -->
+    <div class="form-header">
+        <MudText Typo="Typo.h6" Class="form-title">Clinic Information</MudText>
+        <MudText Typo="Typo.body2" Color="Color.TextSecondary">
+            Manage your professional details and clinic information.
+        </MudText>
+    </div>
+
+    <!-- Professional Information -->
+    <MudPaper Class="pa-6" Variant="Variant.Outlined">
+        <MudStack Spacing="4">
+            <MudText Typo="Typo.subtitle1" Class="section-title">Professional Details</MudText>
+
+            <MudGrid>
+                <MudItem xs="12" md="6">
+                    <MudTextField @bind-Value="_displayName"
+                                 Label="Display Name"
+                                 Variant="Variant.Outlined"
+                                 Required="true"
+                                 MaxLength="100"
+                                 HelperText="Your professional name" />
+                </MudItem>
+
+                <MudItem xs="12" md="6">
+                    <MudTextField @bind-Value="_credentials"
+                                 Label="Credentials"
+                                 Variant="Variant.Outlined"
+                                 MaxLength="200"
+                                 HelperText="e.g., DPT, OCS, CSCS"
+                                 Placeholder="DPT, OCS" />
+                </MudItem>
+
+                <MudItem xs="12" md="6">
+                    <MudTextField @bind-Value="_licenseNumber"
+                                 Label="License Number"
+                                 Variant="Variant.Outlined"
+                                 MaxLength="100"
+                                 HelperText="Professional license number" />
+                </MudItem>
+            </MudGrid>
+        </MudStack>
+    </MudPaper>
+
+    <!-- Clinic Information -->
+    <MudPaper Class="pa-6" Variant="Variant.Outlined">
+        <MudStack Spacing="4">
+            <MudText Typo="Typo.subtitle1" Class="section-title">Clinic Details</MudText>
+
+            <MudGrid>
+                <MudItem xs="12" md="6">
+                    <MudTextField @bind-Value="_clinicName"
+                                 Label="Clinic Name"
+                                 Variant="Variant.Outlined"
+                                 MaxLength="200"
+                                 HelperText="Your practice or clinic name" />
+                </MudItem>
+
+                <MudItem xs="12" md="6">
+                    <MudTextField @bind-Value="_location"
+                                 Label="Location"
+                                 Variant="Variant.Outlined"
+                                 MaxLength="200"
+                                 HelperText="City, State, Country"
+                                 Placeholder="Austin, TX, USA" />
+                </MudItem>
+
+                <MudItem xs="12" md="6">
+                    <MudTextField @bind-Value="_phone"
+                                 Label="Phone Number"
+                                 Variant="Variant.Outlined"
+                                 HelperText="Contact phone number"
+                                 Placeholder="+1-555-123-4567" />
+                </MudItem>
+
+                <MudItem xs="12" md="6">
+                    <MudTextField @bind-Value="_website"
+                                 Label="Website"
+                                 Variant="Variant.Outlined"
+                                 HelperText="Clinic website URL"
+                                 Placeholder="https://example.com" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_bio"
+                                 Label="Bio"
+                                 Variant="Variant.Outlined"
+                                 Lines="4"
+                                 MaxLength="1000"
+                                 HelperText="Brief description of your background and specialties" />
+                </MudItem>
+            </MudGrid>
+        </MudStack>
+    </MudPaper>
+
+    <!-- Specialties -->
+    <MudPaper Class="pa-6" Variant="Variant.Outlined">
+        <MudStack Spacing="4">
+            <MudText Typo="Typo.subtitle1" Class="section-title">Specialties</MudText>
+
+            <div class="specialties-container">
+                @if (_specialties.Any())
+                {
+                    <MudStack Row Spacing="2" Class="mb-4">
+                        @foreach (var specialty in _specialties)
+                        {
+                            <MudChip T="string"
+                                    Text="@specialty"
+                                    Variant="Variant.Filled"
+                                    Color="Color.Primary"
+                                    Size="Size.Medium"
+                                    OnClose="() => RemoveSpecialty(specialty)"
+                                    CloseIcon="@Icons.Material.Filled.Close">
+                                @specialty
+                            </MudChip>
+                        }
+                    </MudStack>
+                }
+
+                <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                    <MudTextField @bind-Value="_newSpecialty"
+                                 Label="Add Specialty"
+                                 Variant="Variant.Outlined"
+                                 @onkeypress="OnSpecialtyKeyPress"
+                                 HelperText="Press Enter to add"
+                                 Class="flex-1" />
+                    <MudButton Variant="Variant.Outlined"
+                              Color="Color.Primary"
+                              OnClick="AddSpecialty"
+                              StartIcon="@Icons.Material.Filled.Add"
+                              Disabled="@(string.IsNullOrWhiteSpace(_newSpecialty))">
+                        Add
+                    </MudButton>
+                </MudStack>
+            </div>
+        </MudStack>
+    </MudPaper>
+
+    <!-- Default Settings -->
+    <MudPaper Class="pa-6" Variant="Variant.Outlined">
+        <MudStack Spacing="4">
+            <MudText Typo="Typo.subtitle1" Class="section-title">Default Settings</MudText>
+
+            <MudGrid>
+                <MudItem xs="12" md="6">
+                    <MudTimePicker @bind-Time="_defaultReminderTime"
+                                  Label="Default Reminder Time"
+                                  Variant="Variant.Outlined"
+                                  HelperText="Default time for client reminders"
+                                  AmPm="true" />
+                </MudItem>
+            </MudGrid>
+        </MudStack>
+    </MudPaper>
+
+    <!-- Logo Upload -->
+    <MudPaper Class="pa-6" Variant="Variant.Outlined">
+        <MudStack Spacing="4">
+            <MudText Typo="Typo.subtitle1" Class="section-title">Clinic Logo</MudText>
+
+            <ImageUpload UploadType="logo"
+                       CurrentImageUrl="@_logoUrl"
+                       OnImageUploaded="OnLogoUploaded"
+                       OnImageRemoved="OnLogoRemoved" />
+        </MudStack>
+    </MudPaper>
+
+    <!-- Save Button -->
+    <div class="form-actions">
+        <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+            <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                @if (_hasUnsavedChanges)
+                {
+                    <MudIcon Icon="@Icons.Material.Filled.Circle"
+                            Color="Color.Warning"
+                            Size="Size.Small"
+                            Class="unsaved-indicator" />
+                    <MudText Typo="Typo.caption" Color="Color.Warning">
+                        You have unsaved changes
+                    </MudText>
+                }
+                else if (_lastSaved.HasValue)
+                {
+                    <MudIcon Icon="@Icons.Material.Filled.Check"
+                            Color="Color.Success"
+                            Size="Size.Small" />
+                    <MudText Typo="Typo.caption" Color="Color.Success">
+                        Saved @_lastSaved.Value.ToString("HH:mm")
+                    </MudText>
+                }
+            </MudStack>
+
+            <MudButtonGroup Variant="Variant.Filled">
+                <MudButton Color="Color.Default"
+                          OnClick="ResetForm"
+                          Disabled="@(!_hasUnsavedChanges)"
+                          StartIcon="@Icons.Material.Filled.Refresh">
+                    Reset
+                </MudButton>
+
+                <MudButton Color="Color.Primary"
+                          OnClick="SaveProfile"
+                          Disabled="@(!_hasUnsavedChanges || _isSaving)"
+                          StartIcon="@(_isSaving ? null : Icons.Material.Filled.Save)">
+                    @if (_isSaving)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                        <span class="ml-2">Saving...</span>
+                    }
+                    else
+                    {
+                        <span>Save Changes</span>
+                    }
+                </MudButton>
+            </MudButtonGroup>
+        </MudStack>
+    </div>
+</MudStack>
+
+<style>
+.form-header {
+    margin-bottom: var(--space-md);
+}
+
+.form-title {
+    font-weight: var(--font-weight-semibold) !important;
+    margin-bottom: var(--space-xs);
+}
+
+.section-title {
+    font-weight: var(--font-weight-medium) !important;
+    color: var(--mud-palette-primary);
+}
+
+.specialties-container {
+    min-height: 60px;
+}
+
+.form-actions {
+    border-top: 1px solid var(--mud-palette-divider);
+    padding-top: var(--space-lg);
+    margin-top: var(--space-lg);
+}
+
+.unsaved-indicator {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Mobile styles moved to profile.css for consistency */
+</style>
+
+@code {
+    private string? _displayName = "Dr. Sarah Johnson";
+    private string? _credentials = "DPT, OCS";
+    private string? _licenseNumber = "";
+    private string? _clinicName = "Healing Hands Physical Therapy";
+    private string? _location = "Austin, TX";
+    private string? _phone = "+1-555-123-4567";
+    private string? _website = "";
+    private string? _bio = "";
+    private TimeSpan? _defaultReminderTime = new TimeSpan(19, 0, 0);
+    private string? _logoUrl;
+
+    private List<string> _specialties = new() { "Knee Rehabilitation", "Shoulder Injuries", "Sports Medicine" };
+    private string? _newSpecialty = "";
+
+    private bool _hasUnsavedChanges = false;
+    private bool _isSaving = false;
+    private DateTime? _lastSaved;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProfile();
+    }
+
+    private async Task LoadProfile()
+    {
+        // TODO: Load actual profile data from API
+        // For now, using placeholder data above
+        _hasUnsavedChanges = false;
+    }
+
+    private async Task SaveProfile()
+    {
+        _isSaving = true;
+        StateHasChanged();
+
+        try
+        {
+            // TODO: Save to API
+            await Task.Delay(1000); // Simulate API call
+
+            _hasUnsavedChanges = false;
+            _lastSaved = DateTime.Now;
+
+            Snackbar.Add("Profile updated successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to save profile: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isSaving = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ResetForm()
+    {
+        await LoadProfile();
+        StateHasChanged();
+    }
+
+    private void AddSpecialty()
+    {
+        if (!string.IsNullOrWhiteSpace(_newSpecialty) && !_specialties.Contains(_newSpecialty.Trim()))
+        {
+            _specialties.Add(_newSpecialty.Trim());
+            _newSpecialty = "";
+            _hasUnsavedChanges = true;
+            StateHasChanged();
+        }
+    }
+
+    private void RemoveSpecialty(string specialty)
+    {
+        _specialties.Remove(specialty);
+        _hasUnsavedChanges = true;
+        StateHasChanged();
+    }
+
+    private async Task OnSpecialtyKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            AddSpecialty();
+        }
+    }
+
+    private async Task OnLogoUploaded(string imageUrl)
+    {
+        _logoUrl = imageUrl;
+        _hasUnsavedChanges = true;
+        StateHasChanged();
+    }
+
+    private async Task OnLogoRemoved()
+    {
+        _logoUrl = null;
+        _hasUnsavedChanges = true;
+        StateHasChanged();
+    }
+}

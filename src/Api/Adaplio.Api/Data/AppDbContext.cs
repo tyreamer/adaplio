@@ -291,6 +291,14 @@ public class AppDbContext : DbContext
                 .Property(cp => cp.PreferencesJson)
                 .HasColumnType("jsonb");
 
+            modelBuilder.Entity<TrainerProfile>()
+                .Property(tp => tp.SpecialtiesJson)
+                .HasColumnType("jsonb");
+
+            modelBuilder.Entity<TrainerProfile>()
+                .Property(tp => tp.AvailabilityJson)
+                .HasColumnType("jsonb");
+
             modelBuilder.Entity<MediaAsset>()
                 .Property(ma => ma.MetadataJson)
                 .HasColumnType("jsonb");

@@ -1,0 +1,347 @@
+@using System.Text.Json
+@using Adaplio.Frontend.Services
+@inject IJSRuntime JSRuntime
+@inject ISnackbar Snackbar
+@inject ProfileService ProfileService
+
+<div class="image-upload-container @(IsDragOver ? "drag-over" : "")"
+     @ondrop="OnDrop"
+     @ondragover="OnDragOver"
+     @ondragenter="OnDragEnter"
+     @ondragleave="OnDragLeave">
+
+    @if (!string.IsNullOrEmpty(CurrentImageUrl))
+    {
+        <!-- Current Image Display -->
+        <div class="current-image">
+            <img src="@CurrentImageUrl"
+                 alt="@(UploadType == "avatar" ? "Avatar" : "Logo")"
+                 class="image-preview" />
+
+            <div class="image-overlay">
+                <MudButtonGroup Variant="Variant.Filled" Size="Size.Small">
+                    <MudButton Color="Color.Primary"
+                              StartIcon="@Icons.Material.Filled.Edit"
+                              OnClick="TriggerFileInput">
+                        Change
+                    </MudButton>
+                    <MudButton Color="Color.Error"
+                              StartIcon="@Icons.Material.Filled.Delete"
+                              OnClick="RemoveImage">
+                        Remove
+                    </MudButton>
+                </MudButtonGroup>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Upload Area -->
+        <div class="upload-area">
+            <MudStack AlignItems="AlignItems.Center" Spacing="3">
+                <MudIcon Icon="@(UploadType == "avatar" ? Icons.Material.Filled.Person : Icons.Material.Filled.Business)"
+                        Size="Size.Large"
+                        Color="Color.Primary"
+                        Class="upload-icon" />
+
+                <MudStack AlignItems="AlignItems.Center" Spacing="1">
+                    <MudText Typo="Typo.h6" Class="upload-title">
+                        @(UploadType == "avatar" ? "Upload Avatar" : "Upload Logo")
+                    </MudText>
+                    <MudText Typo="Typo.body2" Color="Color.TextSecondary" Class="upload-subtitle">
+                        Drag and drop or click to select
+                    </MudText>
+                </MudStack>
+
+                <MudButton Variant="Variant.Outlined"
+                          Color="Color.Primary"
+                          StartIcon="@Icons.Material.Filled.CloudUpload"
+                          OnClick="TriggerFileInput"
+                          Class="upload-btn">
+                    Choose File
+                </MudButton>
+
+                <MudText Typo="Typo.caption" Color="Color.TextSecondary" Class="upload-hint">
+                    PNG, JPEG, or WebP • Max 2MB • Recommended: 400x400px
+                </MudText>
+            </MudStack>
+        </div>
+    }
+
+    <!-- Hidden file input -->
+    <InputFile @ref="fileInput"
+               accept="image/png,image/jpeg,image/jpg,image/webp"
+               OnChange="OnFileChanged"
+               style="display: none;" />
+
+    <!-- Loading overlay -->
+    @if (IsUploading)
+    {
+        <div class="upload-loading">
+            <MudProgressCircular Indeterminate="true" Size="Size.Medium" Color="Color.Primary" />
+            <MudText Typo="Typo.body2" Class="mt-2">Uploading...</MudText>
+        </div>
+    }
+</div>
+
+<style>
+.image-upload-container {
+    position: relative;
+    border: 2px dashed var(--mud-palette-divider);
+    border-radius: var(--radius-lg);
+    background: var(--mud-palette-surface);
+    transition: all 0.3s ease;
+    min-height: 200px;
+    overflow: hidden;
+}
+
+.image-upload-container:hover {
+    border-color: var(--mud-palette-primary);
+    background: var(--mud-palette-surface-lighten);
+}
+
+.image-upload-container.drag-over {
+    border-color: var(--mud-palette-primary);
+    background: var(--mud-palette-primary-lighten);
+    transform: scale(1.02);
+}
+
+.upload-area {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    padding: var(--space-lg);
+    cursor: pointer;
+}
+
+.upload-icon {
+    opacity: 0.6;
+}
+
+.upload-title {
+    font-weight: var(--font-weight-semibold) !important;
+}
+
+.upload-subtitle,
+.upload-hint {
+    text-align: center;
+}
+
+.upload-btn {
+    border-radius: var(--radius-lg) !important;
+    padding: 8px 24px !important;
+}
+
+.current-image {
+    position: relative;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--mud-palette-background-grey);
+}
+
+.image-preview {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: var(--radius-md);
+}
+
+.image-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.current-image:hover .image-overlay {
+    opacity: 1;
+}
+
+.upload-loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(var(--mud-palette-surface-rgb), 0.9);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+}
+
+@media (max-width: 480px) {
+    .upload-area {
+        height: 150px;
+        padding: var(--space-md);
+    }
+
+    .current-image {
+        height: 150px;
+    }
+}
+</style>
+
+@code {
+    [Parameter] public string UploadType { get; set; } = "avatar"; // "avatar" or "logo"
+    [Parameter] public string? CurrentImageUrl { get; set; }
+    [Parameter] public EventCallback<string> OnImageUploaded { get; set; }
+    [Parameter] public EventCallback OnImageRemoved { get; set; }
+
+    private InputFile? fileInput;
+    private bool IsDragOver = false;
+    private bool IsUploading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+    }
+
+    private async Task TriggerFileInput()
+    {
+        if (fileInput?.Element != null)
+        {
+            await fileInput.Element.Value.InvokeVoidAsync("click");
+        }
+    }
+
+    private async Task OnFileChanged(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            await ProcessFile(file);
+        }
+    }
+
+    private async Task ProcessFile(IBrowserFile file)
+    {
+        // Validate file
+        if (!IsValidFile(file))
+        {
+            return;
+        }
+
+        IsUploading = true;
+        StateHasChanged();
+
+        try
+        {
+            // Open file stream
+            const int maxFileSize = 2 * 1024 * 1024; // 2MB
+            using var stream = file.OpenReadStream(maxFileSize);
+
+            // Upload file using ProfileService
+            var fileName = $"{UploadType}-{Guid.NewGuid()}.{GetFileExtension(file.ContentType)}";
+            var imageUrl = await ProfileService.UploadFileAsync(stream, fileName, file.ContentType);
+
+            await OnImageUploaded.InvokeAsync(imageUrl);
+
+            Snackbar.Add($"{(UploadType == "avatar" ? "Avatar" : "Logo")} uploaded successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Upload failed: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            IsUploading = false;
+            StateHasChanged();
+        }
+    }
+
+    private string GetFileExtension(string contentType)
+    {
+        return contentType.ToLower() switch
+        {
+            "image/png" => "png",
+            "image/jpeg" => "jpg",
+            "image/jpg" => "jpg",
+            "image/webp" => "webp",
+            _ => "jpg"
+        };
+    }
+
+    private bool IsValidFile(IBrowserFile file)
+    {
+        // Check file type
+        var allowedTypes = new[] { "image/png", "image/jpeg", "image/jpg", "image/webp" };
+        if (!allowedTypes.Contains(file.ContentType.ToLower()))
+        {
+            Snackbar.Add("Please select a PNG, JPEG, or WebP image.", Severity.Error);
+            return false;
+        }
+
+        // Check file size (2MB limit)
+        if (file.Size > 2 * 1024 * 1024)
+        {
+            Snackbar.Add("File size must be less than 2MB.", Severity.Error);
+            return false;
+        }
+
+        return true;
+    }
+
+    private async Task<string> CreateBlobUrl(IBrowserFile file)
+    {
+        // Create a blob URL for preview
+        // TODO: Replace with actual cloud storage URL after upload
+        const int maxFileSize = 2 * 1024 * 1024; // 2MB
+        using var stream = file.OpenReadStream(maxFileSize);
+        var buffer = new byte[file.Size];
+        await stream.ReadAsync(buffer);
+
+        var base64 = Convert.ToBase64String(buffer);
+        return $"data:{file.ContentType};base64,{base64}";
+    }
+
+    private async Task RemoveImage()
+    {
+        await OnImageRemoved.InvokeAsync();
+        Snackbar.Add($"{(UploadType == "avatar" ? "Avatar" : "Logo")} removed.", Severity.Info);
+    }
+
+    // Drag and drop handlers
+    private void OnDragOver(DragEventArgs e)
+    {
+        e.PreventDefault();
+    }
+
+    private void OnDragEnter(DragEventArgs e)
+    {
+        IsDragOver = true;
+        StateHasChanged();
+    }
+
+    private void OnDragLeave(DragEventArgs e)
+    {
+        IsDragOver = false;
+        StateHasChanged();
+    }
+
+    private async Task OnDrop(DragEventArgs e)
+    {
+        IsDragOver = false;
+
+        if (e.DataTransfer?.Files?.Length > 0)
+        {
+            var file = e.DataTransfer.Files[0];
+            // TODO: Convert JavaScript File to IBrowserFile equivalent
+            // For now, we'll trigger the file input
+            await TriggerFileInput();
+        }
+
+        StateHasChanged();
+    }
+}

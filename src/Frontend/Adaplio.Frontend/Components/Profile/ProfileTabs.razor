@@ -1,0 +1,225 @@
+@using Adaplio.Frontend.Services
+@using Adaplio.Frontend.Components.Common
+@inject AuthStateService AuthState
+@inject AuthorizationService Authorization
+
+<MudTabs Elevation="0"
+         Rounded="true"
+         ApplyEffectsToContainer="true"
+         Class="profile-tabs"
+         @bind-ActiveTab="@_activeTab">
+
+    <!-- Personal/Clinic Tab -->
+    <AuthorizeView RequireProfileEdit="true">
+        <MudTabPanel Class="tab-panel" Icon="@GetPersonalTabIcon()" Text="@GetPersonalTabTitle()">
+            <div class="tab-content">
+                @if (AuthState.IsClient)
+                {
+                    <AuthorizeView RequireClientRole="true">
+                        <ClientProfileForm />
+                        <NotAuthorizedContent>
+                            <MudAlert Severity="Severity.Warning">
+                                This section is only available for clients.
+                            </MudAlert>
+                        </NotAuthorizedContent>
+                    </AuthorizeView>
+                }
+                else if (AuthState.IsTrainer)
+                {
+                    <AuthorizeView RequireTrainerRole="true">
+                        <TrainerProfileForm />
+                        <NotAuthorizedContent>
+                            <MudAlert Severity="Severity.Warning">
+                                This section is only available for trainers.
+                            </MudAlert>
+                        </NotAuthorizedContent>
+                    </AuthorizeView>
+                }
+            </div>
+        </MudTabPanel>
+        <NotAuthorizedContent>
+            <MudTabPanel Class="tab-panel" Icon="@Icons.Material.Filled.Lock" Text="Profile" Disabled="true">
+                <div class="tab-content">
+                    <MudAlert Severity="Severity.Error">
+                        You don't have permission to edit your profile.
+                    </MudAlert>
+                </div>
+            </MudTabPanel>
+        </NotAuthorizedContent>
+    </AuthorizeView>
+
+    <!-- Notifications Tab -->
+    <AuthorizeView RequireNotificationManagement="true">
+        <MudTabPanel Class="tab-panel" Icon="@Icons.Material.Filled.Notifications" Text="Notifications">
+            <div class="tab-content">
+                <NotificationSettings />
+            </div>
+        </MudTabPanel>
+        <NotAuthorizedContent>
+            <MudTabPanel Class="tab-panel" Icon="@Icons.Material.Filled.NotificationsOff" Text="Notifications" Disabled="true">
+                <div class="tab-content">
+                    <MudAlert Severity="Severity.Error">
+                        You don't have permission to manage notifications.
+                    </MudAlert>
+                </div>
+            </MudTabPanel>
+        </NotAuthorizedContent>
+    </AuthorizeView>
+
+    <!-- Privacy & Sharing Tab (Client only) -->
+    <AuthorizeView RequirePrivacyManagement="true">
+        <MudTabPanel Class="tab-panel" Icon="@Icons.Material.Filled.PrivacyTip" Text="Privacy & Sharing">
+            <div class="tab-content">
+                <PrivacySettings />
+            </div>
+        </MudTabPanel>
+    </AuthorizeView>
+
+    <!-- Account Tab -->
+    <AuthorizeView RequireAuthentication="true">
+        <MudTabPanel Class="tab-panel" Icon="@Icons.Material.Filled.AccountCircle" Text="Account">
+            <div class="tab-content">
+                <AccountSettings />
+            </div>
+        </MudTabPanel>
+        <NotAuthorizedContent>
+            <MudTabPanel Class="tab-panel" Icon="@Icons.Material.Filled.Lock" Text="Account" Disabled="true">
+                <div class="tab-content">
+                    <MudAlert Severity="Severity.Error">
+                        You must be authenticated to access account settings.
+                    </MudAlert>
+                </div>
+            </MudTabPanel>
+        </NotAuthorizedContent>
+    </AuthorizeView>
+
+    <!-- Help Tab -->
+    <MudTabPanel Class="tab-panel" Icon="@Icons.Material.Filled.Help" Text="Help">
+        <div class="tab-content">
+            <MudStack Spacing="4">
+                <MudText Typo="Typo.h6">Help & Support</MudText>
+
+                <MudPaper Class="pa-4" Variant="Variant.Outlined">
+                    <MudStack Spacing="3">
+                        <MudText Typo="Typo.subtitle1">Quick Links</MudText>
+
+                        <MudList Dense="true">
+                            <MudListItem Icon="@Icons.Material.Filled.QuestionAnswer"
+                                        Text="FAQ"
+                                        Href="/help/faq" />
+                            <MudListItem Icon="@Icons.Material.Filled.ContactSupport"
+                                        Text="Contact Support"
+                                        Href="/help/contact" />
+                            <MudListItem Icon="@Icons.Material.Filled.Book"
+                                        Text="User Guide"
+                                        Href="/help/guide" />
+                            <MudListItem Icon="@Icons.Material.Filled.Security"
+                                        Text="Privacy Policy"
+                                        Href="/privacy" />
+                            <MudListItem Icon="@Icons.Material.Filled.Gavel"
+                                        Text="Terms of Service"
+                                        Href="/terms" />
+                        </MudList>
+                    </MudStack>
+                </MudPaper>
+
+                <MudPaper Class="pa-4" Variant="Variant.Outlined">
+                    <MudStack Spacing="2">
+                        <MudText Typo="Typo.subtitle1">App Version</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.TextSecondary">
+                            Adaplio v1.0.0
+                        </MudText>
+                        <MudText Typo="Typo.caption" Color="Color.TextSecondary">
+                            Last updated: @DateTime.Now.ToString("MMMM dd, yyyy")
+                        </MudText>
+                    </MudStack>
+                </MudPaper>
+            </MudStack>
+        </div>
+    </MudTabPanel>
+</MudTabs>
+
+<style>
+.profile-tabs {
+    width: 100%;
+}
+
+.profile-tabs ::deep .mud-tabs-header {
+    background: transparent;
+    border-bottom: 1px solid var(--mud-palette-divider);
+}
+
+.profile-tabs ::deep .mud-tab {
+    min-height: 48px;
+    padding: 0 24px;
+    font-weight: var(--font-weight-medium);
+    text-transform: none;
+    opacity: 0.7;
+    transition: all 0.2s ease;
+}
+
+.profile-tabs ::deep .mud-tab:hover {
+    opacity: 0.9;
+}
+
+.profile-tabs ::deep .mud-tab.mud-tab-active {
+    opacity: 1;
+    font-weight: var(--font-weight-semibold);
+}
+
+.profile-tabs ::deep .mud-tab-slider {
+    height: 3px;
+    background: linear-gradient(90deg, var(--mud-palette-primary) 0%, var(--mud-palette-secondary) 100%);
+    border-radius: 2px;
+}
+
+.tab-panel {
+    min-height: 500px;
+}
+
+.tab-content {
+    padding: var(--space-xl) var(--space-lg);
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+    .profile-tabs ::deep .mud-tab {
+        padding: 0 12px;
+        font-size: var(--font-size-sm);
+        min-width: auto;
+    }
+
+    .profile-tabs ::deep .mud-tab .mud-tab-text {
+        display: none;
+    }
+
+    .profile-tabs ::deep .mud-tab .mud-icon-root {
+        margin-right: 0;
+    }
+
+    .tab-content {
+        padding: var(--space-lg) var(--space-md);
+    }
+}
+
+@media (max-width: 480px) {
+    .tab-content {
+        padding: var(--space-md) var(--space-sm);
+    }
+}
+</style>
+
+@code {
+    private MudTabPanel? _activeTab;
+
+    private string GetPersonalTabIcon()
+    {
+        return AuthState.IsClient ? Icons.Material.Filled.Person : Icons.Material.Filled.Business;
+    }
+
+    private string GetPersonalTabTitle()
+    {
+        return AuthState.IsClient ? "Personal" : "Clinic";
+    }
+}

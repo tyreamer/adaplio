@@ -3,7 +3,9 @@ using Adaplio.Api.Auth;
 using Adaplio.Api.Data;
 using Adaplio.Api.Dev;
 using Adaplio.Api.Gamification;
+using Adaplio.Api.Middleware;
 using Adaplio.Api.Plans;
+using Adaplio.Api.Profile;
 using Adaplio.Api.Progress;
 using Adaplio.Api.Services;
 using AspNetCoreRateLimit;
@@ -42,6 +44,9 @@ builder.Services.AddScoped<IAliasService, AliasService>();
 builder.Services.AddScoped<IProgressService, ProgressService>();
 builder.Services.AddScoped<IPlanService, PlanService>();
 builder.Services.AddScoped<IGamificationService, GamificationService>();
+builder.Services.AddScoped<IUploadService, UploadService>();
+builder.Services.AddScoped<IAuditService, AuditService>();
+builder.Services.AddScoped<IInputSanitizer, InputSanitizer>();
 
 // Add JWT authentication
 var jwtSecret = builder.Configuration["Jwt:Secret"] ?? "your-256-bit-secret-key-here-make-it-long-enough-for-security";
@@ -115,6 +120,9 @@ builder.Services.AddMemoryCache();
 builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));
 builder.Services.AddInMemoryRateLimiting();
 builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+
+// Add HttpContextAccessor for audit logging
+builder.Services.AddHttpContextAccessor();
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -231,6 +239,9 @@ if (app.Environment.IsDevelopment())
 // Add rate limiting
 app.UseIpRateLimiting();
 
+// Add profile-specific rate limiting
+app.UseMiddleware<ProfileRateLimitingMiddleware>();
+
 // Add CORS
 app.UseCors("AllowFrontend");
 
@@ -285,6 +296,9 @@ app.MapGamificationEndpoints();
 
 // Map analytics endpoints
 app.MapAnalyticsEndpoints();
+
+// Map profile endpoints
+app.MapProfileEndpoints();
 
 app.MapGet("/health", () => Results.Ok(new { ok = true }));
 

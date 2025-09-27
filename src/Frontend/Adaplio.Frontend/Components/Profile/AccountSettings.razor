@@ -1,0 +1,370 @@
+@using Adaplio.Frontend.Services
+@using Adaplio.Frontend.Components.Common
+@inject ISnackbar Snackbar
+@inject AuthStateService AuthState
+@inject ProfileService ProfileService
+@inject AuthorizationService Authorization
+@inject IJSRuntime JSRuntime
+
+<MudStack Spacing="6">
+    <!-- Header -->
+    <div class="form-header">
+        <MudText Typo="Typo.h6" Class="form-title">Account Settings</MudText>
+        <MudText Typo="Typo.body2" Color="Color.TextSecondary">
+            Manage your account security and preferences.
+        </MudText>
+    </div>
+
+    <!-- Email Settings -->
+    <MudPaper Class="pa-6" Variant="Variant.Outlined">
+        <MudStack Spacing="4">
+            <MudText Typo="Typo.subtitle1" Class="section-title">Email Address</MudText>
+
+            <MudStack Row AlignItems="AlignItems.Center" Spacing="3">
+                <MudTextField @bind-Value="_currentEmail"
+                             Label="Current Email"
+                             Variant="Variant.Outlined"
+                             ReadOnly="true"
+                             Class="flex-1" />
+                <MudButton Variant="Variant.Outlined"
+                          Color="Color.Primary"
+                          OnClick="ChangeEmail"
+                          StartIcon="@Icons.Material.Filled.Edit">
+                    Change Email
+                </MudButton>
+            </MudStack>
+
+            <MudText Typo="Typo.caption" Color="Color.TextSecondary">
+                Changing your email will require verification of the new address.
+            </MudText>
+        </MudStack>
+    </MudPaper>
+
+    <!-- Security Settings -->
+    <MudPaper Class="pa-6" Variant="Variant.Outlined">
+        <MudStack Spacing="4">
+            <MudText Typo="Typo.subtitle1" Class="section-title">Security</MudText>
+
+            <!-- Two-Factor Authentication (Trainers only) -->
+            <AuthorizeView Require2FA="true">
+                <div class="security-setting">
+                    <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                        <MudStack Row AlignItems="AlignItems.Center" Spacing="3">
+                            <MudIcon Icon="@Icons.Material.Filled.Security" Color="Color.Primary" />
+                            <div>
+                                <MudText Typo="Typo.body1">Two-Factor Authentication</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.TextSecondary">
+                                    Add an extra layer of security to your account
+                                </MudText>
+                            </div>
+                        </MudStack>
+                        <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                            <MudChip Size="Size.Small"
+                                    Color="@(_twoFactorEnabled ? Color.Success : Color.Default)"
+                                    Variant="@(_twoFactorEnabled ? Variant.Filled : Variant.Outlined)">
+                                @(_twoFactorEnabled ? "Enabled" : "Disabled")
+                            </MudChip>
+                            <MudButton Variant="Variant.Outlined"
+                                      Size="Size.Small"
+                                      OnClick="@(_twoFactorEnabled ? DisableTwoFactor : EnableTwoFactor)"
+                                      Color="@(_twoFactorEnabled ? Color.Error : Color.Primary)">
+                                @(_twoFactorEnabled ? "Disable" : "Enable")
+                            </MudButton>
+                        </MudStack>
+                    </MudStack>
+                </div>
+                <MudDivider />
+            </AuthorizeView>
+
+            <!-- Passkey Support -->
+            <div class="security-setting">
+                <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                    <MudStack Row AlignItems="AlignItems.Center" Spacing="3">
+                        <MudIcon Icon="@Icons.Material.Filled.Key" Color="Color.Primary" />
+                        <div>
+                            <MudText Typo="Typo.body1">Passkeys</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.TextSecondary">
+                                Use biometric authentication or security keys
+                            </MudText>
+                        </div>
+                    </MudStack>
+                    <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                        <MudChip Size="Size.Small"
+                                Color="@(_passkeyCount > 0 ? Color.Success : Color.Default)"
+                                Variant="@(_passkeyCount > 0 ? Variant.Filled : Variant.Outlined)">
+                            @(_passkeyCount) Passkey@(_passkeyCount != 1 ? "s" : "")
+                        </MudChip>
+                        <MudButton Variant="Variant.Outlined"
+                                  Size="Size.Small"
+                                  OnClick="ManagePasskeys"
+                                  Color="Color.Primary">
+                            Manage
+                        </MudButton>
+                    </MudStack>
+                </MudStack>
+            </div>
+        </MudStack>
+    </MudPaper>
+
+    <!-- Data Export -->
+    <AuthorizeView RequireDataExport="true">
+        <MudPaper Class="pa-6" Variant="Variant.Outlined">
+            <MudStack Spacing="4">
+                <MudText Typo="Typo.subtitle1" Class="section-title">Data Export</MudText>
+
+                <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                    <div>
+                        <MudText Typo="Typo.body1">Export My Data</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.TextSecondary">
+                            Download a copy of all your data in JSON format
+                        </MudText>
+                    </div>
+                    <MudButton Variant="Variant.Outlined"
+                              Color="Color.Primary"
+                              OnClick="ExportData"
+                              StartIcon="@Icons.Material.Filled.Download"
+                              Disabled="_isExporting">
+                        @if (_isExporting)
+                        {
+                            <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                            <span class="ml-2">Preparing...</span>
+                        }
+                        else
+                        {
+                            <span>Export Data</span>
+                        }
+                    </MudButton>
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+        <NotAuthorizedContent>
+            <MudPaper Class="pa-6" Variant="Variant.Outlined">
+                <MudAlert Severity="Severity.Warning">
+                    You don't have permission to export data.
+                </MudAlert>
+            </MudPaper>
+        </NotAuthorizedContent>
+    </AuthorizeView>
+
+    <!-- Danger Zone -->
+    <AuthorizeView RequireAccountDeletion="true">
+        <MudPaper Class="pa-6 danger-zone" Variant="Variant.Outlined">
+            <MudStack Spacing="4">
+                <MudText Typo="Typo.subtitle1" Class="section-title danger-title">Danger Zone</MudText>
+
+                <MudAlert Severity="Severity.Warning">
+                    <MudText Typo="Typo.body2">
+                        These actions are permanent and cannot be undone. Please proceed with caution.
+                    </MudText>
+                </MudAlert>
+
+                <MudStack Spacing="3">
+                    <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                        <div>
+                            <MudText Typo="Typo.body1">Delete Account</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.TextSecondary">
+                                Permanently delete your account and all associated data
+                            </MudText>
+                        </div>
+                        <MudButton Variant="Variant.Outlined"
+                                  Color="Color.Error"
+                                  OnClick="DeleteAccount"
+                                  StartIcon="@Icons.Material.Filled.DeleteForever">
+                            Delete Account
+                        </MudButton>
+                    </MudStack>
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+        <NotAuthorizedContent>
+            <MudPaper Class="pa-6" Variant="Variant.Outlined">
+                <MudAlert Severity="Severity.Info">
+                    Account deletion is not available for your account type or current status.
+                </MudAlert>
+            </MudPaper>
+        </NotAuthorizedContent>
+    </AuthorizeView>
+</MudStack>
+
+<!-- Email Change Dialog -->
+<MudDialog @bind-IsVisible="_showEmailDialog" Options="_dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Change Email Address</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudStack Spacing="4">
+            <MudTextField @bind-Value="_newEmail"
+                         Label="New Email Address"
+                         Variant="Variant.Outlined"
+                         Required="true"
+                         InputType="InputType.Email" />
+
+            <MudText Typo="Typo.body2" Color="Color.TextSecondary">
+                We'll send a verification link to your new email address. Your current email will remain active until you verify the new one.
+            </MudText>
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseEmailDialog">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="SendEmailVerification">
+            Send Verification
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+<style>
+.form-header {
+    margin-bottom: var(--space-md);
+}
+
+.form-title {
+    font-weight: var(--font-weight-semibold) !important;
+    margin-bottom: var(--space-xs);
+}
+
+.section-title {
+    font-weight: var(--font-weight-medium) !important;
+    color: var(--mud-palette-primary);
+}
+
+.danger-title {
+    color: var(--mud-palette-error) !important;
+}
+
+.danger-zone {
+    border-color: var(--mud-palette-error-lighten) !important;
+    background: rgba(var(--mud-palette-error-rgb), 0.02);
+}
+
+.security-setting {
+    padding: var(--space-sm) 0;
+}
+</style>
+
+@code {
+    private string _currentEmail = "user@example.com"; // TODO: Load from auth state
+    private string _newEmail = "";
+    private bool _twoFactorEnabled = false;
+    private int _passkeyCount = 0;
+    private bool _isExporting = false;
+
+    private bool _showEmailDialog = false;
+    private DialogOptions _dialogOptions = new() { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAccountSettings();
+    }
+
+    private async Task LoadAccountSettings()
+    {
+        // TODO: Load actual account settings from API
+        if (AuthState.IsAuthenticated)
+        {
+            _currentEmail = AuthState.User?.Email ?? "user@example.com";
+        }
+    }
+
+    private void ChangeEmail()
+    {
+        _newEmail = "";
+        _showEmailDialog = true;
+    }
+
+    private void CloseEmailDialog()
+    {
+        _showEmailDialog = false;
+        _newEmail = "";
+    }
+
+    private async Task SendEmailVerification()
+    {
+        try
+        {
+            // TODO: Send email verification via API
+            await Task.Delay(1000); // Simulate API call
+
+            Snackbar.Add($"Verification email sent to {_newEmail}", Severity.Success);
+            CloseEmailDialog();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to send verification email: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task EnableTwoFactor()
+    {
+        try
+        {
+            // TODO: Implement 2FA setup flow
+            await Task.Delay(1000); // Simulate API call
+
+            _twoFactorEnabled = true;
+            Snackbar.Add("Two-factor authentication enabled", Severity.Success);
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to enable 2FA: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task DisableTwoFactor()
+    {
+        try
+        {
+            // TODO: Implement 2FA disable flow
+            await Task.Delay(1000); // Simulate API call
+
+            _twoFactorEnabled = false;
+            Snackbar.Add("Two-factor authentication disabled", Severity.Warning);
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to disable 2FA: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ManagePasskeys()
+    {
+        // TODO: Implement passkey management
+        Snackbar.Add("Passkey management coming soon", Severity.Info);
+    }
+
+    private async Task ExportData()
+    {
+        _isExporting = true;
+        StateHasChanged();
+
+        try
+        {
+            var exportData = await ProfileService.ExportDataAsync();
+
+            // Convert to base64 for download
+            var base64 = Convert.ToBase64String(exportData);
+            var fileName = $"adaplio-data-export-{DateTime.Now:yyyy-MM-dd}.json";
+
+            // Trigger file download
+            await JSRuntime.InvokeVoidAsync("downloadFile", fileName, base64);
+
+            Snackbar.Add("Data export completed successfully", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to export data: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isExporting = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task DeleteAccount()
+    {
+        // TODO: Implement account deletion with confirmation dialog
+        Snackbar.Add("Account deletion requires additional confirmation", Severity.Warning);
+    }
+}

@@ -1,0 +1,378 @@
+@using Adaplio.Frontend.Services
+@inject ISnackbar Snackbar
+@inject NotificationService NotificationService
+
+<MudStack Spacing="6">
+    <!-- Header -->
+    <div class="form-header">
+        <MudText Typo="Typo.h6" Class="form-title">Notification Preferences</MudText>
+        <MudText Typo="Typo.body2" Color="Color.TextSecondary">
+            Manage how and when you receive notifications.
+        </MudText>
+    </div>
+
+    <!-- General Settings -->
+    <MudPaper Class="pa-6" Variant="Variant.Outlined">
+        <MudStack Spacing="4">
+            <MudText Typo="Typo.subtitle1" Class="section-title">General Notifications</MudText>
+
+            <MudGrid>
+                <MudItem xs="12" md="6">
+                    <MudTimePicker @bind-Time="_reminderTime"
+                                  Label="Reminder Time"
+                                  Variant="Variant.Outlined"
+                                  HelperText="Daily reminder time"
+                                  AmPm="true" />
+                </MudItem>
+            </MudGrid>
+
+            <MudSwitch @bind-Value="_notificationsEnabled"
+                      Label="Enable Notifications"
+                      Color="Color.Primary"
+                      ThumbIcon="@Icons.Material.Filled.Notifications" />
+        </MudStack>
+    </MudPaper>
+
+    <!-- Notification Channels -->
+    <MudPaper Class="pa-6" Variant="Variant.Outlined">
+        <MudStack Spacing="4">
+            <MudText Typo="Typo.subtitle1" Class="section-title">Notification Channels</MudText>
+
+            <MudStack Spacing="3">
+                <div class="notification-channel">
+                    <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                        <MudStack Row AlignItems="AlignItems.Center" Spacing="3">
+                            <MudIcon Icon="@Icons.Material.Filled.PhoneAndroid" Color="Color.Primary" />
+                            <div>
+                                <MudText Typo="Typo.body1">Push Notifications</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.TextSecondary">
+                                    Receive notifications directly on your device
+                                </MudText>
+                            </div>
+                        </MudStack>
+                        <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                            <MudSwitch @bind-Value="_pushEnabled"
+                                      Color="Color.Primary"
+                                      Disabled="@(!_notificationsEnabled)" />
+                            @if (_pushEnabled)
+                            {
+                                <MudButton Variant="Variant.Outlined"
+                                          Size="Size.Small"
+                                          OnClick="() => TestNotification('push')"
+                                          StartIcon="@Icons.Material.Filled.Send">
+                                    Test
+                                </MudButton>
+                            }
+                        </MudStack>
+                    </MudStack>
+                </div>
+
+                <MudDivider />
+
+                <div class="notification-channel">
+                    <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                        <MudStack Row AlignItems="AlignItems.Center" Spacing="3">
+                            <MudIcon Icon="@Icons.Material.Filled.Email" Color="Color.Primary" />
+                            <div>
+                                <MudText Typo="Typo.body1">Email Notifications</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.TextSecondary">
+                                    Receive notifications via email
+                                </MudText>
+                            </div>
+                        </MudStack>
+                        <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                            <MudSwitch @bind-Value="_emailEnabled"
+                                      Color="Color.Primary"
+                                      Disabled="@(!_notificationsEnabled)" />
+                            @if (_emailEnabled)
+                            {
+                                <MudButton Variant="Variant.Outlined"
+                                          Size="Size.Small"
+                                          OnClick="() => TestNotification('email')"
+                                          StartIcon="@Icons.Material.Filled.Send">
+                                    Test
+                                </MudButton>
+                            }
+                        </MudStack>
+                    </MudStack>
+                </div>
+
+                <MudDivider />
+
+                <div class="notification-channel">
+                    <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                        <MudStack Row AlignItems="AlignItems.Center" Spacing="3">
+                            <MudIcon Icon="@Icons.Material.Filled.Sms" Color="Color.Primary" />
+                            <div>
+                                <MudText Typo="Typo.body1">SMS Notifications</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.TextSecondary">
+                                    Receive notifications via text message
+                                </MudText>
+                            </div>
+                        </MudStack>
+                        <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                            <MudSwitch @bind-Value="_smsEnabled"
+                                      Color="Color.Primary"
+                                      Disabled="@(!_notificationsEnabled || !_smsAvailable)" />
+                            @if (_smsEnabled)
+                            {
+                                <MudButton Variant="Variant.Outlined"
+                                          Size="Size.Small"
+                                          OnClick="() => TestNotification('sms')"
+                                          StartIcon="@Icons.Material.Filled.Send">
+                                    Test
+                                </MudButton>
+                            }
+                        </MudStack>
+                    </MudStack>
+                </div>
+
+                @if (!_smsAvailable)
+                {
+                    <MudAlert Severity="Severity.Info" Dense="true">
+                        SMS notifications require phone number verification. Please add a phone number in your profile.
+                    </MudAlert>
+                }
+            </MudStack>
+        </MudStack>
+    </MudPaper>
+
+    <!-- Quiet Hours -->
+    <MudPaper Class="pa-6" Variant="Variant.Outlined">
+        <MudStack Spacing="4">
+            <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                <MudText Typo="Typo.subtitle1" Class="section-title">Quiet Hours</MudText>
+                <MudSwitch @bind-Value="_quietHoursEnabled"
+                          Label="Enable"
+                          Color="Color.Primary" />
+            </MudStack>
+
+            @if (_quietHoursEnabled)
+            {
+                <MudGrid>
+                    <MudItem xs="12" md="6">
+                        <MudTimePicker @bind-Time="_quietHoursStart"
+                                      Label="Start Time"
+                                      Variant="Variant.Outlined"
+                                      HelperText="No notifications after this time"
+                                      AmPm="true" />
+                    </MudItem>
+
+                    <MudItem xs="12" md="6">
+                        <MudTimePicker @bind-Time="_quietHoursEnd"
+                                      Label="End Time"
+                                      Variant="Variant.Outlined"
+                                      HelperText="Resume notifications at this time"
+                                      AmPm="true" />
+                    </MudItem>
+                </MudGrid>
+
+                <MudText Typo="Typo.caption" Color="Color.TextSecondary">
+                    During quiet hours, you'll only receive urgent notifications.
+                </MudText>
+            }
+        </MudStack>
+    </MudPaper>
+
+    <!-- Save Button -->
+    <div class="form-actions">
+        <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+            <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                @if (_hasUnsavedChanges)
+                {
+                    <MudIcon Icon="@Icons.Material.Filled.Circle"
+                            Color="Color.Warning"
+                            Size="Size.Small"
+                            Class="unsaved-indicator" />
+                    <MudText Typo="Typo.caption" Color="Color.Warning">
+                        You have unsaved changes
+                    </MudText>
+                }
+                else if (_lastSaved.HasValue)
+                {
+                    <MudIcon Icon="@Icons.Material.Filled.Check"
+                            Color="Color.Success"
+                            Size="Size.Small" />
+                    <MudText Typo="Typo.caption" Color="Color.Success">
+                        Saved @_lastSaved.Value.ToString("HH:mm")
+                    </MudText>
+                }
+            </MudStack>
+
+            <MudButtonGroup Variant="Variant.Filled">
+                <MudButton Color="Color.Default"
+                          OnClick="ResetForm"
+                          Disabled="@(!_hasUnsavedChanges)"
+                          StartIcon="@Icons.Material.Filled.Refresh">
+                    Reset
+                </MudButton>
+
+                <MudButton Color="Color.Primary"
+                          OnClick="SaveSettings"
+                          Disabled="@(!_hasUnsavedChanges || _isSaving)"
+                          StartIcon="@(_isSaving ? null : Icons.Material.Filled.Save)">
+                    @if (_isSaving)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                        <span class="ml-2">Saving...</span>
+                    }
+                    else
+                    {
+                        <span>Save Changes</span>
+                    }
+                </MudButton>
+            </MudButtonGroup>
+        </MudStack>
+    </div>
+</MudStack>
+
+<style>
+.form-header {
+    margin-bottom: var(--space-md);
+}
+
+.form-title {
+    font-weight: var(--font-weight-semibold) !important;
+    margin-bottom: var(--space-xs);
+}
+
+.section-title {
+    font-weight: var(--font-weight-medium) !important;
+    color: var(--mud-palette-primary);
+}
+
+.notification-channel {
+    padding: var(--space-md) 0;
+}
+
+.form-actions {
+    border-top: 1px solid var(--mud-palette-divider);
+    padding-top: var(--space-lg);
+    margin-top: var(--space-lg);
+}
+
+.unsaved-indicator {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+</style>
+
+@code {
+    private bool _notificationsEnabled = true;
+    private bool _pushEnabled = true;
+    private bool _emailEnabled = true;
+    private bool _smsEnabled = false;
+    private bool _smsAvailable = false; // TODO: Check if phone number is available
+
+    private TimeSpan? _reminderTime = new TimeSpan(19, 0, 0);
+
+    private bool _quietHoursEnabled = true;
+    private TimeSpan? _quietHoursStart = new TimeSpan(22, 0, 0);
+    private TimeSpan? _quietHoursEnd = new TimeSpan(7, 0, 0);
+
+    private bool _hasUnsavedChanges = false;
+    private bool _isSaving = false;
+    private DateTime? _lastSaved;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSettings();
+        await CheckSmsAvailability();
+    }
+
+    private async Task LoadSettings()
+    {
+        try
+        {
+            var settings = await NotificationService.GetSettingsAsync();
+
+            _notificationsEnabled = settings.NotificationsEnabled;
+            _pushEnabled = settings.PushEnabled;
+            _emailEnabled = settings.EmailEnabled;
+            _smsEnabled = settings.SmsEnabled;
+            _reminderTime = settings.ReminderTime;
+            _quietHoursEnabled = settings.QuietHoursEnabled;
+            _quietHoursStart = settings.QuietHoursStart;
+            _quietHoursEnd = settings.QuietHoursEnd;
+
+            _hasUnsavedChanges = false;
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to load notification settings: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task CheckSmsAvailability()
+    {
+        try
+        {
+            _smsAvailable = await NotificationService.CheckPhoneVerificationAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to check SMS availability");
+            _smsAvailable = false;
+        }
+    }
+
+    private async Task SaveSettings()
+    {
+        _isSaving = true;
+        StateHasChanged();
+
+        try
+        {
+            var settings = new NotificationSettings
+            {
+                NotificationsEnabled = _notificationsEnabled,
+                PushEnabled = _pushEnabled,
+                EmailEnabled = _emailEnabled,
+                SmsEnabled = _smsEnabled,
+                ReminderTime = _reminderTime,
+                QuietHoursEnabled = _quietHoursEnabled,
+                QuietHoursStart = _quietHoursStart,
+                QuietHoursEnd = _quietHoursEnd
+            };
+
+            await NotificationService.UpdateSettingsAsync(settings);
+
+            _hasUnsavedChanges = false;
+            _lastSaved = DateTime.Now;
+
+            Snackbar.Add("Notification settings updated successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to save settings: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isSaving = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ResetForm()
+    {
+        await LoadSettings();
+        StateHasChanged();
+    }
+
+    private async Task TestNotification(string channel)
+    {
+        try
+        {
+            await NotificationService.SendTestNotificationAsync(channel);
+            Snackbar.Add($"Test {channel} notification sent!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to send test notification: {ex.Message}", Severity.Error);
+        }
+    }
+}

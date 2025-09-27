@@ -1,0 +1,139 @@
+@using Adaplio.Frontend.Services
+@inject AuthorizationService Authorization
+
+@if (_isAuthorized)
+{
+    @ChildContent
+}
+else if (_isLoading)
+{
+    @if (LoadingContent != null)
+    {
+        @LoadingContent
+    }
+    else
+    {
+        <MudProgressLinear Indeterminate="true" Size="Size.Small" />
+    }
+}
+else if (NotAuthorizedContent != null)
+{
+    @NotAuthorizedContent
+}
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public RenderFragment? NotAuthorizedContent { get; set; }
+    [Parameter] public RenderFragment? LoadingContent { get; set; }
+
+    // Permission-based parameters
+    [Parameter] public bool RequireAuthentication { get; set; } = true;
+    [Parameter] public bool RequireClientRole { get; set; } = false;
+    [Parameter] public bool RequireTrainerRole { get; set; } = false;
+
+    // Feature-specific permissions
+    [Parameter] public bool RequireProfileEdit { get; set; } = false;
+    [Parameter] public bool RequirePrivacyManagement { get; set; } = false;
+    [Parameter] public bool RequireNotificationManagement { get; set; } = false;
+    [Parameter] public bool RequireDataExport { get; set; } = false;
+    [Parameter] public bool RequireAccountDeletion { get; set; } = false;
+    [Parameter] public bool Require2FA { get; set; } = false;
+
+    // Custom permission check
+    [Parameter] public Func<AuthorizationService, Task<bool>>? CustomPermissionCheck { get; set; }
+
+    private bool _isAuthorized = false;
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CheckAuthorizationAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await CheckAuthorizationAsync();
+    }
+
+    private async Task CheckAuthorizationAsync()
+    {
+        _isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            _isAuthorized = await EvaluatePermissionsAsync();
+        }
+        catch (Exception ex)
+        {
+            // Log error and deny access
+            Console.WriteLine($"Authorization error: {ex.Message}");
+            _isAuthorized = false;
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task<bool> EvaluatePermissionsAsync()
+    {
+        // Custom permission check takes precedence
+        if (CustomPermissionCheck != null)
+        {
+            return await CustomPermissionCheck(Authorization);
+        }
+
+        // Check basic authentication requirement
+        if (RequireAuthentication && !await Authorization.CanViewProfileAsync())
+        {
+            return false;
+        }
+
+        // Check role requirements
+        if (RequireClientRole)
+        {
+            return await Authorization.CanManageHealthInfoAsync(); // This checks if user is client
+        }
+
+        if (RequireTrainerRole)
+        {
+            return await Authorization.CanManageClinicInfoAsync(); // This checks if user is trainer
+        }
+
+        // Check feature-specific permissions
+        if (RequireProfileEdit && !await Authorization.CanEditProfileAsync())
+        {
+            return false;
+        }
+
+        if (RequirePrivacyManagement && !await Authorization.CanManagePrivacySettingsAsync())
+        {
+            return false;
+        }
+
+        if (RequireNotificationManagement && !await Authorization.CanManageNotificationsAsync())
+        {
+            return false;
+        }
+
+        if (RequireDataExport && !await Authorization.CanExportDataAsync())
+        {
+            return false;
+        }
+
+        if (RequireAccountDeletion && !await Authorization.CanDeleteAccountAsync())
+        {
+            return false;
+        }
+
+        if (Require2FA && !await Authorization.CanEnable2FAAsync())
+        {
+            return false;
+        }
+
+        // If no specific requirements are set and user is authenticated, allow access
+        return RequireAuthentication ? await Authorization.CanViewProfileAsync() : true;
+    }
+}

@@ -1,0 +1,374 @@
+@using Adaplio.Frontend.Services
+@using Adaplio.Frontend.Models
+@using Adaplio.Frontend.Validators
+@inject ISnackbar Snackbar
+@inject ProfileService ProfileService
+
+<MudForm @ref="form" Model="@_model" Validation="@_validator">
+    <MudStack Spacing="6">
+        <!-- Header -->
+        <div class="form-header">
+            <MudText Typo="Typo.h6" Class="form-title">Personal Information</MudText>
+            <MudText Typo="Typo.body2" Color="Color.TextSecondary">
+                Update your personal details and preferences.
+            </MudText>
+        </div>
+
+        <!-- Basic Information -->
+        <MudPaper Class="pa-6" Variant="Variant.Outlined">
+            <MudStack Spacing="4">
+                <MudText Typo="Typo.subtitle1" Class="section-title">Basic Information</MudText>
+
+                <MudGrid>
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_model.DisplayName"
+                                     Label="Display Name"
+                                     Variant="Variant.Outlined"
+                                     Required="true"
+                                     MaxLength="60"
+                                     HelperText="How others will see your name"
+                                     Validation="@_validator.Validation(m => m.DisplayName)" />
+                    </MudItem>
+
+                    <MudItem xs="12" md="6">
+                        <MudSelect @bind-Value="_model.Timezone"
+                                  Label="Timezone"
+                                  Variant="Variant.Outlined"
+                                  Required="true"
+                                  HelperText="Used for scheduling and reminders">
+                            @foreach (var tz in GetTimezones())
+                            {
+                                <MudSelectItem Value="@tz.Value">@tz.Text</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                </MudGrid>
+            </MudStack>
+        </MudPaper>
+
+        <!-- Health Information -->
+        <MudPaper Class="pa-6" Variant="Variant.Outlined">
+            <MudStack Spacing="4">
+                <MudText Typo="Typo.subtitle1" Class="section-title">Health Information</MudText>
+
+                <MudGrid>
+                    <MudItem xs="12" md="8">
+                        <MudTextField @bind-Value="_model.Injury"
+                                     Label="Current Injury/Condition"
+                                     Variant="Variant.Outlined"
+                                     MaxLength="200"
+                                     HelperText="Brief description of your condition"
+                                     Validation="@_validator.Validation(m => m.Injury)" />
+                    </MudItem>
+
+                    <MudItem xs="12" md="4">
+                        <MudSelect @bind-Value="_model.AffectedSide"
+                                  Label="Affected Side"
+                                  Variant="Variant.Outlined"
+                                  HelperText="Which side is affected">
+                            <MudSelectItem Value="Left">Left</MudSelectItem>
+                            <MudSelectItem Value="Right">Right</MudSelectItem>
+                            <MudSelectItem Value="Both">Both</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+                </MudGrid>
+            </MudStack>
+        </MudPaper>
+
+        <!-- Emergency Contact -->
+        <MudPaper Class="pa-6" Variant="Variant.Outlined">
+            <MudStack Spacing="4">
+                <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                    <MudText Typo="Typo.subtitle1" Class="section-title">Emergency Contact</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.TextSecondary">Optional</MudText>
+                </MudStack>
+
+                <MudGrid>
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_model.EmergencyContactName"
+                                     Label="Contact Name"
+                                     Variant="Variant.Outlined"
+                                     MaxLength="100"
+                                     HelperText="Name of emergency contact"
+                                     Validation="@_validator.Validation(m => m.EmergencyContactName)" />
+                    </MudItem>
+
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_model.EmergencyContactPhone"
+                                     Label="Phone Number"
+                                     Variant="Variant.Outlined"
+                                     HelperText="E.164 format (e.g., +1234567890)"
+                                     Validation="@_validator.Validation(m => m.EmergencyContactPhone)" />
+                    </MudItem>
+                </MudGrid>
+            </MudStack>
+        </MudPaper>
+
+        <!-- Accessibility -->
+        <MudPaper Class="pa-6" Variant="Variant.Outlined">
+            <MudStack Spacing="4">
+                <MudText Typo="Typo.subtitle1" Class="section-title">Accessibility</MudText>
+
+                <MudSwitch @bind-Value="_model.LargeTextMode"
+                          Label="Large Text Mode"
+                          Color="Color.Primary"
+                          ThumbIcon="@Icons.Material.Filled.TextIncrease"
+                          HelperText="Enable larger text throughout the app" />
+            </MudStack>
+        </MudPaper>
+
+        <!-- Avatar Upload -->
+        <MudPaper Class="pa-6" Variant="Variant.Outlined">
+            <MudStack Spacing="4">
+                <MudText Typo="Typo.subtitle1" Class="section-title">Profile Picture</MudText>
+
+                <ImageUpload UploadType="avatar"
+                           CurrentImageUrl="@_model.AvatarUrl"
+                           OnImageUploaded="OnAvatarUploaded"
+                           OnImageRemoved="OnAvatarRemoved" />
+            </MudStack>
+        </MudPaper>
+
+        <!-- Save Button -->
+        <div class="form-actions">
+            <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                    @if (_hasUnsavedChanges)
+                    {
+                        <MudIcon Icon="@Icons.Material.Filled.Circle"
+                                Color="Color.Warning"
+                                Size="Size.Small"
+                                Class="unsaved-indicator" />
+                        <MudText Typo="Typo.caption" Color="Color.Warning">
+                            You have unsaved changes
+                        </MudText>
+                    }
+                    else if (_lastSaved.HasValue)
+                    {
+                        <MudIcon Icon="@Icons.Material.Filled.Check"
+                                Color="Color.Success"
+                                Size="Size.Small" />
+                        <MudText Typo="Typo.caption" Color="Color.Success">
+                            Saved @_lastSaved.Value.ToString("HH:mm")
+                        </MudText>
+                    }
+                </MudStack>
+
+                <MudButtonGroup Variant="Variant.Filled">
+                    <MudButton Color="Color.Default"
+                              OnClick="ResetForm"
+                              Disabled="@(!_hasUnsavedChanges)"
+                              StartIcon="@Icons.Material.Filled.Refresh">
+                        Reset
+                    </MudButton>
+
+                    <MudButton Color="Color.Primary"
+                              OnClick="SaveProfile"
+                              Disabled="@(!_hasUnsavedChanges || _isSaving)"
+                              StartIcon="@(_isSaving ? null : Icons.Material.Filled.Save)">
+                        @if (_isSaving)
+                        {
+                            <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                            <span class="ml-2">Saving...</span>
+                        }
+                        else
+                        {
+                            <span>Save Changes</span>
+                        }
+                    </MudButton>
+                </MudButtonGroup>
+            </MudStack>
+        </div>
+    </MudStack>
+</MudForm>
+
+<style>
+.form-header {
+    margin-bottom: var(--space-md);
+}
+
+.form-title {
+    font-weight: var(--font-weight-semibold) !important;
+    margin-bottom: var(--space-xs);
+}
+
+.section-title {
+    font-weight: var(--font-weight-medium) !important;
+    color: var(--mud-palette-primary);
+}
+
+.form-actions {
+    border-top: 1px solid var(--mud-palette-divider);
+    padding-top: var(--space-lg);
+    margin-top: var(--space-lg);
+}
+
+.unsaved-indicator {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Mobile styles moved to profile.css for consistency */
+</style>
+
+@code {
+    private MudForm? form;
+    private ClientProfileModel _model = new();
+    private ClientProfileValidator _validator = new();
+    private bool _hasUnsavedChanges = false;
+    private bool _isSaving = false;
+    private DateTime? _lastSaved;
+    private ClientProfileModel _originalModel = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProfile();
+
+        // Watch for changes
+        _model.PropertyChanged += (s, e) => {
+            _hasUnsavedChanges = !_model.Equals(_originalModel);
+            StateHasChanged();
+        };
+    }
+
+    private async Task LoadProfile()
+    {
+        try
+        {
+            var profile = await ProfileService.GetProfileAsync();
+
+            if (profile != null)
+            {
+                _model = new ClientProfileModel
+                {
+                    DisplayName = profile.DisplayName ?? "",
+                    Timezone = profile.Timezone ?? "America/New_York",
+                    Injury = profile.ClientProfile?.Injury ?? "",
+                    AffectedSide = profile.ClientProfile?.AffectedSide ?? "",
+                    EmergencyContactName = profile.ClientProfile?.EmergencyContactName ?? "",
+                    EmergencyContactPhone = profile.ClientProfile?.EmergencyContactPhone ?? "",
+                    LargeTextMode = profile.ClientProfile?.LargeText ?? false,
+                    AvatarUrl = profile.AvatarUrl
+                };
+            }
+            else
+            {
+                // Default values for new profile
+                _model = new ClientProfileModel
+                {
+                    DisplayName = "",
+                    Timezone = "America/New_York",
+                    Injury = "",
+                    AffectedSide = "",
+                    EmergencyContactName = "",
+                    EmergencyContactPhone = "",
+                    LargeTextMode = false,
+                    AvatarUrl = null
+                };
+            }
+
+            _originalModel = _model.Clone();
+            _hasUnsavedChanges = false;
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to load profile: {ex.Message}", Severity.Error);
+
+            // Fallback to default model
+            _model = new ClientProfileModel();
+            _originalModel = _model.Clone();
+            _hasUnsavedChanges = false;
+        }
+    }
+
+    private async Task SaveProfile()
+    {
+        if (form == null) return;
+
+        var isValid = await form.Validate();
+        if (!isValid.IsValid) return;
+
+        _isSaving = true;
+        StateHasChanged();
+
+        try
+        {
+            var request = new UpdateProfileRequest
+            {
+                DisplayName = _model.DisplayName,
+                Timezone = _model.Timezone,
+                AvatarUrl = _model.AvatarUrl,
+                ClientProfile = new ClientProfileData
+                {
+                    Injury = _model.Injury,
+                    AffectedSide = _model.AffectedSide,
+                    EmergencyContactName = _model.EmergencyContactName,
+                    EmergencyContactPhone = _model.EmergencyContactPhone,
+                    LargeText = _model.LargeTextMode,
+                    HighContrast = _model.HighContrastMode,
+                    ReducedMotion = _model.ReducedMotionMode
+                }
+            };
+
+            await ProfileService.UpdateProfileAsync(request);
+
+            _originalModel = _model.Clone();
+            _hasUnsavedChanges = false;
+            _lastSaved = DateTime.Now;
+
+            Snackbar.Add("Profile updated successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to save profile: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isSaving = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ResetForm()
+    {
+        _model = _originalModel.Clone();
+        _hasUnsavedChanges = false;
+        await form!.ResetAsync();
+        StateHasChanged();
+    }
+
+    private async Task OnAvatarUploaded(string imageUrl)
+    {
+        _model.AvatarUrl = imageUrl;
+        _hasUnsavedChanges = true;
+        StateHasChanged();
+    }
+
+    private async Task OnAvatarRemoved()
+    {
+        _model.AvatarUrl = null;
+        _hasUnsavedChanges = true;
+        StateHasChanged();
+    }
+
+    private List<(string Value, string Text)> GetTimezones()
+    {
+        return new List<(string, string)>
+        {
+            ("UTC", "UTC"),
+            ("America/New_York", "Eastern Time (US & Canada)"),
+            ("America/Chicago", "Central Time (US & Canada)"),
+            ("America/Denver", "Mountain Time (US & Canada)"),
+            ("America/Los_Angeles", "Pacific Time (US & Canada)"),
+            ("Europe/London", "London"),
+            ("Europe/Paris", "Paris"),
+            ("Europe/Berlin", "Berlin"),
+            ("Asia/Tokyo", "Tokyo"),
+            ("Australia/Sydney", "Sydney")
+        };
+    }
+}

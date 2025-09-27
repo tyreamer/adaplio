@@ -32,6 +32,32 @@ public class TrainerProfile
     [Column("bio")]
     public string? Bio { get; set; }
 
+    [Column("credentials")]
+    [MaxLength(200)]
+    public string? Credentials { get; set; }
+
+    [Column("location")]
+    [MaxLength(200)]
+    public string? Location { get; set; }
+
+    [Column("website")]
+    [MaxLength(500)]
+    public string? Website { get; set; }
+
+    [Column("specialties_json")]
+    public string? SpecialtiesJson { get; set; } // JSON array of specialties
+
+    [Column("availability_json")]
+    public string? AvailabilityJson { get; set; } // JSON array of availability windows
+
+    [Column("default_reminder_time")]
+    [MaxLength(5)]
+    public string? DefaultReminderTime { get; set; } // HH:mm format
+
+    [Column("logo_url")]
+    [MaxLength(500)]
+    public string? LogoUrl { get; set; }
+
     [Column("mfa_enabled")]
     public bool MfaEnabled { get; set; } = false;
 
