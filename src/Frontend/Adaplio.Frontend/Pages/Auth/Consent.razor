@@ -34,7 +34,7 @@
                     <MudButton Variant="Variant.Outlined"
                              Color="Color.Primary"
                              FullWidth="true"
-                             StartIcon="@Icons.Material.Filled.Google"
+                             StartIcon="@Icons.Material.Filled.AccountCircle"
                              OnClick="() => AuthWithGoogle()">
                         Continue with Google
                     </MudButton>
@@ -116,13 +116,13 @@
                                  Variant="Variant.Outlined"
                                  Class="mb-3">
                             <MudSelectItem Value="@("")">Select if applicable</MudSelectItem>
-                            <MudSelectItem Value="knee">Knee</MudSelectItem>
-                            <MudSelectItem Value="back">Back</MudSelectItem>
-                            <MudSelectItem Value="shoulder">Shoulder</MudSelectItem>
-                            <MudSelectItem Value="hip">Hip</MudSelectItem>
-                            <MudSelectItem Value="ankle">Ankle</MudSelectItem>
-                            <MudSelectItem Value="neck">Neck</MudSelectItem>
-                            <MudSelectItem Value="other">Other</MudSelectItem>
+                            <MudSelectItem Value="@("knee")">Knee</MudSelectItem>
+                            <MudSelectItem Value="@("back")">Back</MudSelectItem>
+                            <MudSelectItem Value="@("shoulder")">Shoulder</MudSelectItem>
+                            <MudSelectItem Value="@("hip")">Hip</MudSelectItem>
+                            <MudSelectItem Value="@("ankle")">Ankle</MudSelectItem>
+                            <MudSelectItem Value="@("neck")">Neck</MudSelectItem>
+                            <MudSelectItem Value="@("other")">Other</MudSelectItem>
                         </MudSelect>
 
                         @if (!string.IsNullOrEmpty(_consentForm.InjuryType) && _consentForm.InjuryType != "other")
@@ -131,9 +131,9 @@
                                      Label="Affected side"
                                      Variant="Variant.Outlined">
                                 <MudSelectItem Value="@("")">Not specified</MudSelectItem>
-                                <MudSelectItem Value="left">Left</MudSelectItem>
-                                <MudSelectItem Value="right">Right</MudSelectItem>
-                                <MudSelectItem Value="both">Both</MudSelectItem>
+                                <MudSelectItem Value="@("left")">Left</MudSelectItem>
+                                <MudSelectItem Value="@("right")">Right</MudSelectItem>
+                                <MudSelectItem Value="@("both")">Both</MudSelectItem>
                             </MudSelect>
                         }
                     </MudPaper>

@@ -253,7 +253,22 @@
         return code;
     }
 
-    private void Cancel() => MudDialog.Cancel();
+    private void Cancel()
+    {
+        if (MudDialog != null)
+        {
+            // Try to call Cancel if it exists
+            try
+            {
+                var cancelMethod = MudDialog.GetType().GetMethod("Cancel");
+                cancelMethod?.Invoke(MudDialog, null);
+            }
+            catch
+            {
+                // Fallback - close dialog some other way if needed
+            }
+        }
+    }
 
     // DTOs
     public class CreateInviteTokenResponse

@@ -31,7 +31,7 @@
                 }
                 else if (_validationResult?.IsValid == true)
                 {
-                    <TrustCard ValidationResult="_validationResult" OnAccept="HandleAcceptInvite" OnDecline="HandleDeclineInvite" />
+                    <TrustCard ValidationResult="@ConvertValidationResult(_validationResult)" OnAccept="HandleAcceptInvite" OnDecline="HandleDeclineInvite" />
                 }
                 else if (_validationResult?.IsValid == false)
                 {
@@ -405,6 +405,19 @@
     {
         _inviteToken = null;
         _validationResult = null;
+    }
+
+    private TrustCard.ValidateInviteTokenResponse ConvertValidationResult(ValidateInviteTokenResponse result)
+    {
+        return new TrustCard.ValidateInviteTokenResponse
+        {
+            IsValid = result.IsValid,
+            TrainerName = result.TrainerName,
+            ClinicName = result.ClinicName,
+            GrantCode = result.GrantCode,
+            ExpiresAt = result.ExpiresAt,
+            ErrorMessage = result.ErrorMessage
+        };
     }
 
     // DTOs

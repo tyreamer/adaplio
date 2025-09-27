@@ -47,6 +47,7 @@ builder.Services.AddScoped<IGamificationService, GamificationService>();
 builder.Services.AddScoped<IUploadService, UploadService>();
 builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddScoped<IInputSanitizer, InputSanitizer>();
+builder.Services.AddScoped<ISecurityMonitoringService, SecurityMonitoringService>();
 
 // Add JWT authentication
 var jwtSecret = builder.Configuration["Jwt:Secret"] ?? "your-256-bit-secret-key-here-make-it-long-enough-for-security";
@@ -126,6 +127,7 @@ builder.Services.AddHttpContextAccessor();
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -239,7 +241,11 @@ if (app.Environment.IsDevelopment())
 // Add rate limiting
 app.UseIpRateLimiting();
 
-// Add profile-specific rate limiting
+// Add security middleware stack
+app.UseMiddleware<SecurityRateLimitingMiddleware>();
+app.UseMiddleware<SecurityAuditMiddleware>();
+
+// Add profile-specific rate limiting (for backward compatibility)
 app.UseMiddleware<ProfileRateLimitingMiddleware>();
 
 // Add CORS
@@ -299,6 +305,9 @@ app.MapAnalyticsEndpoints();
 
 // Map profile endpoints
 app.MapProfileEndpoints();
+
+// Map controller routes
+app.MapControllers();
 
 app.MapGet("/health", () => Results.Ok(new { ok = true }));
 

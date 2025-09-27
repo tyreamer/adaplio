@@ -13,7 +13,7 @@
         <MudPaper Class="pa-8 text-center">
             <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Large" Color="Color.Primary" />
             <MudText Typo="Typo.h5" Class="mt-4 mb-2">Authentication Required</MudText>
-            <MudText Typo="Typo.body1" Color="Color.TextSecondary" Class="mb-4">
+            <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-4">
                 Please sign in to access your profile settings.
             </MudText>
             <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/auth/client/login">
@@ -55,15 +55,6 @@ else
     min-height: 600px;
 }
 
-@media (max-width: 600px) {
-    .profile-container {
-        padding: var(--space-md);
-    }
-
-    .profile-header {
-        margin-bottom: var(--space-lg) !important;
-    }
-}
 </style>
 
 @code {
