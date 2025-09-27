@@ -25,6 +25,11 @@
           href="https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet" />
 
+    <!-- Force use of preloaded font to prevent warning -->
+    <style>
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    </style>
+
     <!-- MudBlazor -->
     <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
 
@@ -33,6 +38,7 @@
     <link rel="stylesheet" href="css/app.css" />
     <link rel="stylesheet" href="css/clientboard.css" />
     <link rel="stylesheet" href="css/motion.css" />
+    <link rel="stylesheet" href="css/profile.css" />
     <link href="Adaplio.Frontend.styles.css" rel="stylesheet" />
 
     <!-- PWA -->
@@ -112,9 +118,50 @@
                 originalWarn.apply(console, arguments);
             };
         }
+
+        // Suppress browser extension message channel errors
+        if (window.console && window.console.error) {
+            const originalError = console.error;
+            console.error = function(message) {
+                if (typeof message === 'string' &&
+                    (message.includes('A listener indicated an asynchronous response by returning true') ||
+                     message.includes('message channel closed before a response was received') ||
+                     message.includes('Extension context invalidated'))) {
+                    return; // Suppress browser extension errors
+                }
+                originalError.apply(console, arguments);
+            };
+        }
+
+        // Global error handler for unhandled extension promises
+        window.addEventListener('unhandledrejection', function(event) {
+            if (event.reason && typeof event.reason === 'object') {
+                const message = event.reason.message || event.reason.toString();
+                if (message.includes('Extension context invalidated') ||
+                    message.includes('message channel closed') ||
+                    message.includes('listener indicated an asynchronous response')) {
+                    event.preventDefault(); // Suppress browser extension promise rejections
+                    return;
+                }
+            }
+        });
+
+        // Prevent extension-related errors from bubbling up
+        window.addEventListener('error', function(event) {
+            if (event.message && typeof event.message === 'string') {
+                if (event.message.includes('Extension context invalidated') ||
+                    event.message.includes('message channel closed') ||
+                    event.message.includes('listener indicated an asynchronous response')) {
+                    event.preventDefault();
+                    return;
+                }
+            }
+        });
     </script>
     <script src="_framework/blazor.webassembly.js"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+    <script src="js/fileDownload.js"></script>
+    <script src="js/qr-scanner.js"></script>
 </body>
 
 </html>

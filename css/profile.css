@@ -1,0 +1,424 @@
+/* Profile Management Mobile Responsive Styles */
+
+/* Common mobile breakpoints */
+:root {
+    --mobile-xs: 375px;
+    --mobile-sm: 480px;
+    --tablet: 768px;
+    --desktop: 1024px;
+}
+
+/* Profile page layout */
+.profile-page {
+    min-height: 100vh;
+    padding: 0;
+    margin: 0;
+}
+
+.profile-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--space-lg);
+}
+
+/* Profile header responsive */
+.profile-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    padding: var(--space-lg);
+    border-radius: var(--radius-lg);
+    background: var(--mud-palette-surface);
+    border: 1px solid var(--mud-palette-divider);
+    margin-bottom: var(--space-lg);
+}
+
+.profile-header-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.profile-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--mud-palette-primary);
+}
+
+.profile-quick-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+}
+
+/* Tabs responsive */
+.profile-tabs {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.profile-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.profile-tabs .mud-tabs {
+    min-width: max-content;
+}
+
+/* Form sections */
+.form-section {
+    margin-bottom: var(--space-xl);
+}
+
+.form-header {
+    margin-bottom: var(--space-md);
+    text-align: center;
+}
+
+.form-title {
+    font-size: 1.5rem;
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--space-xs);
+    color: var(--mud-palette-text-primary);
+}
+
+.section-title {
+    font-size: 1.125rem;
+    font-weight: var(--font-weight-medium);
+    color: var(--mud-palette-primary);
+    margin-bottom: var(--space-md);
+}
+
+/* Form actions */
+.form-actions {
+    position: sticky;
+    bottom: 0;
+    background: var(--mud-palette-surface);
+    border-top: 1px solid var(--mud-palette-divider);
+    padding: var(--space-md);
+    margin: var(--space-lg) -var(--space-lg) 0;
+    z-index: 10;
+}
+
+.form-actions .mud-stack {
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Image upload responsive */
+.image-upload-container {
+    position: relative;
+    border: 2px dashed var(--mud-palette-divider);
+    border-radius: var(--radius-lg);
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.upload-area {
+    padding: var(--space-lg);
+    text-align: center;
+    background: var(--mud-palette-surface);
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.current-image {
+    position: relative;
+    width: 100%;
+    height: 200px;
+}
+
+.image-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Trainer cards */
+.trainer-card {
+    border: 1px solid var(--mud-palette-divider);
+    border-radius: var(--radius-lg);
+    padding: var(--space-md);
+    transition: all 0.2s ease;
+    background: var(--mud-palette-surface);
+}
+
+.trainer-card:hover {
+    border-color: var(--mud-palette-primary-lighten);
+    background: var(--mud-palette-surface-lighten);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.trainer-name {
+    font-weight: var(--font-weight-medium);
+    color: var(--mud-palette-text-primary);
+}
+
+/* Notification channels */
+.notification-channel {
+    padding: var(--space-md) 0;
+    border-bottom: 1px solid var(--mud-palette-divider);
+}
+
+.notification-channel:last-child {
+    border-bottom: none;
+}
+
+/* Specialties management */
+.specialties-container {
+    min-height: 60px;
+}
+
+.specialty-chip {
+    margin: var(--space-xs);
+}
+
+/* Mobile-first responsive design */
+
+/* Extra small devices (phones, 375px and down) */
+@media (max-width: 374px) {
+    .profile-container {
+        padding: var(--space-sm);
+    }
+
+    .form-title {
+        font-size: 1.25rem;
+    }
+
+    .profile-avatar {
+        width: 60px;
+        height: 60px;
+    }
+
+    .upload-area {
+        min-height: 150px;
+        padding: var(--space-md);
+    }
+
+    .current-image {
+        height: 150px;
+    }
+}
+
+/* Small devices (landscape phones, 576px and down) */
+@media (max-width: 575px) {
+    .profile-header {
+        padding: var(--space-md);
+    }
+
+    .profile-header-content {
+        text-align: center;
+    }
+
+    .profile-quick-actions {
+        justify-content: center;
+    }
+
+    .form-actions {
+        padding: var(--space-sm);
+        margin: var(--space-md) -var(--space-sm) 0;
+    }
+
+    .form-actions .mud-stack {
+        flex-direction: column;
+        gap: var(--space-sm);
+        align-items: stretch;
+    }
+
+    .form-actions .mud-button-group {
+        width: 100%;
+    }
+
+    .form-actions .mud-button-group .mud-button {
+        flex: 1;
+    }
+
+    /* Stack trainer card content */
+    .trainer-card .mud-stack-row {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: var(--space-sm);
+    }
+
+    .trainer-card .mud-stack-row:last-child {
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    /* Stack notification channel content */
+    .notification-channel .mud-stack-row {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: var(--space-sm);
+    }
+
+    .notification-channel .mud-stack-row:last-child {
+        align-items: center !important;
+        justify-content: space-between !important;
+        width: 100%;
+    }
+
+    /* Full width dialogs on mobile */
+    .mud-dialog-container {
+        margin: 0;
+        max-height: 100vh;
+    }
+
+    .mud-dialog {
+        margin: 0;
+        max-height: 100vh;
+        border-radius: 0;
+    }
+}
+
+/* Medium devices (tablets, 768px and down) */
+@media (max-width: 767px) {
+    .profile-container {
+        padding: var(--space-md);
+    }
+
+    /* Tab scrolling for smaller screens */
+    .profile-tabs {
+        margin: 0 -var(--space-md);
+        padding: 0 var(--space-md);
+    }
+
+    /* Adjust grid layouts */
+    .mud-grid-item {
+        padding: var(--space-xs) !important;
+    }
+
+    /* Make form inputs full width */
+    .mud-input-control {
+        width: 100%;
+    }
+
+    /* Adjust button groups */
+    .mud-button-group-vertical .mud-button {
+        width: 100%;
+    }
+}
+
+/* Large devices (desktops, 992px and up) */
+@media (min-width: 992px) {
+    .profile-header {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .profile-header-content {
+        flex-direction: row;
+        align-items: center;
+        gap: var(--space-lg);
+    }
+
+    .form-header {
+        text-align: left;
+    }
+
+    .form-actions {
+        position: static;
+        background: transparent;
+        border-top: 1px solid var(--mud-palette-divider);
+        margin: var(--space-lg) 0 0;
+    }
+}
+
+/* Extra large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+    .profile-container {
+        padding: var(--space-xl);
+    }
+
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+    }
+
+    .upload-area {
+        min-height: 250px;
+    }
+
+    .current-image {
+        height: 250px;
+    }
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+    .image-upload-container.drag-over {
+        border-color: var(--mud-palette-primary);
+        background: rgba(var(--mud-palette-primary-rgb), 0.1);
+    }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .trainer-card,
+    .notification-channel,
+    .image-upload-container {
+        border-width: 2px;
+    }
+
+    .form-actions {
+        border-top-width: 2px;
+    }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .trainer-card,
+    .image-upload-container,
+    .profile-avatar {
+        transition: none;
+    }
+
+    .trainer-card:hover {
+        transform: none;
+    }
+}
+
+/* Print styles */
+@media print {
+    .form-actions,
+    .profile-quick-actions,
+    .mud-button,
+    .mud-fab {
+        display: none !important;
+    }
+
+    .profile-page {
+        background: white;
+        color: black;
+    }
+
+    .profile-container {
+        max-width: none;
+        padding: 0;
+    }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .mud-button {
+        min-height: 44px; /* iOS recommended touch target size */
+    }
+
+    .mud-icon-button {
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    .trainer-card:hover {
+        transform: none;
+        box-shadow: none;
+    }
+}
