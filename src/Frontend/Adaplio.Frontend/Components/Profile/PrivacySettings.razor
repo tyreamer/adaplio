@@ -6,7 +6,7 @@
     <!-- Header -->
     <div class="form-header">
         <MudText Typo="Typo.h6" Class="form-title">Privacy & Sharing</MudText>
-        <MudText Typo="Typo.body2" Color="Color.TextSecondary">
+        <MudText Typo="Typo.body2" Color="Color.Default">
             Manage how your data is shared with your trainers.
         </MudText>
     </div>
@@ -29,17 +29,17 @@
                                     </MudAvatar>
                                     <div>
                                         <MudText Typo="Typo.body1" Class="trainer-name">@trainer.Name</MudText>
-                                        <MudText Typo="Typo.caption" Color="Color.TextSecondary">@trainer.Clinic</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Default">@trainer.Clinic</MudText>
                                     </div>
                                 </MudStack>
 
                                 <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
-                                    <MudChip Size="Size.Small"
+                                    <MudChip T="string" Size="Size.Small"
                                             Color="@(trainer.ViewSummary ? Color.Success : Color.Default)"
                                             Variant="@(trainer.ViewSummary ? Variant.Filled : Variant.Outlined)">
                                         Summary
                                     </MudChip>
-                                    <MudChip Size="Size.Small"
+                                    <MudChip T="string" Size="Size.Small"
                                             Color="@(trainer.ViewDetails ? Color.Info : Color.Default)"
                                             Variant="@(trainer.ViewDetails ? Variant.Filled : Variant.Outlined)">
                                         Details
@@ -61,7 +61,7 @@
                 <MudPaper Class="pa-8 text-center" Variant="Variant.Text">
                     <MudIcon Icon="@Icons.Material.Filled.PersonAdd" Size="Size.Large" Color="Color.Primary" />
                     <MudText Typo="Typo.h6" Class="mt-4 mb-2">No Trainers Connected</MudText>
-                    <MudText Typo="Typo.body2" Color="Color.TextSecondary" Class="mb-4">
+                    <MudText Typo="Typo.body2" Color="Color.Default" Class="mb-4">
                         Connect with a trainer to start sharing your progress data.
                     </MudText>
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/add-trainer">
@@ -83,7 +83,7 @@
                         <MudIcon Icon="@Icons.Material.Filled.BarChart" Color="Color.Success" Size="Size.Medium" />
                         <div>
                             <MudText Typo="Typo.body1" Class="level-title">Summary Sharing</MudText>
-                            <MudText Typo="Typo.body2" Color="Color.TextSecondary">
+                            <MudText Typo="Typo.body2" Color="Color.Default">
                                 Your trainer can see your weekly adherence percentage, streak count, and last activity date.
                                 This is the default and recommended level for most clients.
                             </MudText>
@@ -98,7 +98,7 @@
                         <MudIcon Icon="@Icons.Material.Filled.Visibility" Color="Color.Info" Size="Size.Medium" />
                         <div>
                             <MudText Typo="Typo.body1" Class="level-title">Detailed Sharing</MudText>
-                            <MudText Typo="Typo.body2" Color="Color.TextSecondary">
+                            <MudText Typo="Typo.body2" Color="Color.Default">
                                 Your trainer can see detailed exercise logs, timestamps, notes, and specific progress metrics.
                                 Enable this for more personalized coaching and feedback.
                             </MudText>
@@ -138,7 +138,7 @@
         @if (_selectedTrainer != null)
         {
             <MudStack Spacing="4">
-                <MudText Typo="Typo.body2" Color="Color.TextSecondary">
+                <MudText Typo="Typo.body2" Color="Color.Default">
                     Control what data you share with @_selectedTrainer.Name
                 </MudText>
 

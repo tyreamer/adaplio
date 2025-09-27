@@ -174,7 +174,7 @@ public class AuthorizationService
         }
 
         // Check if user is editing their own profile
-        if (!string.IsNullOrEmpty(userId) && _authState.User?.Id.ToString() != userId)
+        if (!string.IsNullOrEmpty(userId) && _authState.User?.UserId != userId)
         {
             return AuthorizationResult.Forbidden("Users can only edit their own profile");
         }

@@ -1,0 +1,270 @@
+@using Adaplio.Frontend.Services
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.PersonAdd" Class="mr-3 mb-n1" />
+            Invite Client
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <div style="min-height: 400px;">
+            @if (_isLoading)
+            {
+                <div class="d-flex justify-center align-center" style="height: 300px;">
+                    <MudProgressCircular Indeterminate="true" />
+                </div>
+            }
+            else if (_inviteData != null)
+            {
+                <MudStack Spacing="4">
+                    <!-- QR Code -->
+                    <MudPaper Class="pa-4 text-center" Elevation="2">
+                        <MudText Typo="Typo.subtitle1" Class="mb-3">Scan QR Code</MudText>
+                        @if (!string.IsNullOrEmpty(_qrCodeDataUrl))
+                        {
+                            <img src="@_qrCodeDataUrl" alt="QR Code" style="max-width: 200px; height: auto;" />
+                        }
+                        else
+                        {
+                            <MudSkeleton Width="200px" Height="200px" />
+                        }
+                    </MudPaper>
+
+                    <!-- Invite Code -->
+                    <MudPaper Class="pa-4" Elevation="2">
+                        <MudText Typo="Typo.subtitle1" Class="mb-3">Invite Code</MudText>
+                        <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                            <MudTextField @bind-Value="_formattedCode"
+                                        Label="Code"
+                                        Variant="Variant.Outlined"
+                                        ReadOnly="true"
+                                        Class="flex-grow-1" />
+                            <MudButton Variant="Variant.Outlined"
+                                     StartIcon="@Icons.Material.Filled.ContentCopy"
+                                     OnClick="() => CopyToClipboard(_inviteData.Token)">
+                                Copy
+                            </MudButton>
+                        </MudStack>
+                    </MudPaper>
+
+                    <!-- Invite Link -->
+                    <MudPaper Class="pa-4" Elevation="2">
+                        <MudText Typo="Typo.subtitle1" Class="mb-3">Invite Link</MudText>
+                        <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                            <MudTextField @bind-Value="_inviteData.InviteUrl"
+                                        Label="Link"
+                                        Variant="Variant.Outlined"
+                                        ReadOnly="true"
+                                        Class="flex-grow-1" />
+                            <MudButton Variant="Variant.Outlined"
+                                     StartIcon="@Icons.Material.Filled.ContentCopy"
+                                     OnClick="() => CopyToClipboard(_inviteData.InviteUrl)">
+                                Copy
+                            </MudButton>
+                        </MudStack>
+                    </MudPaper>
+
+                    <!-- SMS Option -->
+                    <MudPaper Class="pa-4" Elevation="2">
+                        <MudText Typo="Typo.subtitle1" Class="mb-3">Send via SMS (Optional)</MudText>
+                        <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                            <MudTextField @bind-Value="_phoneNumber"
+                                        Label="Phone Number"
+                                        Variant="Variant.Outlined"
+                                        Placeholder="+1234567890"
+                                        Class="flex-grow-1" />
+                            <MudButton Variant="Variant.Filled"
+                                     Color="Color.Primary"
+                                     StartIcon="@Icons.Material.Filled.Sms"
+                                     OnClick="SendSMS"
+                                     Disabled="_isSendingSMS">
+                                @if (_isSendingSMS)
+                                {
+                                    <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                                }
+                                else
+                                {
+                                    <span>Send SMS</span>
+                                }
+                            </MudButton>
+                        </MudStack>
+                    </MudPaper>
+
+                    <!-- Expiration Info -->
+                    <MudAlert Severity="Severity.Info">
+                        <MudText Typo="Typo.body2">
+                            This invite expires on @_inviteData.ExpiresAt.ToString("MMM dd, yyyy 'at' hh:mm tt")
+                        </MudText>
+                    </MudAlert>
+                </MudStack>
+            }
+            else if (_error != null)
+            {
+                <MudAlert Severity="Severity.Error">
+                    @_error
+                </MudAlert>
+            }
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Close</MudButton>
+        @if (_inviteData != null)
+        {
+            <MudButton Color="Color.Secondary"
+                     Variant="Variant.Filled"
+                     StartIcon="@Icons.Material.Filled.Refresh"
+                     OnClick="GenerateNewInvite">
+                Generate New
+            </MudButton>
+        }
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; } = null!;
+
+    private bool _isLoading = true;
+    private bool _isSendingSMS = false;
+    private string? _error;
+    private string? _phoneNumber;
+    private CreateInviteTokenResponse? _inviteData;
+    private string? _qrCodeDataUrl;
+    private string _formattedCode = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GenerateInvite();
+    }
+
+    private async Task GenerateInvite()
+    {
+        try
+        {
+            _isLoading = true;
+            _error = null;
+
+            // Create invite token
+            var response = await Http.PostAsJsonAsync("/api/invites/token", new { ExpirationHours = 24 });
+
+            if (response.IsSuccessStatusCode)
+            {
+                _inviteData = await response.Content.ReadFromJsonAsync<CreateInviteTokenResponse>();
+
+                if (_inviteData != null)
+                {
+                    _formattedCode = FormatInviteCode(_inviteData.Token);
+
+                    // Get QR code data
+                    var qrResponse = await Http.GetAsync($"/api/qr/{_inviteData.Token}/data");
+                    if (qrResponse.IsSuccessStatusCode)
+                    {
+                        var qrData = await qrResponse.Content.ReadFromJsonAsync<QrCodeResponse>();
+                        _qrCodeDataUrl = qrData?.QrCodeDataUrl;
+                    }
+                }
+            }
+            else
+            {
+                _error = "Failed to generate invite. Please try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = $"An error occurred: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task GenerateNewInvite()
+    {
+        await GenerateInvite();
+        Snackbar.Add("New invite generated!", Severity.Success);
+    }
+
+    private async Task SendSMS()
+    {
+        if (string.IsNullOrWhiteSpace(_phoneNumber) || _inviteData == null)
+        {
+            Snackbar.Add("Please enter a phone number", Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            _isSendingSMS = true;
+
+            var smsRequest = new
+            {
+                PhoneNumber = _phoneNumber,
+                InviteCode = _inviteData.Token
+            };
+
+            var response = await Http.PostAsJsonAsync("/api/invites/sms", smsRequest);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add("SMS sent successfully!", Severity.Success);
+                _phoneNumber = string.Empty;
+            }
+            else
+            {
+                Snackbar.Add("Failed to send SMS. Please try again.", Severity.Error);
+            }
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Failed to send SMS. Please try again.", Severity.Error);
+        }
+        finally
+        {
+            _isSendingSMS = false;
+        }
+    }
+
+    private async Task CopyToClipboard(string text)
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
+            Snackbar.Add("Copied to clipboard!", Severity.Success);
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Failed to copy to clipboard", Severity.Warning);
+        }
+    }
+
+    private static string FormatInviteCode(string code)
+    {
+        // Format as XXX-XXXXX for easier reading
+        if (code.Length >= 6)
+        {
+            return $"{code.Substring(0, 3)}-{code.Substring(3)}";
+        }
+        return code;
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    // DTOs
+    public class CreateInviteTokenResponse
+    {
+        public string Token { get; set; } = string.Empty;
+        public string InviteUrl { get; set; } = string.Empty;
+        public string QRCodeUrl { get; set; } = string.Empty;
+        public DateTimeOffset ExpiresAt { get; set; }
+    }
+
+    public class QrCodeResponse
+    {
+        public string QrCodeDataUrl { get; set; } = string.Empty;
+    }
+}

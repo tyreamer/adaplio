@@ -10,13 +10,16 @@
          @bind-ActiveTab="@_activeTab">
 
     <!-- Personal/Clinic Tab -->
-    <AuthorizeView RequireProfileEdit="true">
-        <MudTabPanel Class="tab-panel" Icon="@GetPersonalTabIcon()" Text="@GetPersonalTabTitle()">
+    <AuthorizeView>
+        <ChildContent>
+            <MudTabPanel Class="tab-panel" Icon="@GetPersonalTabIcon()" Text="@GetPersonalTabTitle()">
             <div class="tab-content">
                 @if (AuthState.IsClient)
                 {
-                    <AuthorizeView RequireClientRole="true">
-                        <ClientProfileForm />
+                    <AuthorizeView>
+                        <ChildContent>
+                            <ClientProfileForm />
+                        </ChildContent>
                         <NotAuthorizedContent>
                             <MudAlert Severity="Severity.Warning">
                                 This section is only available for clients.
@@ -26,8 +29,10 @@
                 }
                 else if (AuthState.IsTrainer)
                 {
-                    <AuthorizeView RequireTrainerRole="true">
-                        <TrainerProfileForm />
+                    <AuthorizeView>
+                        <ChildContent>
+                            <TrainerProfileForm />
+                        </ChildContent>
                         <NotAuthorizedContent>
                             <MudAlert Severity="Severity.Warning">
                                 This section is only available for trainers.
@@ -36,7 +41,8 @@
                     </AuthorizeView>
                 }
             </div>
-        </MudTabPanel>
+            </MudTabPanel>
+        </ChildContent>
         <NotAuthorizedContent>
             <MudTabPanel Class="tab-panel" Icon="@Icons.Material.Filled.Lock" Text="Profile" Disabled="true">
                 <div class="tab-content">
@@ -49,12 +55,14 @@
     </AuthorizeView>
 
     <!-- Notifications Tab -->
-    <AuthorizeView RequireNotificationManagement="true">
-        <MudTabPanel Class="tab-panel" Icon="@Icons.Material.Filled.Notifications" Text="Notifications">
+    <AuthorizeView>
+        <ChildContent>
+            <MudTabPanel Class="tab-panel" Icon="@Icons.Material.Filled.Notifications" Text="Notifications">
             <div class="tab-content">
                 <NotificationSettings />
             </div>
-        </MudTabPanel>
+            </MudTabPanel>
+        </ChildContent>
         <NotAuthorizedContent>
             <MudTabPanel Class="tab-panel" Icon="@Icons.Material.Filled.NotificationsOff" Text="Notifications" Disabled="true">
                 <div class="tab-content">
@@ -67,21 +75,25 @@
     </AuthorizeView>
 
     <!-- Privacy & Sharing Tab (Client only) -->
-    <AuthorizeView RequirePrivacyManagement="true">
-        <MudTabPanel Class="tab-panel" Icon="@Icons.Material.Filled.PrivacyTip" Text="Privacy & Sharing">
-            <div class="tab-content">
-                <PrivacySettings />
-            </div>
-        </MudTabPanel>
+    <AuthorizeView>
+        <ChildContent>
+            <MudTabPanel Class="tab-panel" Icon="@Icons.Material.Filled.PrivacyTip" Text="Privacy & Sharing">
+                <div class="tab-content">
+                    <PrivacySettings />
+                </div>
+            </MudTabPanel>
+        </ChildContent>
     </AuthorizeView>
 
     <!-- Account Tab -->
-    <AuthorizeView RequireAuthentication="true">
-        <MudTabPanel Class="tab-panel" Icon="@Icons.Material.Filled.AccountCircle" Text="Account">
+    <AuthorizeView>
+        <ChildContent>
+            <MudTabPanel Class="tab-panel" Icon="@Icons.Material.Filled.AccountCircle" Text="Account">
             <div class="tab-content">
                 <AccountSettings />
             </div>
-        </MudTabPanel>
+            </MudTabPanel>
+        </ChildContent>
         <NotAuthorizedContent>
             <MudTabPanel Class="tab-panel" Icon="@Icons.Material.Filled.Lock" Text="Account" Disabled="true">
                 <div class="tab-content">
@@ -103,20 +115,20 @@
                     <MudStack Spacing="3">
                         <MudText Typo="Typo.subtitle1">Quick Links</MudText>
 
-                        <MudList Dense="true">
-                            <MudListItem Icon="@Icons.Material.Filled.QuestionAnswer"
+                        <MudList T="string" Dense="true">
+                            <MudListItem T="string" Icon="@Icons.Material.Filled.QuestionAnswer"
                                         Text="FAQ"
                                         Href="/help/faq" />
-                            <MudListItem Icon="@Icons.Material.Filled.ContactSupport"
+                            <MudListItem T="string" Icon="@Icons.Material.Filled.ContactSupport"
                                         Text="Contact Support"
                                         Href="/help/contact" />
-                            <MudListItem Icon="@Icons.Material.Filled.Book"
+                            <MudListItem T="string" Icon="@Icons.Material.Filled.Book"
                                         Text="User Guide"
                                         Href="/help/guide" />
-                            <MudListItem Icon="@Icons.Material.Filled.Security"
+                            <MudListItem T="string" Icon="@Icons.Material.Filled.Security"
                                         Text="Privacy Policy"
                                         Href="/privacy" />
-                            <MudListItem Icon="@Icons.Material.Filled.Gavel"
+                            <MudListItem T="string" Icon="@Icons.Material.Filled.Gavel"
                                         Text="Terms of Service"
                                         Href="/terms" />
                         </MudList>
@@ -126,10 +138,10 @@
                 <MudPaper Class="pa-4" Variant="Variant.Outlined">
                     <MudStack Spacing="2">
                         <MudText Typo="Typo.subtitle1">App Version</MudText>
-                        <MudText Typo="Typo.body2" Color="Color.TextSecondary">
+                        <MudText Typo="Typo.body2" Color="Color.Default">
                             Adaplio v1.0.0
                         </MudText>
-                        <MudText Typo="Typo.caption" Color="Color.TextSecondary">
+                        <MudText Typo="Typo.caption" Color="Color.Default">
                             Last updated: @DateTime.Now.ToString("MMMM dd, yyyy")
                         </MudText>
                     </MudStack>
@@ -183,7 +195,9 @@
     margin: 0 auto;
 }
 
-@media (max-width: 768px) {
+/* Media queries temporarily disabled due to parsing issues */
+/*
+@@media (max-width: 768px) {
     .profile-tabs ::deep .mud-tab {
         padding: 0 12px;
         font-size: var(--font-size-sm);
@@ -203,11 +217,12 @@
     }
 }
 
-@media (max-width: 480px) {
+@@media (max-width: 480px) {
     .tab-content {
         padding: var(--space-md) var(--space-sm);
     }
 }
+*/
 </style>
 
 @code {

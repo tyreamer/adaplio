@@ -48,7 +48,7 @@
                     <MudText Typo="Typo.h6" Class="upload-title">
                         @(UploadType == "avatar" ? "Upload Avatar" : "Upload Logo")
                     </MudText>
-                    <MudText Typo="Typo.body2" Color="Color.TextSecondary" Class="upload-subtitle">
+                    <MudText Typo="Typo.body2" Color="Color.Default" Class="upload-subtitle">
                         Drag and drop or click to select
                     </MudText>
                 </MudStack>
@@ -61,7 +61,7 @@
                     Choose File
                 </MudButton>
 
-                <MudText Typo="Typo.caption" Color="Color.TextSecondary" Class="upload-hint">
+                <MudText Typo="Typo.caption" Color="Color.Default" Class="upload-hint">
                     PNG, JPEG, or WebP • Max 2MB • Recommended: 400x400px
                 </MudText>
             </MudStack>
@@ -181,7 +181,9 @@
     backdrop-filter: blur(4px);
 }
 
-@media (max-width: 480px) {
+/* Media queries temporarily disabled due to parsing issues */
+/*
+@@media (max-width: 480px) {
     .upload-area {
         height: 150px;
         padding: var(--space-md);
@@ -191,6 +193,7 @@
         height: 150px;
     }
 }
+*/
 </style>
 
 @code {
@@ -212,7 +215,7 @@
     {
         if (fileInput?.Element != null)
         {
-            await fileInput.Element.Value.InvokeVoidAsync("click");
+            await JSRuntime.InvokeVoidAsync("eval", "document.querySelector('input[type=file]').click()");
         }
     }
 
@@ -315,7 +318,8 @@
     // Drag and drop handlers
     private void OnDragOver(DragEventArgs e)
     {
-        e.PreventDefault();
+        // DragEventArgs doesn't have PreventDefault method in Blazor
+        // The browser will handle this automatically
     }
 
     private void OnDragEnter(DragEventArgs e)

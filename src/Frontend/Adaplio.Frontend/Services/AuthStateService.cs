@@ -31,6 +31,8 @@ public class AuthStateService
     public string? FullName => _currentUser?.FullName;
     public bool IsClient => UserRole == "client";
     public bool IsTrainer => UserRole == "trainer";
+    public bool IsInitialized => _isInitialized;
+    public UserInfo? User => _currentUser;
 
     public async Task<bool> InitializeAsync()
     {

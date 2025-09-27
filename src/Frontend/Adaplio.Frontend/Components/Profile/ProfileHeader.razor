@@ -40,7 +40,7 @@
                     <MudText Typo="Typo.h5" Class="profile-name">
                         @(_displayName ?? "No name set")
                     </MudText>
-                    <MudChip Size="Size.Small"
+                    <MudChip T="string" Size="Size.Small"
                             Color="@(AuthState.IsClient ? Color.Info : Color.Success)"
                             Variant="Variant.Filled"
                             Class="role-chip">
@@ -50,7 +50,7 @@
 
                 @if (AuthState.IsClient)
                 {
-                    <MudText Typo="Typo.body2" Color="Color.TextSecondary">
+                    <MudText Typo="Typo.body2" Color="Color.Default">
                         @if (!string.IsNullOrEmpty(_timezone))
                         {
                             <MudIcon Icon="@Icons.Material.Filled.Schedule" Size="Size.Small" Class="mr-1" />
@@ -64,7 +64,7 @@
                 }
                 else if (AuthState.IsTrainer)
                 {
-                    <MudText Typo="Typo.body2" Color="Color.TextSecondary">
+                    <MudText Typo="Typo.body2" Color="Color.Default">
                         @if (!string.IsNullOrEmpty(_clinicName))
                         {
                             <MudIcon Icon="@Icons.Material.Filled.Business" Size="Size.Small" Class="mr-1" />
@@ -86,7 +86,7 @@
                                           Size="Size.Small"
                                           Value="@_profileCompletionPercentage"
                                           Class="completion-bar" />
-                        <MudText Typo="Typo.caption" Color="Color.TextSecondary">
+                        <MudText Typo="Typo.caption" Color="Color.Default">
                             @_profileCompletionPercentage% complete
                         </MudText>
                     </MudStack>
@@ -192,7 +192,9 @@
     min-width: fit-content;
 }
 
-@media (max-width: 768px) {
+/* Media queries temporarily disabled due to parsing issues */
+/*
+@@media (max-width: 768px) {
     .profile-header-content {
         flex-direction: column;
         text-align: center;
@@ -212,7 +214,7 @@
     }
 }
 
-@media (max-width: 480px) {
+@@media (max-width: 480px) {
     .profile-avatar-image,
     .profile-avatar-placeholder {
         width: 60px !important;
@@ -223,6 +225,7 @@
         width: 120px;
     }
 }
+*/
 </style>
 
 @code {

@@ -10,7 +10,7 @@
     <!-- Header -->
     <div class="form-header">
         <MudText Typo="Typo.h6" Class="form-title">Account Settings</MudText>
-        <MudText Typo="Typo.body2" Color="Color.TextSecondary">
+        <MudText Typo="Typo.body2" Color="Color.Default">
             Manage your account security and preferences.
         </MudText>
     </div>
@@ -34,7 +34,7 @@
                 </MudButton>
             </MudStack>
 
-            <MudText Typo="Typo.caption" Color="Color.TextSecondary">
+            <MudText Typo="Typo.caption" Color="Color.Default">
                 Changing your email will require verification of the new address.
             </MudText>
         </MudStack>
@@ -53,13 +53,13 @@
                             <MudIcon Icon="@Icons.Material.Filled.Security" Color="Color.Primary" />
                             <div>
                                 <MudText Typo="Typo.body1">Two-Factor Authentication</MudText>
-                                <MudText Typo="Typo.caption" Color="Color.TextSecondary">
+                                <MudText Typo="Typo.caption" Color="Color.Default">
                                     Add an extra layer of security to your account
                                 </MudText>
                             </div>
                         </MudStack>
                         <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
-                            <MudChip Size="Size.Small"
+                            <MudChip T="string" Size="Size.Small"
                                     Color="@(_twoFactorEnabled ? Color.Success : Color.Default)"
                                     Variant="@(_twoFactorEnabled ? Variant.Filled : Variant.Outlined)">
                                 @(_twoFactorEnabled ? "Enabled" : "Disabled")
@@ -83,13 +83,13 @@
                         <MudIcon Icon="@Icons.Material.Filled.Key" Color="Color.Primary" />
                         <div>
                             <MudText Typo="Typo.body1">Passkeys</MudText>
-                            <MudText Typo="Typo.caption" Color="Color.TextSecondary">
+                            <MudText Typo="Typo.caption" Color="Color.Default">
                                 Use biometric authentication or security keys
                             </MudText>
                         </div>
                     </MudStack>
                     <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
-                        <MudChip Size="Size.Small"
+                        <MudChip T="string" Size="Size.Small"
                                 Color="@(_passkeyCount > 0 ? Color.Success : Color.Default)"
                                 Variant="@(_passkeyCount > 0 ? Variant.Filled : Variant.Outlined)">
                             @(_passkeyCount) Passkey@(_passkeyCount != 1 ? "s" : "")
@@ -107,15 +107,16 @@
     </MudPaper>
 
     <!-- Data Export -->
-    <AuthorizeView RequireDataExport="true">
-        <MudPaper Class="pa-6" Variant="Variant.Outlined">
+    <AuthorizeView>
+        <ChildContent>
+            <MudPaper Class="pa-6" Variant="Variant.Outlined">
             <MudStack Spacing="4">
                 <MudText Typo="Typo.subtitle1" Class="section-title">Data Export</MudText>
 
                 <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
                     <div>
                         <MudText Typo="Typo.body1">Export My Data</MudText>
-                        <MudText Typo="Typo.caption" Color="Color.TextSecondary">
+                        <MudText Typo="Typo.caption" Color="Color.Default">
                             Download a copy of all your data in JSON format
                         </MudText>
                     </div>
@@ -136,7 +137,8 @@
                     </MudButton>
                 </MudStack>
             </MudStack>
-        </MudPaper>
+            </MudPaper>
+        </ChildContent>
         <NotAuthorizedContent>
             <MudPaper Class="pa-6" Variant="Variant.Outlined">
                 <MudAlert Severity="Severity.Warning">
@@ -147,8 +149,9 @@
     </AuthorizeView>
 
     <!-- Danger Zone -->
-    <AuthorizeView RequireAccountDeletion="true">
-        <MudPaper Class="pa-6 danger-zone" Variant="Variant.Outlined">
+    <AuthorizeView>
+        <ChildContent>
+            <MudPaper Class="pa-6 danger-zone" Variant="Variant.Outlined">
             <MudStack Spacing="4">
                 <MudText Typo="Typo.subtitle1" Class="section-title danger-title">Danger Zone</MudText>
 
@@ -162,7 +165,7 @@
                     <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
                         <div>
                             <MudText Typo="Typo.body1">Delete Account</MudText>
-                            <MudText Typo="Typo.caption" Color="Color.TextSecondary">
+                            <MudText Typo="Typo.caption" Color="Color.Default">
                                 Permanently delete your account and all associated data
                             </MudText>
                         </div>
@@ -175,7 +178,8 @@
                     </MudStack>
                 </MudStack>
             </MudStack>
-        </MudPaper>
+            </MudPaper>
+        </ChildContent>
         <NotAuthorizedContent>
             <MudPaper Class="pa-6" Variant="Variant.Outlined">
                 <MudAlert Severity="Severity.Info">
@@ -199,7 +203,7 @@
                          Required="true"
                          InputType="InputType.Email" />
 
-            <MudText Typo="Typo.body2" Color="Color.TextSecondary">
+            <MudText Typo="Typo.body2" Color="Color.Default">
                 We'll send a verification link to your new email address. Your current email will remain active until you verify the new one.
             </MudText>
         </MudStack>

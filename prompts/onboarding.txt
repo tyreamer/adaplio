@@ -1,0 +1,67 @@
+Goal: Ship the full “Invite → Join → Missions” loop with QR/Code/SMS onboarding. Fit into current Blazor/MudBlazor + ASP.NET Core app; don’t rename files unless necessary.
+
+Implement behaviors:
+
+Invites (trainer):
+
+API to create/revoke invites returning { token, deepLink, shortCode, qrPngUrl, expiresAt }.
+
+Token: opaque, 8–10 Base32 (no 0/O/1/I), single-use, 7-day TTL.
+
+Trainer UI: “Invite Client” dialog showing QR, code, copy buttons, optional “Send via SMS”.
+
+Public landing (signed out):
+
+Three entry methods: Scan QR (camera), Enter code, Text me the link.
+
+If URL has ?invite=<token>, skip landing and validate immediately.
+
+Validate token → show trust card (trainer/clinic identity). Invalid/expired states with retry & support copy.
+
+Auth + consent:
+
+If user not authenticated, show Magic Link/Google/passkey.
+
+One consent panel: shareSummary (default true), reminders.enabled/time, optional injury + side.
+
+Save via existing profile endpoints, then accept the grant.
+
+Route to Weekly Board (client).
+
+Weekly Board + logging:
+
+If plan items exist, render “Today’s Missions” with “Start/Done”; POST logs.
+
+If no plan yet, show waiting state and a “Notify my PT I’m ready” action.
+
+Trainer dashboard:
+
+Refresh adherence(7d) and last activity after client logs (poll or subscribe every 30–60s).
+
+Recent activity list shows “Client X joined” and “logged session”.
+
+Security & reliability:
+
+Rate-limit lookup and redemption; audit trail (invite.created, invite.redeemed, invite.revoked).
+
+No PII in tokens/URLs; all PHI fetched post-auth over HTTPS.
+
+Handle camera permission errors gracefully; offer code entry fallback.
+
+Analytics & QA:
+
+Instrument method used: qr|code|sms.
+
+Playwright tests: happy path, invalid token, expired token, revoked invite.
+
+Surface errors via snackbars and Sentry; add basic funnel events (invite_created → landing_opened → token_validated → auth_success → grant_accepted → first_log).
+
+Acceptance:
+
+Trainer can generate an invite (QR/code/link) and revoke it.
+
+Patient scans or enters code, completes consent/auth in ≤60s, lands on Weekly Board.
+
+Logging a mission updates trainer’s adherence metric.
+
+Signed-out users never see trainer-only UI; header/nav are role-correct with no flicker.
