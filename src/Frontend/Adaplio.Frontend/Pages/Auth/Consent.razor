@@ -1,0 +1,314 @@
+@page "/auth/consent"
+@using Adaplio.Frontend.Services
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject AuthStateService AuthState
+
+<PageTitle>Consent & Preferences - Adaplio</PageTitle>
+
+<div class="consent-page">
+    <MudContainer MaxWidth="MaxWidth.Small" Class="py-8">
+        <MudPaper Class="pa-6" Elevation="3">
+            @if (!AuthState.IsAuthenticated)
+            {
+                <!-- Authentication Required -->
+                <div class="text-center mb-6">
+                    <MudIcon Icon="@Icons.Material.Filled.Security" Size="Size.Large" Color="Color.Primary" />
+                    <MudText Typo="Typo.h4" Class="mt-3">Sign In Required</MudText>
+                    <MudText Typo="Typo.body1" Color="Color.Default" Class="mt-2">
+                        Please sign in to continue with your invitation
+                    </MudText>
+                </div>
+
+                <MudStack Spacing="3">
+                    <!-- Auth Options -->
+                    <MudButton Variant="Variant.Filled"
+                             Color="Color.Primary"
+                             FullWidth="true"
+                             StartIcon="@Icons.Material.Filled.Email"
+                             OnClick="() => AuthWithMagicLink()">
+                        Continue with Magic Link
+                    </MudButton>
+
+                    <MudButton Variant="Variant.Outlined"
+                             Color="Color.Primary"
+                             FullWidth="true"
+                             StartIcon="@Icons.Material.Filled.Google"
+                             OnClick="() => AuthWithGoogle()">
+                        Continue with Google
+                    </MudButton>
+
+                    <MudButton Variant="Variant.Outlined"
+                             Color="Color.Default"
+                             FullWidth="true"
+                             StartIcon="@Icons.Material.Filled.Fingerprint"
+                             OnClick="() => AuthWithPasskey()">
+                        Continue with Passkey
+                    </MudButton>
+                </MudStack>
+
+                @if (!string.IsNullOrEmpty(_authError))
+                {
+                    <MudAlert Severity="Severity.Error" Class="mt-4">
+                        @_authError
+                    </MudAlert>
+                }
+            }
+            else
+            {
+                <!-- Consent Form -->
+                <div class="text-center mb-6">
+                    <MudIcon Icon="@Icons.Material.Filled.HealthAndSafety" Size="Size.Large" Color="Color.Primary" />
+                    <MudText Typo="Typo.h4" Class="mt-3">Your Preferences</MudText>
+                    <MudText Typo="Typo.body1" Color="Color.Default" Class="mt-2">
+                        Choose how you'd like to share information and receive notifications
+                    </MudText>
+                </div>
+
+                <MudStack Spacing="4">
+                    <!-- Data Sharing Preferences -->
+                    <MudPaper Class="pa-4" Elevation="1">
+                        <MudText Typo="Typo.subtitle1" Class="mb-3">
+                            <MudIcon Icon="@Icons.Material.Filled.Share" Class="mr-2" />
+                            Data Sharing
+                        </MudText>
+
+                        <MudSwitch @bind-Value="_consentForm.ShareSummary"
+                                 Label="Share exercise summaries with my trainer"
+                                 Color="Color.Primary" />
+                        <MudText Typo="Typo.caption" Color="Color.Default" Class="ml-6 mt-1">
+                            Your trainer will see your exercise completion status and basic progress
+                        </MudText>
+                    </MudPaper>
+
+                    <!-- Notification Preferences -->
+                    <MudPaper Class="pa-4" Elevation="1">
+                        <MudText Typo="Typo.subtitle1" Class="mb-3">
+                            <MudIcon Icon="@Icons.Material.Filled.Notifications" Class="mr-2" />
+                            Reminders
+                        </MudText>
+
+                        <MudSwitch @bind-Value="_consentForm.RemindersEnabled"
+                                 Label="Enable exercise reminders"
+                                 Color="Color.Primary" />
+
+                        @if (_consentForm.RemindersEnabled)
+                        {
+                            <div class="ml-6 mt-3">
+                                <MudTimePicker @bind-Time="_consentForm.ReminderTime"
+                                             Label="Reminder time"
+                                             Variant="Variant.Outlined"
+                                             Class="mt-2" />
+                            </div>
+                        }
+                    </MudPaper>
+
+                    <!-- Optional Health Information -->
+                    <MudPaper Class="pa-4" Elevation="1">
+                        <MudText Typo="Typo.subtitle1" Class="mb-3">
+                            <MudIcon Icon="@Icons.Material.Filled.LocalHospital" Class="mr-2" />
+                            Health Information (Optional)
+                        </MudText>
+
+                        <MudSelect @bind-Value="_consentForm.InjuryType"
+                                 Label="Primary concern"
+                                 Variant="Variant.Outlined"
+                                 Class="mb-3">
+                            <MudSelectItem Value="@("")">Select if applicable</MudSelectItem>
+                            <MudSelectItem Value="knee">Knee</MudSelectItem>
+                            <MudSelectItem Value="back">Back</MudSelectItem>
+                            <MudSelectItem Value="shoulder">Shoulder</MudSelectItem>
+                            <MudSelectItem Value="hip">Hip</MudSelectItem>
+                            <MudSelectItem Value="ankle">Ankle</MudSelectItem>
+                            <MudSelectItem Value="neck">Neck</MudSelectItem>
+                            <MudSelectItem Value="other">Other</MudSelectItem>
+                        </MudSelect>
+
+                        @if (!string.IsNullOrEmpty(_consentForm.InjuryType) && _consentForm.InjuryType != "other")
+                        {
+                            <MudSelect @bind-Value="_consentForm.AffectedSide"
+                                     Label="Affected side"
+                                     Variant="Variant.Outlined">
+                                <MudSelectItem Value="@("")">Not specified</MudSelectItem>
+                                <MudSelectItem Value="left">Left</MudSelectItem>
+                                <MudSelectItem Value="right">Right</MudSelectItem>
+                                <MudSelectItem Value="both">Both</MudSelectItem>
+                            </MudSelect>
+                        }
+                    </MudPaper>
+
+                    <!-- Privacy Notice -->
+                    <MudAlert Severity="Severity.Info">
+                        <MudText Typo="Typo.body2">
+                            <strong>Your privacy is protected:</strong> You can change these preferences anytime in your account settings.
+                            Your health information is encrypted and only shared with your designated trainer.
+                        </MudText>
+                    </MudAlert>
+
+                    <!-- Action Buttons -->
+                    <MudStack Row Justify="Justify.SpaceBetween" Class="mt-4">
+                        <MudButton Variant="Variant.Outlined"
+                                 Color="Color.Default"
+                                 OnClick="HandleBack">
+                            Back
+                        </MudButton>
+                        <MudButton Variant="Variant.Filled"
+                                 Color="Color.Primary"
+                                 StartIcon="@Icons.Material.Filled.Check"
+                                 OnClick="HandleAcceptConsent"
+                                 Disabled="_isAccepting">
+                            @if (_isAccepting)
+                            {
+                                <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                                <span class="ml-2">Accepting...</span>
+                            }
+                            else
+                            {
+                                <span>Accept & Continue</span>
+                            }
+                        </MudButton>
+                    </MudStack>
+                </MudStack>
+            }
+        </MudPaper>
+    </MudContainer>
+</div>
+
+<style>
+.consent-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--mud-palette-primary-lighten) 0%, var(--mud-palette-secondary-lighten) 100%);
+    display: flex;
+    align-items: center;
+}
+</style>
+
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? Invite { get; set; }
+
+    private bool _isAccepting = false;
+    private string? _authError;
+    private ConsentForm _consentForm = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Set default reminder time
+        _consentForm.ReminderTime = new TimeSpan(19, 0, 0); // 7:00 PM
+
+        // If user is already authenticated, check if they have an active invite
+        if (AuthState.IsAuthenticated && string.IsNullOrEmpty(Invite))
+        {
+            // Redirect to appropriate page if no invite
+            Navigation.NavigateTo("/dashboard");
+        }
+    }
+
+    private async Task AuthWithMagicLink()
+    {
+        try
+        {
+            // Navigate to magic link auth with return URL
+            var returnUrl = $"/auth/consent?invite={Invite}";
+            Navigation.NavigateTo($"/auth/magic-link?returnUrl={Uri.EscapeDataString(returnUrl)}");
+        }
+        catch (Exception ex)
+        {
+            _authError = "Failed to initiate magic link authentication";
+        }
+    }
+
+    private async Task AuthWithGoogle()
+    {
+        try
+        {
+            // Navigate to Google auth with return URL
+            var returnUrl = $"/auth/consent?invite={Invite}";
+            Navigation.NavigateTo($"/auth/google?returnUrl={Uri.EscapeDataString(returnUrl)}");
+        }
+        catch (Exception ex)
+        {
+            _authError = "Failed to initiate Google authentication";
+        }
+    }
+
+    private async Task AuthWithPasskey()
+    {
+        try
+        {
+            // Navigate to passkey auth with return URL
+            var returnUrl = $"/auth/consent?invite={Invite}";
+            Navigation.NavigateTo($"/auth/passkey?returnUrl={Uri.EscapeDataString(returnUrl)}");
+        }
+        catch (Exception ex)
+        {
+            _authError = "Failed to initiate passkey authentication";
+        }
+    }
+
+    private async Task HandleAcceptConsent()
+    {
+        if (string.IsNullOrEmpty(Invite))
+        {
+            Snackbar.Add("No invitation found", Severity.Error);
+            return;
+        }
+
+        try
+        {
+            _isAccepting = true;
+
+            var request = new
+            {
+                Token = Invite,
+                ShareSummary = _consentForm.ShareSummary,
+                RemindersEnabled = _consentForm.RemindersEnabled,
+                ReminderTime = _consentForm.ReminderTime,
+                InjuryType = string.IsNullOrEmpty(_consentForm.InjuryType) ? null : _consentForm.InjuryType,
+                AffectedSide = string.IsNullOrEmpty(_consentForm.AffectedSide) ? null : _consentForm.AffectedSide
+            };
+
+            var response = await Http.PostAsJsonAsync("/api/invites/accept", request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add("Welcome to Adaplio! Redirecting to your dashboard...", Severity.Success);
+
+                // Small delay to show success message
+                await Task.Delay(1500);
+
+                // Navigate to Weekly Board (client dashboard)
+                Navigation.NavigateTo("/weekly-board");
+            }
+            else
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                Snackbar.Add("Failed to accept invitation. Please try again.", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("An error occurred. Please try again.", Severity.Error);
+        }
+        finally
+        {
+            _isAccepting = false;
+        }
+    }
+
+    private void HandleBack()
+    {
+        Navigation.NavigateTo($"/join?invite={Invite}");
+    }
+
+    public class ConsentForm
+    {
+        public bool ShareSummary { get; set; } = true;
+        public bool RemindersEnabled { get; set; } = true;
+        public TimeSpan? ReminderTime { get; set; }
+        public string InjuryType { get; set; } = string.Empty;
+        public string AffectedSide { get; set; } = string.Empty;
+    }
+}

@@ -1,0 +1,420 @@
+@page "/join"
+@using Adaplio.Frontend.Services
+@using Adaplio.Frontend.Components.Invites
+@inject NavigationManager Navigation
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Join Adaplio</PageTitle>
+
+<div class="join-page">
+    <MudContainer MaxWidth="MaxWidth.Small" Class="py-8">
+        <MudPaper Class="pa-6" Elevation="3">
+            <div class="text-center mb-6">
+                <MudIcon Icon="@Icons.Material.Filled.FitnessCenter" Size="Size.Large" Color="Color.Primary" />
+                <MudText Typo="Typo.h4" Class="mt-3">Join Adaplio</MudText>
+                <MudText Typo="Typo.body1" Color="Color.Default" Class="mt-2">
+                    Connect with your trainer and start your rehabilitation journey
+                </MudText>
+            </div>
+
+            @if (!string.IsNullOrEmpty(_inviteToken))
+            {
+                <!-- Direct invite token processing -->
+                @if (_isValidatingToken)
+                {
+                    <div class="text-center py-8">
+                        <MudProgressCircular Indeterminate="true" Size="Size.Large" />
+                        <MudText Typo="Typo.body1" Class="mt-4">Validating your invitation...</MudText>
+                    </div>
+                }
+                else if (_validationResult?.IsValid == true)
+                {
+                    <TrustCard ValidationResult="_validationResult" OnAccept="HandleAcceptInvite" OnDecline="HandleDeclineInvite" />
+                }
+                else if (_validationResult?.IsValid == false)
+                {
+                    <InvalidInviteCard ErrorMessage="_validationResult.ErrorMessage" OnRetry="HandleRetry" />
+                }
+            }
+            else
+            {
+                <!-- Entry methods selection -->
+                <MudTabs Elevation="0" Class="join-tabs" @bind-ActivePanelIndex="_activeTab">
+                    <MudTabPanel Text="Scan QR Code" Icon="@Icons.Material.Filled.QrCodeScanner">
+                        <div class="tab-content py-4">
+                            <div class="text-center mb-4">
+                                <MudIcon Icon="@Icons.Material.Filled.QrCodeScanner" Size="Size.Large" Color="Color.Primary" />
+                                <MudText Typo="Typo.h6" Class="mt-2">Scan QR Code</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Default">
+                                    Use your phone's camera to scan the QR code provided by your trainer
+                                </MudText>
+                            </div>
+
+                            @if (_cameraError)
+                            {
+                                <MudAlert Severity="Severity.Warning" Class="mb-4">
+                                    Camera access is required to scan QR codes. Please allow camera permission or use the "Enter Code" option below.
+                                </MudAlert>
+                            }
+
+                            <div class="camera-container mb-4">
+                                <video id="qr-video" style="width: 100%; max-height: 300px; border-radius: 8px; background: #f5f5f5;"></video>
+                                <div id="qr-overlay" class="qr-overlay">
+                                    <div class="qr-scanner-box"></div>
+                                </div>
+                            </div>
+
+                            <MudStack Row Justify="Justify.Center" Spacing="2">
+                                <MudButton Variant="Variant.Filled"
+                                         Color="Color.Primary"
+                                         StartIcon="@Icons.Material.Filled.CameraAlt"
+                                         OnClick="StartCamera"
+                                         Disabled="_isScanning">
+                                    @if (_isScanning)
+                                    {
+                                        <span>Scanning...</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Start Camera</span>
+                                    }
+                                </MudButton>
+
+                                @if (_isScanning)
+                                {
+                                    <MudButton Variant="Variant.Outlined"
+                                             OnClick="StopCamera">
+                                        Stop Camera
+                                    </MudButton>
+                                }
+                            </MudStack>
+                        </div>
+                    </MudTabPanel>
+
+                    <MudTabPanel Text="Enter Code" Icon="@Icons.Material.Filled.Code">
+                        <div class="tab-content py-4">
+                            <div class="text-center mb-4">
+                                <MudIcon Icon="@Icons.Material.Filled.Code" Size="Size.Large" Color="Color.Primary" />
+                                <MudText Typo="Typo.h6" Class="mt-2">Enter Invite Code</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Default">
+                                    Enter the invite code provided by your trainer
+                                </MudText>
+                            </div>
+
+                            <MudTextField @bind-Value="_manualCode"
+                                        Label="Invite Code"
+                                        Placeholder="ABC-12345"
+                                        Variant="Variant.Outlined"
+                                        Class="mb-4"
+                                        OnKeyPress="OnCodeKeyPress" />
+
+                            <MudButton Variant="Variant.Filled"
+                                     Color="Color.Primary"
+                                     FullWidth="true"
+                                     StartIcon="@Icons.Material.Filled.Login"
+                                     OnClick="ValidateManualCode"
+                                     Disabled="_isValidatingManualCode">
+                                @if (_isValidatingManualCode)
+                                {
+                                    <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                                    <span class="ml-2">Validating...</span>
+                                }
+                                else
+                                {
+                                    <span>Join with Code</span>
+                                }
+                            </MudButton>
+                        </div>
+                    </MudTabPanel>
+
+                    <MudTabPanel Text="Text Me" Icon="@Icons.Material.Filled.Sms">
+                        <div class="tab-content py-4">
+                            <div class="text-center mb-4">
+                                <MudIcon Icon="@Icons.Material.Filled.Sms" Size="Size.Large" Color="Color.Primary" />
+                                <MudText Typo="Typo.h6" Class="mt-2">Text Me the Link</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Default">
+                                    Get the invite link sent to your phone
+                                </MudText>
+                            </div>
+
+                            <MudTextField @bind-Value="_phoneNumber"
+                                        Label="Phone Number"
+                                        Placeholder="+1 (555) 123-4567"
+                                        Variant="Variant.Outlined"
+                                        Class="mb-2" />
+
+                            <MudTextField @bind-Value="_trainerCode"
+                                        Label="Trainer Code (Optional)"
+                                        Placeholder="Trainer's invite code"
+                                        Variant="Variant.Outlined"
+                                        Class="mb-4"
+                                        HelperText="If you have a specific trainer code, enter it here" />
+
+                            <MudButton Variant="Variant.Filled"
+                                     Color="Color.Primary"
+                                     FullWidth="true"
+                                     StartIcon="@Icons.Material.Filled.Sms"
+                                     OnClick="SendSMSInvite"
+                                     Disabled="_isSendingSMS">
+                                @if (_isSendingSMS)
+                                {
+                                    <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                                    <span class="ml-2">Sending...</span>
+                                }
+                                else
+                                {
+                                    <span>Send SMS</span>
+                                }
+                            </MudButton>
+                        </div>
+                    </MudTabPanel>
+                </MudTabs>
+            }
+        </MudPaper>
+    </MudContainer>
+</div>
+
+<style>
+.join-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--mud-palette-primary-lighten) 0%, var(--mud-palette-secondary-lighten) 100%);
+    display: flex;
+    align-items: center;
+}
+
+.join-tabs ::deep .mud-tabs-toolbar {
+    background: transparent;
+}
+
+.tab-content {
+    min-height: 300px;
+}
+
+.camera-container {
+    position: relative;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.qr-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.qr-scanner-box {
+    width: 200px;
+    height: 200px;
+    border: 2px solid var(--mud-palette-primary);
+    border-radius: 8px;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.3);
+}
+</style>
+
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? Invite { get; set; }
+
+    private int _activeTab = 0;
+    private bool _isScanning = false;
+    private bool _cameraError = false;
+    private bool _isValidatingToken = false;
+    private bool _isValidatingManualCode = false;
+    private bool _isSendingSMS = false;
+
+    private string? _inviteToken;
+    private string _manualCode = string.Empty;
+    private string _phoneNumber = string.Empty;
+    private string _trainerCode = string.Empty;
+
+    private ValidateInviteTokenResponse? _validationResult;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _inviteToken = Invite;
+
+        if (!string.IsNullOrEmpty(_inviteToken))
+        {
+            await ValidateInviteToken(_inviteToken);
+        }
+    }
+
+    private async Task StartCamera()
+    {
+        try
+        {
+            _isScanning = true;
+            _cameraError = false;
+
+            await JSRuntime.InvokeVoidAsync("startQRScanner", DotNetObjectReference.Create(this));
+        }
+        catch (Exception)
+        {
+            _cameraError = true;
+            _isScanning = false;
+            Snackbar.Add("Camera access denied. Please use the 'Enter Code' option.", Severity.Warning);
+        }
+    }
+
+    private async Task StopCamera()
+    {
+        _isScanning = false;
+        await JSRuntime.InvokeVoidAsync("stopQRScanner");
+    }
+
+    [JSInvokable]
+    public async Task OnQRCodeDetected(string code)
+    {
+        await StopCamera();
+
+        // Extract token from URL if it's a full URL
+        var token = ExtractTokenFromUrl(code);
+        await ValidateInviteToken(token);
+    }
+
+    private async Task ValidateManualCode()
+    {
+        if (string.IsNullOrWhiteSpace(_manualCode))
+        {
+            Snackbar.Add("Please enter an invite code", Severity.Warning);
+            return;
+        }
+
+        _isValidatingManualCode = true;
+        var cleanCode = _manualCode.Replace("-", "").ToUpper();
+        await ValidateInviteToken(cleanCode);
+        _isValidatingManualCode = false;
+    }
+
+    private async Task OnCodeKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await ValidateManualCode();
+        }
+    }
+
+    private async Task SendSMSInvite()
+    {
+        if (string.IsNullOrWhiteSpace(_phoneNumber))
+        {
+            Snackbar.Add("Please enter your phone number", Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            _isSendingSMS = true;
+
+            var request = new
+            {
+                PhoneNumber = _phoneNumber,
+                InviteCode = string.IsNullOrWhiteSpace(_trainerCode) ? null : _trainerCode
+            };
+
+            var response = await Http.PostAsJsonAsync("/api/invites/sms", request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add("Invite link sent to your phone!", Severity.Success);
+                _phoneNumber = string.Empty;
+                _trainerCode = string.Empty;
+            }
+            else
+            {
+                Snackbar.Add("Failed to send SMS. Please check your phone number.", Severity.Error);
+            }
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Failed to send SMS. Please try again.", Severity.Error);
+        }
+        finally
+        {
+            _isSendingSMS = false;
+        }
+    }
+
+    private async Task ValidateInviteToken(string token)
+    {
+        try
+        {
+            _isValidatingToken = true;
+
+            var response = await Http.GetAsync($"/api/invites/validate/{token}");
+            _validationResult = await response.Content.ReadFromJsonAsync<ValidateInviteTokenResponse>();
+
+            if (_validationResult?.IsValid != true)
+            {
+                _validationResult ??= new ValidateInviteTokenResponse
+                {
+                    IsValid = false,
+                    ErrorMessage = "Invalid or expired invitation"
+                };
+            }
+            else
+            {
+                _inviteToken = token;
+            }
+        }
+        catch (Exception)
+        {
+            _validationResult = new ValidateInviteTokenResponse
+            {
+                IsValid = false,
+                ErrorMessage = "Failed to validate invitation. Please try again."
+            };
+        }
+        finally
+        {
+            _isValidatingToken = false;
+        }
+    }
+
+    private static string ExtractTokenFromUrl(string input)
+    {
+        if (input.Contains("invite="))
+        {
+            var uri = new Uri(input);
+            var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+            return query["invite"] ?? input;
+        }
+        return input;
+    }
+
+    private async Task HandleAcceptInvite()
+    {
+        Navigation.NavigateTo($"/auth/consent?invite={_inviteToken}");
+    }
+
+    private void HandleDeclineInvite()
+    {
+        Navigation.NavigateTo("/");
+    }
+
+    private void HandleRetry()
+    {
+        _inviteToken = null;
+        _validationResult = null;
+    }
+
+    // DTOs
+    public class ValidateInviteTokenResponse
+    {
+        public bool IsValid { get; set; }
+        public string TrainerName { get; set; } = string.Empty;
+        public string ClinicName { get; set; } = string.Empty;
+        public string GrantCode { get; set; } = string.Empty;
+        public DateTimeOffset ExpiresAt { get; set; }
+        public string? ErrorMessage { get; set; }
+    }
+}

@@ -1,0 +1,142 @@
+@using Adaplio.Frontend.Services
+
+<MudCard Class="trust-card" Elevation="2">
+    <MudCardHeader>
+        <CardHeaderAvatar>
+            <MudAvatar Color="Color.Primary" Size="Size.Large">
+                <MudIcon Icon="@Icons.Material.Filled.VerifiedUser" />
+            </MudAvatar>
+        </CardHeaderAvatar>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h6">Invitation Verified</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Default">
+                You've been invited to join Adaplio
+            </MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+
+    <MudCardContent>
+        <MudStack Spacing="3">
+            <!-- Trainer/Clinic Info -->
+            <MudPaper Class="pa-4 trainer-info" Elevation="1">
+                <MudStack Row AlignItems="AlignItems.Center" Spacing="3">
+                    <MudAvatar Color="Color.Secondary" Size="Size.Medium">
+                        <MudIcon Icon="@Icons.Material.Filled.Person" />
+                    </MudAvatar>
+                    <div class="flex-grow-1">
+                        <MudText Typo="Typo.subtitle1">@ValidationResult.TrainerName</MudText>
+                        @if (!string.IsNullOrEmpty(ValidationResult.ClinicName))
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Default">
+                                @ValidationResult.ClinicName
+                            </MudText>
+                        }
+                    </div>
+                    <MudChip T="string" Color="Color.Success" Size="Size.Small" Variant="Variant.Filled">
+                        Verified Trainer
+                    </MudChip>
+                </MudStack>
+            </MudPaper>
+
+            <!-- What happens next -->
+            <MudText Typo="Typo.subtitle2" Class="mt-4">What happens next:</MudText>
+            <MudList T="string" Dense="true" Class="trust-steps">
+                <MudListItem T="string" Icon="@Icons.Material.Filled.Login">
+                    <div>
+                        <MudText Typo="Typo.body2"><strong>Sign in or create account</strong></MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Default">
+                            Use Magic Link, Google, or passkey authentication
+                        </MudText>
+                    </div>
+                </MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.Settings">
+                    <div>
+                        <MudText Typo="Typo.body2"><strong>Set your preferences</strong></MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Default">
+                            Choose data sharing and notification settings
+                        </MudText>
+                    </div>
+                </MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.FitnessCenter">
+                    <div>
+                        <MudText Typo="Typo.body2"><strong>Start your journey</strong></MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Default">
+                            Access your personalized exercise program
+                        </MudText>
+                    </div>
+                </MudListItem>
+            </MudList>
+
+            <!-- Privacy Notice -->
+            <MudAlert Severity="Severity.Info" Class="mt-4">
+                <MudText Typo="Typo.body2">
+                    <strong>Your privacy matters:</strong> Only information you choose to share will be visible to your trainer.
+                    You can update these settings anytime.
+                </MudText>
+            </MudAlert>
+
+            <!-- Expiration Notice -->
+            <MudAlert Severity="Severity.Warning" Class="mt-2">
+                <MudText Typo="Typo.caption">
+                    This invitation expires on @ValidationResult.ExpiresAt.ToString("MMM dd, yyyy 'at' hh:mm tt")
+                </MudText>
+            </MudAlert>
+        </MudStack>
+    </MudCardContent>
+
+    <MudCardActions Class="justify-space-between pa-4">
+        <MudButton Variant="Variant.Outlined"
+                 Color="Color.Default"
+                 OnClick="OnDecline">
+            Not Now
+        </MudButton>
+        <MudButton Variant="Variant.Filled"
+                 Color="Color.Primary"
+                 StartIcon="@Icons.Material.Filled.ArrowForward"
+                 OnClick="OnAccept">
+            Accept Invitation
+        </MudButton>
+    </MudCardActions>
+</MudCard>
+
+<style>
+.trust-card {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.trainer-info {
+    background: linear-gradient(135deg, rgba(var(--mud-palette-primary-rgb), 0.05) 0%, rgba(var(--mud-palette-secondary-rgb), 0.05) 100%);
+    border: 1px solid rgba(var(--mud-palette-primary-rgb), 0.1);
+}
+
+.trust-steps ::deep .mud-list-item {
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+.trust-steps ::deep .mud-list-item-icon {
+    color: var(--mud-palette-success);
+}
+</style>
+
+@code {
+    [Parameter, EditorRequired]
+    public ValidateInviteTokenResponse ValidationResult { get; set; } = null!;
+
+    [Parameter]
+    public EventCallback OnAccept { get; set; }
+
+    [Parameter]
+    public EventCallback OnDecline { get; set; }
+
+    public class ValidateInviteTokenResponse
+    {
+        public bool IsValid { get; set; }
+        public string TrainerName { get; set; } = string.Empty;
+        public string ClinicName { get; set; } = string.Empty;
+        public string GrantCode { get; set; } = string.Empty;
+        public DateTimeOffset ExpiresAt { get; set; }
+        public string? ErrorMessage { get; set; }
+    }
+}

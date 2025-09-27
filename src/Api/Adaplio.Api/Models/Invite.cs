@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Adaplio.Api.Domain;
 
 namespace Adaplio.Api.Models;
 
@@ -42,8 +43,8 @@ public class Invite
     public bool IsValid => !IsExpired && !IsRedeemed && !IsRevoked;
 
     // Navigation properties
-    public User? Trainer { get; set; }
-    public User? RedeemedByUser { get; set; }
+    public AppUser? Trainer { get; set; }
+    public AppUser? RedeemedByUser { get; set; }
 }
 
 public class InviteCreateRequest

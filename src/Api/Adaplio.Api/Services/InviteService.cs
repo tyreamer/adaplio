@@ -253,6 +253,6 @@ public class ClientTrainerRelationship
     public bool IsActive { get; set; }
 
     // Navigation properties
-    public User? Client { get; set; }
-    public User? Trainer { get; set; }
+    public AppUser? Client { get; set; }
+    public AppUser? Trainer { get; set; }
 }
