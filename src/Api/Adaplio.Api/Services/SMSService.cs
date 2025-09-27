@@ -1,5 +1,8 @@
 using System.Text;
 using System.Text.Json;
+using Twilio;
+using Twilio.Rest.Api.V2010.Account;
+using Twilio.Types;
 
 namespace Adaplio.Api.Services;
 
@@ -39,7 +42,17 @@ public class SMSService : ISMSService
             }
 
             // For production, integrate with actual SMS service (Twilio, AWS SNS, etc.)
-            var smsProvider = _configuration["SMS:Provider"];
+            var smsProvider = _configuration["SMS:Provider"] ?? _configuration["SMS_PROVIDER"];
+
+            // Default to Twilio if environment variables are present
+            if (string.IsNullOrEmpty(smsProvider))
+            {
+                var twilioSid = _configuration["TWILIO_ACCOUNT_SID"];
+                if (!string.IsNullOrEmpty(twilioSid))
+                {
+                    smsProvider = "twilio";
+                }
+            }
 
             switch (smsProvider?.ToLower())
             {
@@ -61,9 +74,37 @@ public class SMSService : ISMSService
 
     private async Task<bool> SendViaTwilio(string phoneNumber, string message)
     {
-        // Placeholder for Twilio integration
-        _logger.LogInformation("Would send via Twilio to {PhoneNumber}: {Message}", phoneNumber, message);
-        return true;
+        try
+        {
+            var accountSid = _configuration["Twilio:AccountSid"] ?? _configuration["TWILIO_ACCOUNT_SID"];
+            var authToken = _configuration["Twilio:AuthToken"] ?? _configuration["TWILIO_AUTH_TOKEN"];
+            var fromNumber = _configuration["Twilio:PhoneNumber"] ?? _configuration["TWILIO_PHONE_NUMBER"];
+
+            if (string.IsNullOrEmpty(accountSid) || string.IsNullOrEmpty(authToken) || string.IsNullOrEmpty(fromNumber))
+            {
+                _logger.LogError("Twilio configuration missing. Check TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_PHONE_NUMBER");
+                return false;
+            }
+
+            TwilioClient.Init(accountSid, authToken);
+
+            var messageResource = await MessageResource.CreateAsync(
+                body: message,
+                from: new PhoneNumber(fromNumber),
+                to: new PhoneNumber(phoneNumber)
+            );
+
+            _logger.LogInformation("SMS sent successfully via Twilio. SID: {MessageSid}, Status: {Status}",
+                messageResource.Sid, messageResource.Status);
+
+            return messageResource.Status != MessageResource.StatusEnum.Failed
+                && messageResource.Status != MessageResource.StatusEnum.Undelivered;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send SMS via Twilio to {PhoneNumber}", phoneNumber);
+            return false;
+        }
     }
 
     private async Task<bool> SendViaAWS(string phoneNumber, string message)
