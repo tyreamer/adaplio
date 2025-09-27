@@ -1,4 +1,5 @@
 using Adaplio.Api.Data;
+using Adaplio.Api.Domain;
 using Adaplio.Api.Models;
 using Microsoft.EntityFrameworkCore;
 using QRCoder;

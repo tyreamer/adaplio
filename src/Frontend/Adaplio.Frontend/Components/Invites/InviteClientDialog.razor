@@ -127,7 +127,7 @@
 
 @code {
     [CascadingParameter]
-    MudDialogInstance MudDialog { get; set; } = null!;
+    object? MudDialog { get; set; }
 
     private bool _isLoading = true;
     private bool _isSendingSMS = false;

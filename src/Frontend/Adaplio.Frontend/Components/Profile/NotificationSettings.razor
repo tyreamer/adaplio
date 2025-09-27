@@ -1,6 +1,15 @@
+@* Temporarily commenting out this component due to compilation issues
 @using Adaplio.Frontend.Services
 @inject ISnackbar Snackbar
-@* @inject NotificationService NotificationService *@
+@inject NotificationService NotificationService *@
+
+<div>
+    <MudText>Notification settings temporarily disabled</MudText>
+</div>
+
+@* Original component content commented out for now
+@using Adaplio.Frontend.Services
+@inject ISnackbar Snackbar
 
 <MudStack Spacing="6">
     <!-- Header -->
@@ -376,3 +385,4 @@
         }
     }
 }
+*@
