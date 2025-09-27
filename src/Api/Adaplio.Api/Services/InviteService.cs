@@ -18,12 +18,12 @@ public interface IInviteService
 
 public class InviteService : IInviteService
 {
-    private readonly ApplicationDbContext _context;
+    private readonly AppDbContext _context;
     private readonly IConfiguration _configuration;
     private readonly ILogger<InviteService> _logger;
 
     public InviteService(
-        ApplicationDbContext context,
+        AppDbContext context,
         IConfiguration configuration,
         ILogger<InviteService> logger)
     {
