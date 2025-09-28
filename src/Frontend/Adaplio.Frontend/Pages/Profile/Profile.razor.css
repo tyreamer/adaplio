@@ -1,0 +1,34 @@
+.profile-page {
+    width: 100%;
+    min-height: 100vh;
+    background: var(--color-neutral-50);
+}
+
+.profile-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--space-xl);
+    position: relative;
+    z-index: 2;
+    margin-top: -100px;
+}
+
+/* Authentication Required State */
+.profile-page .mud-container {
+    padding-top: var(--space-xxxl);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .profile-content {
+        padding: var(--space-lg);
+        margin-top: -60px;
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-content {
+        padding: var(--space-md);
+        margin-top: -40px;
+    }
+}

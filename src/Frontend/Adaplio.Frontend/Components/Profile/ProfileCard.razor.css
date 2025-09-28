@@ -1,0 +1,184 @@
+.profile-card {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--elevation-2);
+    padding: var(--space-xl);
+    transition: all var(--duration-base) var(--easing-standard);
+    border: 1px solid var(--color-neutral-200);
+}
+
+.profile-card:hover {
+    box-shadow: var(--elevation-3);
+    transform: translateY(-2px);
+}
+
+.profile-card.compact {
+    padding: var(--space-lg);
+}
+
+.profile-card.highlighted {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 1px var(--color-primary), var(--elevation-2);
+}
+
+.profile-card.success {
+    border-color: var(--color-accent-teal);
+    background: linear-gradient(135deg, var(--color-surface) 0%, rgba(0, 191, 165, 0.02) 100%);
+}
+
+.profile-card.warning {
+    border-color: var(--color-primary);
+    background: linear-gradient(135deg, var(--color-surface) 0%, rgba(255, 122, 0, 0.02) 100%);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-lg);
+}
+
+.card-title-section {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    flex: 1;
+}
+
+.card-icon {
+    color: var(--color-primary);
+}
+
+.card-title {
+    font-family: var(--font-family-display);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-neutral-900);
+    margin: 0;
+    line-height: 1.2;
+}
+
+.card-badge {
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-round);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    line-height: 1;
+}
+
+.card-badge.primary {
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+}
+
+.card-badge.success {
+    background: var(--color-accent-teal-light);
+    color: var(--color-accent-teal);
+}
+
+.card-badge.neutral {
+    background: var(--color-neutral-100);
+    color: var(--color-neutral-600);
+}
+
+.card-badge.warning {
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+}
+
+.card-actions {
+    display: flex;
+    gap: var(--space-sm);
+    flex-shrink: 0;
+}
+
+.card-action-btn {
+    background: var(--color-neutral-100);
+    color: var(--color-neutral-600);
+    border-radius: var(--radius-md);
+    transition: all var(--duration-fast) var(--easing-standard);
+}
+
+.card-action-btn:hover {
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+    transform: scale(1.05);
+}
+
+.card-subtitle {
+    font-size: var(--font-size-sm);
+    color: var(--color-neutral-600);
+    margin: 0 0 var(--space-md) 0;
+    line-height: 1.4;
+}
+
+.card-content {
+    flex: 1;
+}
+
+.card-footer {
+    margin-top: var(--space-lg);
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--color-neutral-200);
+}
+
+/* Empty State Styling */
+.profile-card.empty-state {
+    text-align: center;
+    padding: var(--space-xxxxl) var(--space-xl);
+    background: linear-gradient(135deg, var(--color-surface) 0%, var(--color-neutral-50) 100%);
+}
+
+.profile-card.empty-state .card-title {
+    color: var(--color-neutral-700);
+    margin-bottom: var(--space-sm);
+}
+
+.profile-card.empty-state .card-subtitle {
+    color: var(--color-neutral-500);
+    margin-bottom: var(--space-xl);
+}
+
+/* Interactive Card */
+.profile-card.interactive {
+    cursor: pointer;
+}
+
+.profile-card.interactive:hover {
+    border-color: var(--color-primary);
+    transform: translateY(-4px);
+    box-shadow: var(--elevation-4);
+}
+
+.profile-card.interactive:active {
+    transform: translateY(-2px);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .profile-card {
+        padding: var(--space-lg);
+    }
+
+    .profile-card.compact {
+        padding: var(--space-md);
+    }
+
+    .card-header {
+        flex-direction: column;
+        gap: var(--space-md);
+        align-items: stretch;
+    }
+
+    .card-title-section {
+        justify-content: center;
+    }
+
+    .card-actions {
+        justify-content: center;
+    }
+
+    .card-title {
+        font-size: var(--font-size-base);
+    }
+}
