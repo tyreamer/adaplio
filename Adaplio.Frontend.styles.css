@@ -453,7 +453,7 @@
 
 .plan-card.active[b-2if9hq09sk] {
     border-color: var(--color-accent-teal);
-    background: linear-gradient(135deg, var(--color-surface) 0%, rgba(0, 191, 165, 0.02) 100%);
+    background: rgba(0, 191, 165, 0.02);
 }
 
 .plan-card.completed[b-2if9hq09sk] {
@@ -463,7 +463,7 @@
 
 .plan-card.pending[b-2if9hq09sk] {
     border-color: var(--color-primary);
-    background: linear-gradient(135deg, var(--color-surface) 0%, rgba(255, 122, 0, 0.02) 100%);
+    background: rgba(255, 122, 0, 0.02);
 }
 
 /* Plan Header */
@@ -571,7 +571,7 @@
 
 .progress-fill[b-2if9hq09sk] {
     height: 100%;
-    background: linear-gradient(90deg, var(--color-accent-teal) 0%, var(--color-primary) 100%);
+    background: var(--color-accent-teal);
     transition: width var(--duration-gentle) var(--easing-standard);
 }
 
@@ -822,7 +822,7 @@
 /* /Components/Profile/ProfileHero.razor.rz.scp.css */
 .profile-hero[b-ie52zlproj] {
     position: relative;
-    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent-teal) 100%);
+    background: var(--color-primary);
     color: white;
     overflow: hidden;
     min-height: 300px;
@@ -1726,9 +1726,7 @@
     position: relative;
     width: 100%;
     min-height: 500px;
-    background: linear-gradient(180deg,
-        var(--mud-palette-surface) 0%,
-        var(--mud-palette-background) 100%);
+    background: var(--mud-palette-surface);
     border-radius: 12px;
     padding: 24px;
     overflow: hidden;
@@ -1736,9 +1734,7 @@
 }
 
 .progress-ladder.dark-mode[b-541nbdrudk] {
-    background: linear-gradient(180deg,
-        var(--mud-palette-dark-surface) 0%,
-        var(--mud-palette-dark-background) 100%);
+    background: var(--mud-palette-dark-surface);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
@@ -1791,33 +1787,33 @@
 
 /* Tier States */
 .tier-active[b-541nbdrudk] {
-    background: linear-gradient(135deg, #22c55e, #16a34a);
+    background: #22c55e;
     color: white;
     border-color: #15803d;
     animation: tier-achieved-b-541nbdrudk 600ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 .tier-next[b-541nbdrudk] {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
+    background: #f59e0b;
     color: white;
     border-color: #b45309;
     animation: tier-pulse-b-541nbdrudk 2s ease-in-out infinite;
 }
 
 .tier-below-break-even[b-541nbdrudk] {
-    background: linear-gradient(135deg, #ef4444, #dc2626);
+    background: #ef4444;
     color: white;
     border-color: #b91c1c;
 }
 
 .tier-at-break-even[b-541nbdrudk] {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
+    background: #f59e0b;
     color: white;
     border-color: #b45309;
 }
 
 .tier-above-break-even[b-541nbdrudk] {
-    background: linear-gradient(135deg, #22c55e, #16a34a);
+    background: #22c55e;
     color: white;
     border-color: #15803d;
 }
@@ -1882,18 +1878,14 @@
     top: 0;
     bottom: 0;
     width: 4px;
-    background: linear-gradient(180deg,
-        var(--mud-palette-grey-light) 0%,
-        var(--mud-palette-grey-dark) 100%);
+    background: var(--mud-palette-grey-light);
     transform: translateX(-50%);
     z-index: 1;
     border-radius: 2px;
 }
 
 .dark-mode .progress-line[b-541nbdrudk] {
-    background: linear-gradient(180deg,
-        var(--mud-palette-dark-grey-light) 0%,
-        var(--mud-palette-dark-grey-dark) 100%);
+    background: var(--mud-palette-dark-grey-light);
 }
 
 /* Break-even Marker */
@@ -1905,7 +1897,7 @@
 }
 
 .break-even-pill[b-541nbdrudk] {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
+    background: #f59e0b;
     color: white;
     padding: 4px 12px;
     border-radius: 12px;
@@ -2398,7 +2390,7 @@ main[b-8w26qq34sf] {
 }
 
 .sidebar[b-8w26qq34sf] {
-    background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
+    background-color: rgb(5, 39, 103);
 }
 
 .top-row[b-8w26qq34sf] {
@@ -2545,7 +2537,7 @@ main[b-8w26qq34sf] {
 
 /* Active state with orange accent */
 [b-uqs4uc9jy7] .nav-item a.active {
-    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+    background: var(--color-primary);
     color: var(--color-primary-on);
     box-shadow: var(--elevation-2);
     font-weight: var(--font-weight-semibold);

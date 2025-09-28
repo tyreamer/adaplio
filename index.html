@@ -66,9 +66,22 @@
         // GitHub Pages SPA redirect handler
         (function(l) {
             if (l.search[1] === '/' ) {
-                var decoded = l.search.slice(1).split('&').map(function(s) {
-                    return s.replace(/~and~/g, '&')
-                }).join('?');
+                // First decode all ~and~ back to &, then split properly
+                var searchString = l.search.slice(1);
+                var decoded = searchString.replace(/~and~/g, '&');
+
+                // Convert /?/path&query=value to /path?query=value
+                var pathAndQuery = decoded.substring(1); // Remove leading /
+                var questionMarkIndex = pathAndQuery.indexOf('&');
+
+                if (questionMarkIndex > 0) {
+                    var path = pathAndQuery.substring(0, questionMarkIndex);
+                    var query = pathAndQuery.substring(questionMarkIndex + 1);
+                    decoded = '/' + path + '?' + query;
+                } else {
+                    decoded = '/' + pathAndQuery;
+                }
+
                 window.history.replaceState(null, null,
                     l.pathname.slice(0, -1) + decoded + l.hash
                 );

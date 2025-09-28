@@ -154,7 +154,7 @@ window.progressLadder = {
                 top: ${rect.top + rect.height / 2}px;
                 width: 8px;
                 height: 8px;
-                background: linear-gradient(45deg, #ffd700, #ffed4e);
+                background: #ffd700;
                 border-radius: 50%;
                 pointer-events: none;
                 z-index: 9999;
@@ -192,7 +192,7 @@ window.progressLadder = {
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) scale(0);
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #667eea;
             color: white;
             padding: 20px 30px;
             border-radius: 15px;
