@@ -260,7 +260,7 @@
 <style>
 .welcome-page {
     min-height: 100vh;
-    background: linear-gradient(135deg, var(--color-background) 0%, var(--color-neutral-50) 100%);
+    background: var(--color-background);
 }
 
 .hero-section {
@@ -293,10 +293,7 @@
 }
 
 .gradient-text {
-    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--color-primary);
 }
 
 .hero-subtitle {
@@ -434,7 +431,7 @@
 
 .chart-bar {
     width: 16px;
-    background: linear-gradient(to top, var(--color-success) 0%, var(--color-primary) 100%);
+    background: var(--color-success);
     border-radius: var(--radius-sm) var(--radius-sm) 0 0;
     opacity: 0.8;
 }
@@ -462,7 +459,7 @@
 }
 
 .demo-badge.earned {
-    background: linear-gradient(135deg, var(--color-warning) 0%, var(--color-primary) 100%);
+    background: var(--color-warning);
 }
 
 .demo-badge.locked {
@@ -562,7 +559,7 @@
     width: 80px;
     height: 80px;
     border-radius: var(--radius-xl);
-    background: linear-gradient(135deg, var(--color-neutral-50) 0%, var(--color-surface) 100%);
+    background: var(--color-surface);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -602,17 +599,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+    background: var(--color-primary);
     border-radius: var(--radius-md);
     color: white !important;
 }
 
 .brand-text {
     font-weight: var(--font-weight-semibold) !important;
-    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--color-primary);
 }
 
 </style>

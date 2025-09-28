@@ -207,7 +207,7 @@ else if (!AuthState.IsAuthenticated)
 
 <style>
 .landing-page {
-    background: linear-gradient(135deg, var(--mud-palette-background) 0%, var(--mud-palette-background-grey) 100%);
+    background: var(--mud-palette-background);
     min-height: 100vh;
 }
 
@@ -222,10 +222,7 @@ else if (!AuthState.IsAuthenticated)
 
 .hero-title {
     font-weight: var(--font-weight-bold) !important;
-    background: linear-gradient(135deg, var(--mud-palette-primary) 0%, var(--mud-palette-secondary) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--mud-palette-primary);
 }
 
 .hero-subtitle {

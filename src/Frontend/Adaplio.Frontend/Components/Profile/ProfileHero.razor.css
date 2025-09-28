@@ -1,6 +1,6 @@
 .profile-hero {
     position: relative;
-    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent-teal) 100%);
+    background: var(--color-primary);
     color: white;
     overflow: hidden;
     min-height: 300px;

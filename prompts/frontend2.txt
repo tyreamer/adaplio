@@ -1,0 +1,91 @@
+Task: Refactor the Blazor + MudBlazor frontend for Adaplio to feel like a premium 2025 SaaS app.
+
+1. Layout & Spacing
+
+Replace dense grid layouts with breathing room & whitespace.
+
+Use a 2-column layout on desktop (content + contextual panel), stack on mobile.
+
+Cards should feel lightweight, not heavy containers: rounded corners (20px), subtle shadows, increased padding.
+
+2. Visual Design
+
+Backgrounds: Dark Charcoal #1E2837 base, lighter grey cards #F5F5F5 in light mode.
+
+Hero Gradients: Smooth diagonal blends (charcoal → teal, charcoal → orange). Avoid harsh blocks.
+
+Card Aesthetic: Glassmorphic/translucent effect for modern feel.
+
+Typography: Inter/Poppins — headings at 20–24px, sublabels at 14px grey.
+
+3. Dashboard (Clients Overview)
+
+Client list = primary focus. Each client should be a wide row card with:
+
+Alias + name + scope badge (pill).
+
+Progress ring + adherence % prominent.
+
+Last activity in muted subtext.
+
+3-dot menu for actions (instead of inline buttons).
+
+Remove clutter: notifications, proposals, quick actions → move to drawer menus or top-right icons.
+
+Top bar: “Invite Client” button styled as pill CTA with orange accent.
+
+Add a subtle summary banner: “5 Clients · 83% Average Adherence” with teal highlight.
+
+4. Profile (Trainer/Client)
+
+Hero Card:
+
+Large circular avatar with progress ring.
+
+Name + role badge.
+
+Gradient header with floating CTA (“Invite Client” / “Add Trainer”).
+
+Tabs: Overview · Plans · Progress · Settings → styled as pill navigation (Linear.app style).
+
+Overview Tab:
+
+Left card: Client Statistics (big numbers, teal/orange highlights).
+
+Right card: Recent Activity feed (timeline style, with icons for Completed / Missed / Pending).
+
+Replace flat table look with timeline feed (avatars + event chips).
+
+Plans Tab: Grid of plans with status badge + progress bar.
+
+Progress Tab: Minimal chart with XP streak gamification hints.
+
+Settings Tab: Card-based toggles (Notifications, Privacy, Account).
+
+5. Interactions & Motion
+
+Hover states: lift cards slightly, glow accent border.
+
+Progress rings: animate on load (smooth 1s sweep).
+
+Tab transitions: slide/fade for modern flow.
+
+Add subtle microcopy in empty states (“Your recovery journey starts soon 🚀”).
+
+6. Consistency
+
+All icons in nav = line icons, no bulky filled icons.
+
+Use consistent pills & chips (Summary / Private / Completed / Missed).
+
+Stick to 3 highlight colors: Orange (action), Teal (positive/progress), Red (#E74C3C) for errors.
+
+Deliverables
+
+Refactor Clients.razor → minimal card list, action drawer.
+
+Refactor Profile.razor → gradient hero, timeline activity, tabbed layout.
+
+Add ClientCard.razor, TimelineEvent.razor components for reusability.
+
+Apply new theme tokens in DesignTokens.cs.
