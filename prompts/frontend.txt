@@ -1,208 +1,69 @@
-0) Design North Star (context prompt)
-You are the UI lead. Redesign Adaplio’s Blazor + MudBlazor frontend to look like a 2025 product-quality app.
+Task: Redesign the Trainer "Clients Overview" page in Blazor + MudBlazor to match a 2025 minimal SaaS aesthetic.
 
-Principles:
-- Design tokens → one source of truth for color, spacing, radius, elevation, typography (variable font). Enable brand theming. (Ref: Fluent 2 tokens) 
-- Intentional dark mode (not inverted), with contrast-corrected neutrals and subtle depth. 
-- Motion as feedback: small, purposeful transitions and microinteractions; respect prefers-reduced-motion. 
-- WCAG 2.2 AA: clear focus states, target sizes, non-obscured focus, keyboardable nav.
+Color System:
 
-Deliver end state:
-- A cohesive app shell + page templates + component library styling that feels premium, minimal-with-depth, and marketing-ready.
+Primary Accent: Energetic Orange #FF7A00 (calls to action, highlights).
 
+Core Neutral: Deep Charcoal #1E2837 (base backgrounds, text emphasis).
 
-(Trends & standards grounding: design tokens in modern systems; Material/MD3 color guidance and dynamic tonality; 2025 “minimalism with depth” + motion as feedback; WCAG 2.2 new criteria for focus/targets.) 
-W3C
-+3
-Fluent 2 Design System
-+3
-Material Design
-+3
+Secondary Accent: Teal #00BFA5 (positive states, charts, subtle highlights).
 
-1) Install + Theme System (tokens first)
-Task: Create a first-class design system layer.
+Light Neutral: Warm Light Grey #F5F5F5 (background, card surfaces).
 
-1) Add /src/Frontend/Adaplio.Frontend/Theme/DesignTokens.cs
-   - Public static class with tokens:
-     Colors (brand/neutral/success/warn/error; both light & dark roles),
-     Spacing scale (4, 8, 12, 16, 20, 24, 32, 40),
-     Radius scale (4, 8, 12, 16, 20),
-     Elevation (0..5 shadows),
-     Typography tokens (font families, sizes, weights),
-     Duration/Ease (fast=120ms, base=200ms, gentle=280ms; standard cubic-bezier).
-   - Export helpers for MudBlazor MudTheme generation (light + dark).
+Redesign Goals:
 
-2) Switch to a variable font (Inter or Manrope) via index.html:
-   - Preconnect + <link rel="preload" as="font"> for woff2.
-   - Set system fallbacks.
-   - Apply optical sizes and variable axes where supported.
+Declutter: Remove side-widgets from main page (Notifications, Recent Proposals, Quick Actions). Tuck them into a slide-out panel (accessible via top-right bell & plus icons).
 
-3) Create Theme/AdaplioTheme.cs
-   - Build MudTheme LightTheme & DarkTheme from DesignTokens.
-   - Customize: Primary/Secondary palettes, Info/Success/Warning/Error, Surface/Background, Appbar, Drawer, Default border radius, Elevation color.
-   - Define rich focus ring (3px visible outline) that meets WCAG 2.2 focus-appearance.
+Focus on Clients: Make the client list the hero of the page. Each client should be displayed in a wide card row with:
 
-4) Wire ThemeProvider
-   - In App.razor & MainLayout.razor replace default providers with a single MudThemeProvider using our AdaplioTheme.
-   - Persist theme mode (localStorage) and honor prefers-color-scheme.
-   - Provide a toggle in the header (icon-only button with proper tooltip/aria).
+Alias + display name
 
-5) Add wwwroot/css/theme.css
-   - CSS variables mapped from tokens (e.g., --space-*, --radius-*, --elev-*, --brand-*) for non-Mud surface elements.
-   - Respect :root[data-theme="dark"] overrides.
-   - Global focus style: non-obscured, 3px, contrasts in both schemes.
+Adherence % with a clean progress ring
 
+Scope (summary/private) as a small subtle pill
 
-(MudBlazor theming supports custom palettes/typography; use ThemeProvider correctly.) 
-MudBlazor
-+1
+Last activity timestamp
 
-2) App Shell & Navigation Redesign
-Task: Replace default Mud shell with a premium layout.
+Minimal action button (three-dot menu → "View Details", "Send Proposal")
 
-Changes:
-- MainLayout.razor: 
-  - AppBar: compact height, translucent surface, subtle backdrop blur (CSS), brand mark left, primary CTA right (e.g., “Invite Client” when trainer).
-  - Sidebar: collapsible, pill-styled active state, grouped sections (Trainer, Client, Account).
-  - Content area: max-width containers on dense pages; full-bleed for boards/charts.
-  - Add Skeletons for page loads; pull-to-refresh affordance on mobile.
+Navigation Simplification: Keep sidebar slim with icons + tooltips. Use the orange accent only on active nav item.
 
-- NavMenu.razor:
-  - Replace texty list with icon + label, medium density, large hit targets (>=44px).
-  - Keyboard nav with roving tabindex, aria-current for active.
+Typography: Use Inter or Poppins, larger headings, and lighter sub-labels.
 
-- State visuals:
-  - Loading: skeleton + progress bar.
-  - Empty: friendly illustration, clear CTA.
-  - Error: inline card with retry.
+Modern Layout:
 
-- Responsive:
-  - Breakpoints: sm 600, md 900, lg 1200, xl 1536.
-  - Drawer auto to temporary on < md; add bottom-nav variant for client role.
+White/light grey card backgrounds
 
-3) Hero Landing & “Shareable” Screens (viral-worthy)
-Task: Craft a marketing-ready home and showcase screens.
+Rounded corners (border-radius: 16px)
 
-- New route: /welcome (marketing hero)
-  - Above-the-fold hero: short punchy headline (Adaplio = adherence that sticks), 1–2 line subhead, primary CTA “Start as Trainer”, secondary “I’m a Client”.
-  - Product shots: 2–3 framed mock cards of Board, Adherence, Rewards with soft shadows & subtle gradient backgrounds.
-  - Social proof: stat chips (e.g., “+35% weekly adherence”), logos (placeholder), testimonial carousel.
-  - Footer: privacy-first statement + contact.
+Drop shadows subtle (Material 1dp–2dp)
 
-- Shareable client views:
-  - /adherence: add export/share (copy image of chart), nice summary card with weekly % delta.
-  - /rewards: badge grid with confetti microinteraction on unlock (reduced-motion safe).
+More spacing between cards (whitespace is key)
 
-- SEO basics in index.html: meta description, OpenGraph image, theme-color synced to brand.
+Notifications & Proposals:
 
-4) Page Templates (Plan, Board, Progress)
-Task: Redesign core flows for clarity and speed.
+Notifications: move to a bell icon in top nav → dropdown.
 
-- Trainer Templates (/trainer/templates):
-  - 2-column: left table of templates; right editor panel with stepper (Details → Items → Preview).
-  - Item chips with day-of-week pills (Mon–Sun). Drag to reorder.
+Recent Proposals: collapse into "Proposals" section in sidebar or modal, don’t keep inline.
 
-- Proposals (/trainer/proposals):
-  - Wizard: Select Client → Select Template → Start Date → Review → Send.
-  - Success screen with “Copy link” (if deep links) + “Propose another”.
+Quick Actions (New Proposal, Upload Video): move to floating + FAB button bottom-right.
 
-- Client Board (/board):
-  - 7-column weekly grid (Mon start). Cards show target (sets/reps/hold), status chip, quick “Done” or “Partial”.
-  - Swipe/keyboard shortcuts; bulk complete dialog for mobile convenience.
+Deliverables:
 
-- Progress (/progress):
-  - Focus on 3 inputs: What, How much, How did it feel (pain/difficulty sliders).
-  - After submit: celebratory snackbar with XP gain (from P6).
+Update Clients.razor to reflect this streamlined layout.
 
-5) Motion & Microinteractions
-Task: Add tasteful motion; respect accessibility.
+Create reusable ClientCard.razor component for each client.
 
-- Use CSS transitions for states (opacity, transform-y 4px, 120–200ms).
-- Microinteractions:
-  - Button press → subtle scale 0.98.
-  - Card hover → elevation + translateY(-2px).
-  - Confetti for badge unlock (prefers-reduced-motion: off).
-- Route transitions: fade+slide content container.
+Move Notifications and Quick Actions into MudBlazor MudMenu or MudDrawer (activated via icons).
 
+Apply new design tokens and theme consistently across this page.
 
-(“Motion as feedback” rather than decoration is a 2025 pattern.) 
-pixelmatters.com
+Ensure responsive layout (on mobile, cards stack, sidebar collapses to bottom nav).
 
-6) Accessibility (WCAG 2.2 AA) hardening
-Task: Implement WCAG 2.2 AA updates.
+References:
 
-- Focus Not Obscured: ensure sticky headers/sidebars leave room for focus outlines.
-- Focus Appearance: visible 3px ring with 4.5:1 contrast on both themes.
-- Target Size (Minimum): tap targets ≥ 44x44 CSS px.
-- Dragging Movements: provide non-drag alternative for any drag UI (e.g., reordering via buttons).
-- Consistent Help: add “Help” entry point consistently in app header.
-- Redundant Entry: remember prior info (e.g., email) to avoid re-entry.
-- Accessible Authentication (Minimum): keep magic link flow usable without cognitive tests (no puzzles).
+Stripe Dashboard (2025 aesthetic)
 
-Add an a11y scan script (axe-core) in CI for smoke checks.
+Linear.app (minimal UI, whitespace heavy, modern typography)
 
-
-(These are the new criteria in WCAG 2.2; reference official W3C pages.) 
-W3C
-+1
-
-7) Implementation Details (MudBlazor specifics)
-Task: Remove “Mud default” look.
-
-- Set MudTheme:
-  - Typography: Use variable font; adjust H1..H6, Body1/2, Button sizes & weights.
-  - Default border radius: 12–16px; Inputs 10–12px; Chips 9999px (pill).
-  - Elevation colors tuned (rgba with brand hue); softer shadows in dark mode.
-
-- Components:
-  - Buttons: 3 sizes (sm/md/lg), 3 variants (filled/tonal/outline), consistent icon spacing.
-  - Cards: padding tokens; header with overline + title, optional actions.
-  - Chips: states for planned/done/partial/skip with semantic colors.
-  - Charts: unify palette; add empty/loading placeholders.
-
-- CSS:
-  - Use :root variables from tokens; map to Mud classes where needed.
-  - Add container queries for Board to keep columns readable on narrow widths.
-
-
-(MudBlazor theming docs show how to customize palette/typography/elevation.) 
-MudBlazor
-+1
-
-8) Visual Language (ready-to-use brand seed)
-Task: Seed a modern palette & levels.
-
-Brand seed color: #2E90FA (azure blue)
-- Light scheme:
-  primary: #2E90FA
-  on-primary: #FFFFFF
-  secondary: #7A7D87
-  success: #12B76A
-  warning: #FDB022
-  error:   #F04438
-  neutral-0..900: tailored gray ramp (use 50/100/200/300/500/700/900)
-- Dark scheme:
-  primary: #7AB8FF
-  surface: #0E1116
-  on-surface: #E6EAF2
-- Radius: 12
-- Elevation: subtle RGB(20,24,30,0.24) shadow stack
-- Typography: Inter var; base 16px; H1 40/48 semibold; H2 32/40; H3 28/36; H4 24/32; H5 20/28; H6 18/26.
-
-Implement tokens, regenerate MudTheme, and replace all hard-coded colors with tokens.
-
-9) QA & Polish Checklist
-- Lighthouse: Performance ≥ 90, Accessibility ≥ 95, Best Practices ≥ 95.
-- Keyboard: Full nav without mouse; visible focus everywhere; no focus traps.
-- Mobile: 360px width friendly; bottom-nav variant; hit areas ≥ 44px.
-- Loading states: Skeletons for Board/Charts; no layout jump.
-- Empty states: Clear CTA on all major pages.
-- Theming: Light/Dark parity; test brand color contrast on graphs.
-
-10) Deliverables (so we can review quickly)
-- Theme/DesignTokens.cs and Theme/AdaplioTheme.cs
-- Updated App.razor, MainLayout.razor, NavMenu.razor
-- New pages: /welcome marketing, redesigned /board, /templates, /proposals, /progress, /adherence, /rewards
-- wwwroot/css/theme.css
-- README: “Design System & Theming” section with tokens explained
-- Before/After screenshots: welcome, board (light/dark), adherence chart, rewards
+Notion (soft neutrals + high-contrast highlights)

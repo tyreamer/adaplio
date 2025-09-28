@@ -1,19 +1,16 @@
+@using Adaplio.Frontend.Components.Profile
 @inject ISnackbar Snackbar
 
-<MudStack Spacing="6">
-    <!-- Header -->
-    <div class="form-header">
-        <MudText Typo="Typo.h6" Class="form-title">Clinic Information</MudText>
-        <MudText Typo="Typo.body2" Color="Color.Default">
-            Manage your professional details and clinic information.
-        </MudText>
+<div class="settings-content">
+    <div class="settings-header">
+        <h2>Clinic Information</h2>
+        <p>Manage your professional details and clinic information.</p>
     </div>
 
-    <!-- Professional Information -->
-    <MudPaper Class="pa-6" Variant="Variant.Outlined">
-        <MudStack Spacing="4">
-            <MudText Typo="Typo.subtitle1" Class="section-title">Professional Details</MudText>
-
+    <div class="settings-grid">
+        <!-- Professional Information -->
+        <ProfileCard Title="Professional Details"
+                    Icon="@Icons.Material.Filled.Badge">
             <MudGrid>
                 <MudItem xs="12" md="6">
                     <MudTextField @bind-Value="_displayName"
@@ -41,14 +38,11 @@
                                  HelperText="Professional license number" />
                 </MudItem>
             </MudGrid>
-        </MudStack>
-    </MudPaper>
+        </ProfileCard>
 
-    <!-- Clinic Information -->
-    <MudPaper Class="pa-6" Variant="Variant.Outlined">
-        <MudStack Spacing="4">
-            <MudText Typo="Typo.subtitle1" Class="section-title">Clinic Details</MudText>
-
+        <!-- Clinic Information -->
+        <ProfileCard Title="Clinic Details"
+                    Icon="@Icons.Material.Filled.Business">
             <MudGrid>
                 <MudItem xs="12" md="6">
                     <MudTextField @bind-Value="_clinicName"
@@ -92,18 +86,16 @@
                                  HelperText="Brief description of your background and specialties" />
                 </MudItem>
             </MudGrid>
-        </MudStack>
-    </MudPaper>
+        </ProfileCard>
 
-    <!-- Specialties -->
-    <MudPaper Class="pa-6" Variant="Variant.Outlined">
-        <MudStack Spacing="4">
-            <MudText Typo="Typo.subtitle1" Class="section-title">Specialties</MudText>
-
+        <!-- Specialties -->
+        <ProfileCard Title="Specialties"
+                    Icon="@Icons.Material.Filled.Psychology"
+                    CssClass="specialties-card">
             <div class="specialties-container">
                 @if (_specialties.Any())
                 {
-                    <MudStack Row Spacing="2" Class="mb-4">
+                    <div class="specialties-list">
                         @foreach (var specialty in _specialties)
                         {
                             <MudChip T="string"
@@ -116,33 +108,31 @@
                                 @specialty
                             </MudChip>
                         }
-                    </MudStack>
+                    </div>
                 }
 
-                <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                <div class="add-specialty">
                     <MudTextField @bind-Value="_newSpecialty"
                                  Label="Add Specialty"
                                  Variant="Variant.Outlined"
                                  @onkeypress="OnSpecialtyKeyPress"
                                  HelperText="Press Enter to add"
-                                 Class="flex-1" />
+                                 Class="specialty-input" />
                     <MudButton Variant="Variant.Outlined"
                               Color="Color.Primary"
                               OnClick="AddSpecialty"
                               StartIcon="@Icons.Material.Filled.Add"
-                              Disabled="@(string.IsNullOrWhiteSpace(_newSpecialty))">
+                              Disabled="@(string.IsNullOrWhiteSpace(_newSpecialty))"
+                              Class="add-button">
                         Add
                     </MudButton>
-                </MudStack>
+                </div>
             </div>
-        </MudStack>
-    </MudPaper>
+        </ProfileCard>
 
-    <!-- Default Settings -->
-    <MudPaper Class="pa-6" Variant="Variant.Outlined">
-        <MudStack Spacing="4">
-            <MudText Typo="Typo.subtitle1" Class="section-title">Default Settings</MudText>
-
+        <!-- Default Settings -->
+        <ProfileCard Title="Default Settings"
+                    Icon="@Icons.Material.Filled.Settings">
             <MudGrid>
                 <MudItem xs="12" md="6">
                     <MudTimePicker @bind-Time="_defaultReminderTime"
@@ -152,111 +142,222 @@
                                   AmPm="true" />
                 </MudItem>
             </MudGrid>
-        </MudStack>
-    </MudPaper>
+        </ProfileCard>
 
-    <!-- Logo Upload -->
-    <MudPaper Class="pa-6" Variant="Variant.Outlined">
-        <MudStack Spacing="4">
-            <MudText Typo="Typo.subtitle1" Class="section-title">Clinic Logo</MudText>
-
+        <!-- Clinic Logo -->
+        <ProfileCard Title="Clinic Logo"
+                    Icon="@Icons.Material.Filled.Image">
             <ImageUpload UploadType="logo"
                        CurrentImageUrl="@_logoUrl"
                        OnImageUploaded="OnLogoUploaded"
                        OnImageRemoved="OnLogoRemoved" />
-        </MudStack>
-    </MudPaper>
+        </ProfileCard>
 
-    <!-- Save Button -->
-    <div class="form-actions">
-        <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
-            <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
-                @if (_hasUnsavedChanges)
-                {
-                    <MudIcon Icon="@Icons.Material.Filled.Circle"
-                            Color="Color.Warning"
-                            Size="Size.Small"
-                            Class="unsaved-indicator" />
-                    <MudText Typo="Typo.caption" Color="Color.Warning">
-                        You have unsaved changes
-                    </MudText>
-                }
-                else if (_lastSaved.HasValue)
-                {
-                    <MudIcon Icon="@Icons.Material.Filled.Check"
-                            Color="Color.Success"
-                            Size="Size.Small" />
-                    <MudText Typo="Typo.caption" Color="Color.Success">
-                        Saved @_lastSaved.Value.ToString("HH:mm")
-                    </MudText>
-                }
-            </MudStack>
-
-            <MudButtonGroup Variant="Variant.Filled">
-                <MudButton Color="Color.Default"
-                          OnClick="ResetForm"
-                          Disabled="@(!_hasUnsavedChanges)"
-                          StartIcon="@Icons.Material.Filled.Refresh">
-                    Reset
-                </MudButton>
-
-                <MudButton Color="Color.Primary"
-                          OnClick="SaveProfile"
-                          Disabled="@(!_hasUnsavedChanges || _isSaving)"
-                          StartIcon="@(_isSaving ? null : Icons.Material.Filled.Save)">
-                    @if (_isSaving)
+        <!-- Save Actions -->
+        <ProfileCard Title="Save Changes"
+                    Icon="@Icons.Material.Filled.Save"
+                    CssClass="save-actions-card">
+            <div class="save-actions-content">
+                <div class="save-status">
+                    @if (_hasUnsavedChanges)
                     {
-                        <MudProgressCircular Size="Size.Small" Indeterminate="true" />
-                        <span class="ml-2">Saving...</span>
+                        <div class="status-indicator warning">
+                            <MudIcon Icon="@Icons.Material.Filled.Circle"
+                                    Color="Color.Warning"
+                                    Size="Size.Small" />
+                            <span>You have unsaved changes</span>
+                        </div>
+                    }
+                    else if (_lastSaved.HasValue)
+                    {
+                        <div class="status-indicator success">
+                            <MudIcon Icon="@Icons.Material.Filled.Check"
+                                    Color="Color.Success"
+                                    Size="Size.Small" />
+                            <span>Saved at @_lastSaved.Value.ToString("HH:mm")</span>
+                        </div>
                     }
                     else
                     {
-                        <span>Save Changes</span>
+                        <div class="status-indicator neutral">
+                            <MudIcon Icon="@Icons.Material.Filled.Info"
+                                    Color="Color.Default"
+                                    Size="Size.Small" />
+                            <span>Make changes to enable saving</span>
+                        </div>
                     }
-                </MudButton>
-            </MudButtonGroup>
-        </MudStack>
+                </div>
+
+                <div class="action-buttons">
+                    <MudButton Color="Color.Default"
+                              OnClick="ResetForm"
+                              Disabled="@(!_hasUnsavedChanges)"
+                              StartIcon="@Icons.Material.Filled.Refresh"
+                              Class="reset-button">
+                        Reset
+                    </MudButton>
+
+                    <MudButton Color="Color.Primary"
+                              OnClick="SaveProfile"
+                              Disabled="@(!_hasUnsavedChanges || _isSaving)"
+                              StartIcon="@(_isSaving ? null : Icons.Material.Filled.Save)"
+                              Class="save-button">
+                        @if (_isSaving)
+                        {
+                            <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                            <span>Saving...</span>
+                        }
+                        else
+                        {
+                            <span>Save Changes</span>
+                        }
+                    </MudButton>
+                </div>
+            </div>
+        </ProfileCard>
     </div>
-</MudStack>
+</div>
 
 <style>
-.form-header {
-    margin-bottom: var(--space-md);
+.settings-content {
+    width: 100%;
 }
 
-.form-title {
-    font-weight: var(--font-weight-semibold) !important;
-    margin-bottom: var(--space-xs);
+.settings-header {
+    margin-bottom: var(--space-xl);
 }
 
-.section-title {
-    font-weight: var(--font-weight-medium) !important;
-    color: var(--mud-palette-primary);
+.settings-header h2 {
+    font-family: var(--font-family-display);
+    font-size: var(--font-size-xxl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-neutral-900);
+    margin: 0 0 var(--space-sm) 0;
+}
+
+.settings-header p {
+    font-size: var(--font-size-base);
+    color: var(--color-neutral-600);
+    margin: 0;
+}
+
+.settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: var(--space-xl);
+}
+
+.specialties-card {
+    grid-column: 1 / -1;
 }
 
 .specialties-container {
-    min-height: 60px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
 }
 
-.form-actions {
-    border-top: 1px solid var(--mud-palette-divider);
-    padding-top: var(--space-lg);
-    margin-top: var(--space-lg);
+.specialties-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
 }
 
-.unsaved-indicator {
-    animation: pulse 2s infinite;
+.add-specialty {
+    display: flex;
+    gap: var(--space-md);
+    align-items: flex-end;
 }
 
-/* Keyframes temporarily disabled due to parsing issues */
-/*
-@@keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+.specialty-input {
+    flex: 1;
 }
-*/
 
-/* Mobile styles moved to profile.css for consistency */
+.add-button {
+    flex-shrink: 0;
+    height: 56px;
+}
+
+.save-actions-card {
+    grid-column: 1 / -1;
+}
+
+.save-actions-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-lg);
+}
+
+.save-status .status-indicator {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: var(--font-size-sm);
+}
+
+.status-indicator.warning span {
+    color: var(--color-primary);
+}
+
+.status-indicator.success span {
+    color: var(--color-accent-teal);
+}
+
+.status-indicator.neutral span {
+    color: var(--color-neutral-600);
+}
+
+.action-buttons {
+    display: flex;
+    gap: var(--space-md);
+}
+
+.reset-button,
+.save-button {
+    padding: var(--space-md) var(--space-lg);
+    border-radius: var(--radius-md);
+    font-weight: var(--font-weight-medium);
+}
+
+.save-button {
+    background: var(--color-primary);
+    color: white;
+}
+
+.save-button:hover:not(:disabled) {
+    background: var(--color-primary-dark);
+    transform: translateY(-1px);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .settings-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-lg);
+    }
+
+    .add-specialty {
+        flex-direction: column;
+        gap: var(--space-md);
+    }
+
+    .add-button {
+        height: auto;
+        align-self: stretch;
+    }
+
+    .save-actions-content {
+        flex-direction: column;
+        gap: var(--space-md);
+        align-items: stretch;
+    }
+
+    .action-buttons {
+        justify-content: center;
+    }
+}
 </style>
 
 @code {

@@ -1,0 +1,490 @@
+@using Adaplio.Frontend.Services
+@inject AuthStateService AuthState
+
+<div class="overview-content">
+    <div class="overview-grid">
+        @if (AuthState.IsClient)
+        {
+            <!-- Client Overview Cards -->
+            <ProfileCard Title="Adherence Summary"
+                        Icon="@Icons.Material.Filled.TrendingUp"
+                        Badge="85%"
+                        BadgeVariant="success"
+                        CssClass="success">
+                <div class="adherence-summary">
+                    <div class="adherence-chart">
+                        <svg viewBox="0 0 120 120" class="mini-chart">
+                            <circle cx="60" cy="60" r="40" fill="none" stroke="var(--color-neutral-200)" stroke-width="8"/>
+                            <circle cx="60" cy="60" r="40" fill="none" stroke="var(--color-accent-teal)" stroke-width="8"
+                                    stroke-dasharray="213" stroke-dashoffset="32" stroke-linecap="round" transform="rotate(-90 60 60)"/>
+                        </svg>
+                        <div class="chart-center">
+                            <div class="chart-value">85%</div>
+                            <div class="chart-label">This week</div>
+                        </div>
+                    </div>
+                    <div class="adherence-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Streak</span>
+                            <span class="detail-value">12 days</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Total exercises</span>
+                            <span class="detail-value">24/30</span>
+                        </div>
+                    </div>
+                </div>
+            </ProfileCard>
+
+            <ProfileCard Title="Your Trainer"
+                        Icon="@Icons.Material.Filled.Person"
+                        ActionIcon="@Icons.Material.Filled.Add"
+                        ShowActions="true"
+                        OnActionClick="@AddTrainer">
+                @if (HasTrainer)
+                {
+                    <div class="trainer-info">
+                        <div class="trainer-avatar">
+                            <MudAvatar Size="Size.Medium" Color="Color.Primary">DR</MudAvatar>
+                        </div>
+                        <div class="trainer-details">
+                            <div class="trainer-name">Dr. Sarah Wilson</div>
+                            <div class="trainer-email">dr.wilson@adaplio.com</div>
+                            <div class="trainer-since">Your trainer since March 2024</div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-trainer">
+                        <MudIcon Icon="@Icons.Material.Outlined.PersonSearch" Size="Size.Large" Color="Color.Secondary" />
+                        <p>You haven't connected with a trainer yet.</p>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@AddTrainer">
+                            Add Trainer
+                        </MudButton>
+                    </div>
+                }
+            </ProfileCard>
+
+            <ProfileCard Title="Recent Activity"
+                        Icon="@Icons.Material.Filled.History"
+                        CssClass="span-full">
+                <div class="activity-list">
+                    @foreach (var activity in RecentActivities.Take(3))
+                    {
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <MudIcon Icon="@GetActivityIcon(activity.Type)" Size="Size.Small" />
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-text">@activity.Description</div>
+                                <div class="activity-time">@GetRelativeTime(activity.Timestamp)</div>
+                            </div>
+                            <div class="activity-status @activity.Status.ToLower()">
+                                @activity.Status
+                            </div>
+                        </div>
+                    }
+                </div>
+                <Footer>
+                    <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth="true">
+                        View All Activity
+                    </MudButton>
+                </Footer>
+            </ProfileCard>
+        }
+        else if (AuthState.IsTrainer)
+        {
+            <!-- Trainer Overview Cards -->
+            <ProfileCard Title="Client Statistics"
+                        Icon="@Icons.Material.Filled.Group"
+                        Badge="@($"{TotalClients} clients")"
+                        BadgeVariant="primary">
+                <div class="client-stats">
+                    <div class="stat-grid">
+                        <div class="stat-item">
+                            <div class="stat-value">@TotalClients</div>
+                            <div class="stat-label">Total Clients</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">@($"{AverageAdherence}%")</div>
+                            <div class="stat-label">Avg. Adherence</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">@ActiveClients</div>
+                            <div class="stat-label">Active This Week</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">@CompletedPlans</div>
+                            <div class="stat-label">Plans Completed</div>
+                        </div>
+                    </div>
+                </div>
+            </ProfileCard>
+
+            <ProfileCard Title="Recent Client Activity"
+                        Icon="@Icons.Material.Filled.Timeline"
+                        CssClass="span-full">
+                <div class="client-activity-list">
+                    @foreach (var activity in RecentClientActivities.Take(4))
+                    {
+                        <div class="client-activity-item">
+                            <div class="client-avatar">
+                                <MudAvatar Size="Size.Small" Color="Color.Primary">
+                                    @activity.ClientInitials
+                                </MudAvatar>
+                            </div>
+                            <div class="client-activity-content">
+                                <div class="client-activity-text">
+                                    <strong>@activity.ClientAlias</strong> @activity.Description
+                                </div>
+                                <div class="client-activity-time">@GetRelativeTime(activity.Timestamp)</div>
+                            </div>
+                            <div class="activity-status @activity.Status.ToLower()">
+                                @activity.Status
+                            </div>
+                        </div>
+                    }
+                </div>
+                <Footer>
+                    <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth="true">
+                        View All Client Activity
+                    </MudButton>
+                </Footer>
+            </ProfileCard>
+        }
+    </div>
+</div>
+
+<style>
+.overview-content {
+    width: 100%;
+}
+
+.overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--space-xl);
+}
+
+.span-full {
+    grid-column: 1 / -1;
+}
+
+/* Adherence Summary */
+.adherence-summary {
+    display: flex;
+    gap: var(--space-xl);
+    align-items: center;
+}
+
+.adherence-chart {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    flex-shrink: 0;
+}
+
+.mini-chart {
+    width: 100%;
+    height: 100%;
+}
+
+.chart-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.chart-value {
+    font-family: var(--font-family-display);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-accent-teal);
+    line-height: 1;
+}
+
+.chart-label {
+    font-size: var(--font-size-xs);
+    color: var(--color-neutral-600);
+    margin-top: var(--space-xs);
+}
+
+.adherence-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm) 0;
+    border-bottom: 1px solid var(--color-neutral-200);
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    font-size: var(--font-size-sm);
+    color: var(--color-neutral-600);
+}
+
+.detail-value {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-neutral-900);
+}
+
+/* Trainer Info */
+.trainer-info {
+    display: flex;
+    gap: var(--space-lg);
+    align-items: center;
+}
+
+.trainer-details {
+    flex: 1;
+}
+
+.trainer-name {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-neutral-900);
+    margin-bottom: var(--space-xs);
+}
+
+.trainer-email {
+    font-size: var(--font-size-sm);
+    color: var(--color-neutral-600);
+    margin-bottom: var(--space-xs);
+}
+
+.trainer-since {
+    font-size: var(--font-size-xs);
+    color: var(--color-neutral-500);
+}
+
+.empty-trainer {
+    text-align: center;
+    padding: var(--space-xl) 0;
+}
+
+.empty-trainer p {
+    margin: var(--space-lg) 0;
+    color: var(--color-neutral-600);
+}
+
+/* Activity Lists */
+.activity-list,
+.client-activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.activity-item,
+.client-activity-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    background: var(--color-neutral-50);
+    transition: all var(--duration-fast) var(--easing-standard);
+}
+
+.activity-item:hover,
+.client-activity-item:hover {
+    background: var(--color-neutral-100);
+    transform: translateX(4px);
+}
+
+.activity-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.activity-content,
+.client-activity-content {
+    flex: 1;
+}
+
+.activity-text,
+.client-activity-text {
+    font-size: var(--font-size-sm);
+    color: var(--color-neutral-900);
+    margin-bottom: var(--space-xs);
+}
+
+.activity-time,
+.client-activity-time {
+    font-size: var(--font-size-xs);
+    color: var(--color-neutral-500);
+}
+
+.activity-status {
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-round);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    text-transform: uppercase;
+}
+
+.activity-status.completed {
+    background: var(--color-accent-teal-light);
+    color: var(--color-accent-teal);
+}
+
+.activity-status.missed {
+    background: var(--color-neutral-200);
+    color: var(--color-neutral-600);
+}
+
+.activity-status.pending {
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+}
+
+/* Client Stats */
+.stat-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-lg);
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-value {
+    font-family: var(--font-family-display);
+    font-size: var(--font-size-xxl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary);
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: var(--font-size-sm);
+    color: var(--color-neutral-600);
+    margin-top: var(--space-sm);
+}
+
+.client-avatar {
+    flex-shrink: 0;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .overview-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-lg);
+    }
+
+    .adherence-summary {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--space-lg);
+    }
+
+    .trainer-info {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .stat-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-md);
+    }
+}
+
+@media (max-width: 480px) {
+    .stat-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-lg);
+    }
+}
+</style>
+
+@code {
+    // Client properties
+    private bool HasTrainer = true;
+
+    private List<ActivityItem> RecentActivities = new()
+    {
+        new() { Type = "exercise", Description = "Completed Hip Flexor Stretch", Status = "Completed", Timestamp = DateTime.Now.AddMinutes(-30) },
+        new() { Type = "exercise", Description = "Missed Glute Bridge", Status = "Missed", Timestamp = DateTime.Now.AddHours(-2) },
+        new() { Type = "plan", Description = "Started Week 3 Protocol", Status = "Pending", Timestamp = DateTime.Now.AddHours(-6) }
+    };
+
+    // Trainer properties
+    private int TotalClients = 15;
+    private int AverageAdherence = 78;
+    private int ActiveClients = 12;
+    private int CompletedPlans = 34;
+
+    private List<ClientActivityItem> RecentClientActivities = new()
+    {
+        new() { ClientAlias = "C-AB12", ClientInitials = "SJ", Description = "completed Hip Extension", Status = "Completed", Timestamp = DateTime.Now.AddMinutes(-15) },
+        new() { ClientAlias = "C-CD34", ClientInitials = "MR", Description = "missed scheduled exercise", Status = "Missed", Timestamp = DateTime.Now.AddHours(-1) },
+        new() { ClientAlias = "C-EF56", ClientInitials = "AL", Description = "started new protocol", Status = "Pending", Timestamp = DateTime.Now.AddHours(-3) },
+        new() { ClientAlias = "C-GH78", ClientInitials = "JL", Description = "achieved 7-day streak", Status = "Completed", Timestamp = DateTime.Now.AddHours(-5) }
+    };
+
+    private async Task AddTrainer()
+    {
+        // Handle add trainer action
+    }
+
+    private string GetActivityIcon(string type)
+    {
+        return type switch
+        {
+            "exercise" => Icons.Material.Filled.FitnessCenter,
+            "plan" => Icons.Material.Filled.Assignment,
+            "progress" => Icons.Material.Filled.TrendingUp,
+            _ => Icons.Material.Filled.Circle
+        };
+    }
+
+    private string GetRelativeTime(DateTime timestamp)
+    {
+        var diff = DateTime.Now - timestamp;
+        if (diff.TotalMinutes < 60)
+            return $"{(int)diff.TotalMinutes}m ago";
+        if (diff.TotalHours < 24)
+            return $"{(int)diff.TotalHours}h ago";
+        return timestamp.ToString("MMM dd");
+    }
+
+    public class ActivityItem
+    {
+        public string Type { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string Status { get; set; } = "";
+        public DateTime Timestamp { get; set; }
+    }
+
+    public class ClientActivityItem
+    {
+        public string ClientAlias { get; set; } = "";
+        public string ClientInitials { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string Status { get; set; } = "";
+        public DateTime Timestamp { get; set; }
+    }
+}

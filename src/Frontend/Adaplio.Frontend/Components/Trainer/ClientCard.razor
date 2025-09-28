@@ -1,0 +1,174 @@
+@using Microsoft.AspNetCore.Components
+@inject IJSRuntime JSRuntime
+
+<div class="client-card">
+    <div class="client-card-header">
+        <div class="client-info">
+            <div class="client-alias">@ClientData.Alias</div>
+            @if (!string.IsNullOrWhiteSpace(ClientData.DisplayName))
+            {
+                <div class="client-display-name">@ClientData.DisplayName</div>
+            }
+        </div>
+
+        <div class="scope-pill @(ClientData.SharesSummary ? "scope-pill--summary" : "scope-pill--private")">
+            @(ClientData.SharesSummary ? "Summary" : "Private")
+        </div>
+    </div>
+
+    <div class="client-card-content">
+        <div class="client-stats">
+            <div class="adherence-section">
+                <div class="adherence-ring">
+                    <svg viewBox="0 0 36 36" class="adherence-circle">
+                        <path class="adherence-bg"
+                              d="M18 2.0845
+                                 a 15.9155 15.9155 0 0 1 0 31.831
+                                 a 15.9155 15.9155 0 0 1 0 -31.831"
+                              fill="none"
+                              stroke="var(--color-neutral-200)"
+                              stroke-width="2"/>
+                        <path class="adherence-progress"
+                              d="M18 2.0845
+                                 a 15.9155 15.9155 0 0 1 0 31.831
+                                 a 15.9155 15.9155 0 0 1 0 -31.831"
+                              fill="none"
+                              stroke="@GetAdherenceColor(ClientData.AdherencePercent)"
+                              stroke-width="2"
+                              stroke-dasharray="@(ClientData.AdherencePercent), 100"
+                              stroke-linecap="round"/>
+                    </svg>
+                    <div class="adherence-info">
+                        <div class="adherence-percentage">@ClientData.AdherencePercent%</div>
+                        <div class="adherence-label">Adherence</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="activity-section">
+                <div class="last-activity">@GetRelativeTime(ClientData.LastActivity)</div>
+                <div class="activity-label">Last Activity</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="client-card-actions">
+        <MudMenu Icon="@Icons.Material.Filled.MoreVert"
+                 AnchorOrigin="Origin.BottomRight"
+                 TransformOrigin="Origin.TopRight"
+                 Class="three-dot-menu">
+            <MudMenuItem OnClick="@(() => OnViewDetails.InvokeAsync(ClientData))"
+                        Disabled="@(!ClientData.SharesSummary)">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <MudIcon Icon="@Icons.Material.Filled.Visibility" Size="Size.Small" />
+                    View Details
+                </div>
+            </MudMenuItem>
+            <MudMenuItem OnClick="@(() => OnSendProposal.InvokeAsync(ClientData))">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <MudIcon Icon="@Icons.Material.Filled.Send" Size="Size.Small" />
+                    Send Proposal
+                </div>
+            </MudMenuItem>
+            <MudDivider />
+            <MudMenuItem OnClick="@(() => OnManageClient.InvokeAsync(ClientData))">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <MudIcon Icon="@Icons.Material.Filled.Settings" Size="Size.Small" />
+                    Manage Client
+                </div>
+            </MudMenuItem>
+        </MudMenu>
+    </div>
+</div>
+
+<style>
+.client-card-content {
+    margin-bottom: var(--space-lg);
+}
+
+.client-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.adherence-section {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.adherence-circle {
+    width: 48px;
+    height: 48px;
+}
+
+.adherence-info {
+    text-align: center;
+}
+
+.adherence-percentage {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-neutral-900);
+    line-height: 1;
+}
+
+.adherence-label, .activity-label {
+    font-size: var(--font-size-xs);
+    color: var(--color-neutral-500);
+    margin-top: var(--space-xs);
+}
+
+.activity-section {
+    text-align: right;
+}
+
+.last-activity {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-neutral-700);
+    line-height: 1;
+}
+
+.client-card-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.three-dot-menu {
+    padding: var(--space-xs);
+    border-radius: var(--radius-sm);
+    transition: background-color var(--duration-fast) var(--easing-standard);
+}
+
+.three-dot-menu:hover {
+    background-color: var(--color-neutral-100);
+}
+
+</style>
+
+@code {
+    [Parameter] public Adaplio.Frontend.Pages.HomeTrainer.ClientData ClientData { get; set; } = new();
+    [Parameter] public EventCallback<Adaplio.Frontend.Pages.HomeTrainer.ClientData> OnViewDetails { get; set; }
+    [Parameter] public EventCallback<Adaplio.Frontend.Pages.HomeTrainer.ClientData> OnSendProposal { get; set; }
+    [Parameter] public EventCallback<Adaplio.Frontend.Pages.HomeTrainer.ClientData> OnManageClient { get; set; }
+
+    private string GetAdherenceColor(int percentage)
+    {
+        return percentage >= 80 ? "var(--color-success)" :
+               percentage >= 60 ? "var(--color-warning)" :
+               "var(--color-error)";
+    }
+
+    private string GetRelativeTime(DateTime dateTime)
+    {
+        var timeSpan = DateTime.Now - dateTime;
+
+        return timeSpan.TotalMinutes < 60 ? $"{(int)timeSpan.TotalMinutes}m ago" :
+               timeSpan.TotalHours < 24 ? $"{(int)timeSpan.TotalHours}h ago" :
+               timeSpan.TotalDays < 7 ? $"{(int)timeSpan.TotalDays}d ago" :
+               dateTime.ToString("MMM dd");
+    }
+
+}

@@ -10,31 +10,31 @@ public static class DesignTokens
     {
         public static class Light
         {
-            // Brand Colors - Azure Blue foundation
-            public const string Primary = "#2E90FA";
+            // 2025 Color System - Energetic Orange Primary & Deep Charcoal Base
+            public const string Primary = "#FF7A00";
             public const string OnPrimary = "#FFFFFF";
-            public const string PrimaryContainer = "#E6F4FF";
-            public const string OnPrimaryContainer = "#001F3D";
+            public const string PrimaryContainer = "#FFF4EC";
+            public const string OnPrimaryContainer = "#2D1B00";
 
-            public const string Secondary = "#7A7D87";
+            public const string Secondary = "#1E2837";
             public const string OnSecondary = "#FFFFFF";
-            public const string SecondaryContainer = "#F4F5F6";
-            public const string OnSecondaryContainer = "#2D3142";
+            public const string SecondaryContainer = "#F5F5F5";
+            public const string OnSecondaryContainer = "#1E2837";
 
-            public const string Tertiary = "#5C6AC4";
+            public const string Tertiary = "#00BFA5";
             public const string OnTertiary = "#FFFFFF";
-            public const string TertiaryContainer = "#E8EAFF";
-            public const string OnTertiaryContainer = "#1A1B3A";
+            public const string TertiaryContainer = "#E0F7F4";
+            public const string OnTertiaryContainer = "#003530";
 
-            // State Colors - Semantic system
-            public const string Success = "#12B76A";
+            // State Colors - Semantic system with 2025 accents
+            public const string Success = "#00BFA5";
             public const string OnSuccess = "#FFFFFF";
-            public const string SuccessContainer = "#E6F7F1";
-            public const string OnSuccessContainer = "#002818";
+            public const string SuccessContainer = "#E0F7F4";
+            public const string OnSuccessContainer = "#003530";
 
-            public const string Warning = "#FDB022";
-            public const string OnWarning = "#000000";
-            public const string WarningContainer = "#FFF8E6";
+            public const string Warning = "#FF7A00";
+            public const string OnWarning = "#FFFFFF";
+            public const string WarningContainer = "#FFF4EC";
             public const string OnWarningContainer = "#2D1B00";
 
             public const string Error = "#F04438";
@@ -42,36 +42,36 @@ public static class DesignTokens
             public const string ErrorContainer = "#FFEAE9";
             public const string OnErrorContainer = "#2D0A0A";
 
-            public const string Info = "#2E90FA";
+            public const string Info = "#00BFA5";
             public const string OnInfo = "#FFFFFF";
-            public const string InfoContainer = "#E6F4FF";
-            public const string OnInfoContainer = "#001F3D";
+            public const string InfoContainer = "#E0F7F4";
+            public const string OnInfoContainer = "#003530";
 
-            // Surface & Background - Layered system
-            public const string Background = "#FCFCFD";
-            public const string OnBackground = "#101828";
+            // Surface & Background - Warm Light Grey foundation
+            public const string Background = "#F5F5F5";
+            public const string OnBackground = "#1E2837";
             public const string Surface = "#FFFFFF";
-            public const string OnSurface = "#101828";
-            public const string SurfaceVariant = "#F9FAFB";
-            public const string OnSurfaceVariant = "#344054";
-            public const string SurfaceTint = "#2E90FA";
+            public const string OnSurface = "#1E2837";
+            public const string SurfaceVariant = "#F5F5F5";
+            public const string OnSurfaceVariant = "#1E2837";
+            public const string SurfaceTint = "#FF7A00";
 
             public const string InverseSurface = "#2A343E";
             public const string InverseOnSurface = "#F2F4F7";
             public const string InversePrimary = "#7AB8FF";
 
-            // Neutral Scale - Tailored gray ramp
+            // Neutral Scale - 2025 Warm Grey System
             public const string Neutral0 = "#FFFFFF";
-            public const string Neutral50 = "#F9FAFB";
-            public const string Neutral100 = "#F2F4F7";
-            public const string Neutral200 = "#EAECF0";
-            public const string Neutral300 = "#D0D5DD";
-            public const string Neutral400 = "#98A2B3";
-            public const string Neutral500 = "#667085";
-            public const string Neutral600 = "#475467";
-            public const string Neutral700 = "#344054";
-            public const string Neutral800 = "#1D2939";
-            public const string Neutral900 = "#101828";
+            public const string Neutral50 = "#FAFAFA";
+            public const string Neutral100 = "#F5F5F5";
+            public const string Neutral200 = "#EEEEEE";
+            public const string Neutral300 = "#E0E0E0";
+            public const string Neutral400 = "#BDBDBD";
+            public const string Neutral500 = "#9E9E9E";
+            public const string Neutral600 = "#757575";
+            public const string Neutral700 = "#616161";
+            public const string Neutral800 = "#424242";
+            public const string Neutral900 = "#1E2837";
 
             // Interactive states
             public const string Outline = "#D0D5DD";
@@ -82,42 +82,42 @@ public static class DesignTokens
 
         public static class Dark
         {
-            // Brand Colors - Contrast-corrected for dark
-            public const string Primary = "#7AB8FF";
-            public const string OnPrimary = "#0E1116";
-            public const string PrimaryContainer = "#1A365D";
-            public const string OnPrimaryContainer = "#B8E6FF";
+            // 2025 Dark Theme - Adjusted Orange & Teal
+            public const string Primary = "#FF9D47";
+            public const string OnPrimary = "#1E2837";
+            public const string PrimaryContainer = "#CC5500";
+            public const string OnPrimaryContainer = "#FFF4EC";
 
-            public const string Secondary = "#9CA3AF";
-            public const string OnSecondary = "#111827";
-            public const string SecondaryContainer = "#374151";
-            public const string OnSecondaryContainer = "#D1D7E0";
+            public const string Secondary = "#F5F5F5";
+            public const string OnSecondary = "#1E2837";
+            public const string SecondaryContainer = "#424242";
+            public const string OnSecondaryContainer = "#F5F5F5";
 
-            public const string Tertiary = "#8B95FF";
-            public const string OnTertiary = "#1A1B3A";
-            public const string TertiaryContainer = "#2D3142";
-            public const string OnTertiaryContainer = "#C7CCFF";
+            public const string Tertiary = "#26E5CC";
+            public const string OnTertiary = "#1E2837";
+            public const string TertiaryContainer = "#008570";
+            public const string OnTertiaryContainer = "#E0F7F4";
 
             // State Colors - Dark mode optimized
-            public const string Success = "#22C55E";
-            public const string OnSuccess = "#0F1011";
-            public const string SuccessContainer = "#14532D";
-            public const string OnSuccessContainer = "#BBF7D0";
+            public const string Success = "#26E5CC";
+            public const string OnSuccess = "#1E2837";
+            public const string SuccessContainer = "#008570";
+            public const string OnSuccessContainer = "#E0F7F4";
 
-            public const string Warning = "#F59E0B";
-            public const string OnWarning = "#0F1011";
-            public const string WarningContainer = "#78350F";
-            public const string OnWarningContainer = "#FDE68A";
+            public const string Warning = "#FF9D47";
+            public const string OnWarning = "#1E2837";
+            public const string WarningContainer = "#CC5500";
+            public const string OnWarningContainer = "#FFF4EC";
 
-            public const string Error = "#EF4444";
+            public const string Error = "#FF6B6B";
             public const string OnError = "#FFFFFF";
-            public const string ErrorContainer = "#7F1D1D";
-            public const string OnErrorContainer = "#FECACA";
+            public const string ErrorContainer = "#CC1A1A";
+            public const string OnErrorContainer = "#FFEAE9";
 
-            public const string Info = "#7AB8FF";
-            public const string OnInfo = "#0E1116";
-            public const string InfoContainer = "#1A365D";
-            public const string OnInfoContainer = "#B8E6FF";
+            public const string Info = "#26E5CC";
+            public const string OnInfo = "#1E2837";
+            public const string InfoContainer = "#008570";
+            public const string OnInfoContainer = "#E0F7F4";
 
             // Surface & Background - Subtle depth
             public const string Background = "#070B0F";
@@ -172,18 +172,18 @@ public static class DesignTokens
     }
 
     /// <summary>
-    /// Border radius scale for cohesive roundness
+    /// Border radius scale for 2025 modern roundness
     /// </summary>
     public static class BorderRadius
     {
         public const int None = 0;
         public const int XS = 4;
-        public const int SM = 6;
-        public const int MD = 8;
-        public const int LG = 12;
-        public const int XL = 16;
-        public const int XXL = 20;
-        public const int XXXL = 24;
+        public const int SM = 8;
+        public const int MD = 12;
+        public const int LG = 16;   // Primary radius for modern cards
+        public const int XL = 20;
+        public const int XXL = 24;
+        public const int XXXL = 32;
         public const int Round = 9999; // Pill shape
     }
 
@@ -220,7 +220,8 @@ public static class DesignTokens
     {
         public static class FontFamily
         {
-            public const string Primary = "Inter Variable, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+            public const string Primary = "'Inter', 'Inter Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif";
+            public const string Display = "'Poppins', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif";
             public const string Mono = "JetBrains Mono Variable, JetBrains Mono, 'SF Mono', Monaco, Inconsolata, 'Roboto Mono', Consolas, 'Courier New', monospace";
         }
 

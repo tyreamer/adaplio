@@ -1,83 +1,225 @@
-.navbar-toggler {
-    background-color: rgba(255, 255, 255, 0.1);
+/* 2025 Minimal SaaS Navigation */
+::deep .nav-menu {
+    background: var(--color-surface);
+    border-right: 1px solid var(--color-neutral-200);
+    padding: var(--space-lg) 0;
+    width: 280px;
+    transition: all var(--duration-base) var(--easing-standard);
 }
 
-.top-row {
-    height: 3.5rem;
-    background-color: rgba(0,0,0,0.4);
+/* Slim navigation with icons */
+::deep .nav-menu.mini-nav {
+    width: 72px;
+    padding: var(--space-lg) var(--space-sm);
 }
 
-.navbar-brand {
-    font-size: 1.1rem;
+.nav-section {
+    margin-bottom: var(--space-xl);
 }
 
-.bi {
-    display: inline-block;
+.nav-section-title {
+    font-family: var(--font-family-display);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-neutral-500);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0 var(--space-lg) var(--space-sm);
+    margin-bottom: var(--space-md);
+}
+
+::deep .nav-menu.mini-nav .nav-section-title {
+    display: none;
+}
+
+::deep .nav-item {
+    margin: 0 var(--space-lg) var(--space-xs);
+    border-radius: var(--radius-lg);
+    transition: all var(--duration-fast) var(--easing-standard);
     position: relative;
-    width: 1.25rem;
-    height: 1.25rem;
-    margin-right: 0.75rem;
-    top: -1px;
-    background-size: cover;
 }
 
-.bi-house-door-fill-nav-menu {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='white' class='bi bi-house-door-fill' viewBox='0 0 16 16'%3E%3Cpath d='M6.5 14.5v-3.505c0-.245.25-.495.5-.495h2c.25 0 .5.25.5.5v3.5a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5Z'/%3E%3C/svg%3E");
+::deep .nav-menu.mini-nav .nav-item {
+    margin: 0 var(--space-sm) var(--space-xs);
+    display: flex;
+    justify-content: center;
 }
 
-.bi-plus-square-fill-nav-menu {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='white' class='bi bi-plus-square-fill' viewBox='0 0 16 16'%3E%3Cpath d='M2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2zm6.5 4.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3a.5.5 0 0 1 1 0z'/%3E%3C/svg%3E");
+::deep .nav-item a {
+    display: flex;
+    align-items: center;
+    padding: var(--space-md) var(--space-lg);
+    border-radius: var(--radius-lg);
+    color: var(--color-neutral-700);
+    text-decoration: none;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    transition: all var(--duration-fast) var(--easing-standard);
+    position: relative;
+    overflow: hidden;
 }
 
-.bi-list-nested-nav-menu {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='white' class='bi bi-list-nested' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M4.5 11.5A.5.5 0 0 1 5 11h10a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5zm-2-4A.5.5 0 0 1 3 7h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm-2-4A.5.5 0 0 1 1 3h10a.5.5 0 0 1 0 1H1a.5.5 0 0 1-.5-.5z'/%3E%3C/svg%3E");
+::deep .nav-menu.mini-nav .nav-item a {
+    padding: var(--space-md);
+    justify-content: center;
+    width: 48px;
+    height: 48px;
 }
 
-.nav-item {
-    font-size: 0.9rem;
-    padding-bottom: 0.5rem;
+::deep .nav-item a:hover {
+    background: var(--color-neutral-100);
+    color: var(--color-neutral-900);
+    transform: translateX(2px);
 }
 
-    .nav-item:first-of-type {
-        padding-top: 1rem;
+::deep .nav-menu.mini-nav .nav-item a:hover {
+    transform: scale(1.05);
+}
+
+/* Active state with orange accent */
+::deep .nav-item a.active {
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+    color: var(--color-primary-on);
+    box-shadow: var(--elevation-2);
+    font-weight: var(--font-weight-semibold);
+}
+
+::deep .nav-item a.active:hover {
+    transform: translateX(0);
+    box-shadow: var(--elevation-3);
+}
+
+::deep .nav-menu.mini-nav .nav-item a.active:hover {
+    transform: scale(1.05);
+}
+
+/* Icon styling */
+::deep .nav-item .mud-icon-root {
+    margin-right: var(--space-md);
+    font-size: 20px;
+    transition: transform var(--duration-fast) var(--easing-standard);
+}
+
+::deep .nav-menu.mini-nav .nav-item .mud-icon-root {
+    margin-right: 0;
+}
+
+::deep .nav-item a.active .mud-icon-root {
+    transform: scale(1.1);
+}
+
+/* Text labels in mini mode */
+::deep .nav-menu.mini-nav .nav-item .nav-text {
+    display: none;
+}
+
+/* Divider styling */
+.nav-divider {
+    margin: var(--space-xl) var(--space-lg);
+    background: var(--color-neutral-200);
+    height: 1px;
+}
+
+::deep .nav-menu.mini-nav .nav-divider {
+    margin: var(--space-xl) var(--space-sm);
+}
+
+/* User info section */
+.user-info {
+    padding: var(--space-lg);
+    border-top: 1px solid var(--color-neutral-200);
+    margin-top: var(--space-xl);
+}
+
+::deep .nav-menu.mini-nav .user-info {
+    display: none;
+}
+
+.user-info .mud-text {
+    font-size: var(--font-size-xs);
+    margin-bottom: var(--space-sm);
+}
+
+/* Responsive behavior */
+@media (max-width: 900px) {
+    ::deep .nav-menu {
+        position: fixed;
+        top: 0;
+        left: -280px;
+        height: 100vh;
+        z-index: var(--z-modal);
+        box-shadow: var(--elevation-5);
+        transition: left var(--duration-gentle) var(--easing-standard);
     }
 
-    .nav-item:last-of-type {
-        padding-bottom: 1rem;
+    ::deep .nav-menu.open {
+        left: 0;
     }
 
-    .nav-item ::deep a {
-        color: #d7d7d7;
-        border-radius: 4px;
-        height: 3rem;
+    /* Bottom navigation for mobile */
+    .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--color-surface);
+        border-top: 1px solid var(--color-neutral-200);
+        padding: var(--space-sm) 0;
+        z-index: var(--z-fixed);
         display: flex;
+        justify-content: space-around;
         align-items: center;
-        line-height: 3rem;
     }
 
-.nav-item ::deep a.active {
-    background-color: rgba(255,255,255,0.37);
-    color: white;
+    .bottom-nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--space-xs);
+        padding: var(--space-sm);
+        border-radius: var(--radius-md);
+        color: var(--color-neutral-600);
+        text-decoration: none;
+        font-size: var(--font-size-xs);
+        font-weight: var(--font-weight-medium);
+        transition: all var(--duration-fast) var(--easing-standard);
+        min-width: 60px;
+    }
+
+    .bottom-nav-item:hover,
+    .bottom-nav-item.active {
+        color: var(--color-primary);
+        background: var(--color-primary-light);
+    }
 }
 
-.nav-item ::deep a:hover {
-    background-color: rgba(255,255,255,0.1);
-    color: white;
-}
-
-@media (min-width: 641px) {
-    .navbar-toggler {
-        display: none;
+/* Tooltips for mini mode */
+@media (min-width: 901px) {
+    ::deep .nav-menu.mini-nav .nav-item {
+        position: relative;
     }
 
-    .collapse {
-        /* Never collapse the sidebar for wide screens */
-        display: block;
+    ::deep .nav-menu.mini-nav .nav-item:hover::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        left: 100%;
+        top: 50%;
+        transform: translateY(-50%);
+        background: var(--color-neutral-900);
+        color: var(--color-neutral-50);
+        padding: var(--space-sm) var(--space-md);
+        border-radius: var(--radius-md);
+        font-size: var(--font-size-xs);
+        white-space: nowrap;
+        z-index: var(--z-tooltip);
+        margin-left: var(--space-sm);
+        opacity: 0;
+        animation: tooltipFadeIn var(--duration-fast) var(--easing-standard) forwards;
     }
-    
-    .nav-scrollable {
-        /* Allow sidebar to scroll for tall menus */
-        height: calc(100vh - 3.5rem);
-        overflow-y: auto;
+
+    @keyframes tooltipFadeIn {
+        to {
+            opacity: 1;
+        }
     }
 }

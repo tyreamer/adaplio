@@ -4,243 +4,198 @@
 @inject AuthorizationService Authorization
 @inject ISnackbar Snackbar
 
-<MudTabs Elevation="0"
-         Rounded="true"
-         ApplyEffectsToContainer="true"
-         Class="profile-tabs"
-         @bind-ActiveTab="@_activeTab">
+<div class="modern-profile-tabs">
+    <!-- Modern Tab Navigation -->
+    <div class="tab-navigation">
+        <div class="tab-nav-container">
+            <button class="tab-button @(_activeTab == 0 ? "active" : "")" @onclick="@(() => SetActiveTab(0))">
+                <MudIcon Icon="@Icons.Material.Filled.Dashboard" Size="Size.Small" />
+                <span class="tab-text">Overview</span>
+            </button>
+            <button class="tab-button @(_activeTab == 1 ? "active" : "")" @onclick="@(() => SetActiveTab(1))">
+                <MudIcon Icon="@Icons.Material.Filled.Assignment" Size="Size.Small" />
+                <span class="tab-text">Plans</span>
+            </button>
+            <button class="tab-button @(_activeTab == 2 ? "active" : "")" @onclick="@(() => SetActiveTab(2))">
+                <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="Size.Small" />
+                <span class="tab-text">Progress</span>
+            </button>
+            <button class="tab-button @(_activeTab == 3 ? "active" : "")" @onclick="@(() => SetActiveTab(3))">
+                <MudIcon Icon="@Icons.Material.Filled.Settings" Size="Size.Small" />
+                <span class="tab-text">Settings</span>
+            </button>
+        </div>
+    </div>
 
-    <!-- Personal/Clinic Tab -->
-    <AuthorizeView>
-        <ChildContent>
-            <MudTabPanel Class="tab-panel" Icon="@GetPersonalTabIcon()" Text="@GetPersonalTabTitle()">
-            <div class="tab-content">
+    <!-- Tab Content -->
+    <div class="tab-content-area">
+        <!-- Overview Tab -->
+        @if (_activeTab == 0)
+        {
+            <div class="tab-panel">
+                <OverviewTabContent />
+            </div>
+        }
+
+        <!-- Plans Tab -->
+        @if (_activeTab == 1)
+        {
+            <div class="tab-panel">
+                <PlansTabContent />
+            </div>
+        }
+
+        <!-- Progress Tab -->
+        @if (_activeTab == 2)
+        {
+            <div class="tab-panel">
+                <ProgressTabContent />
+            </div>
+        }
+
+        <!-- Settings Tab -->
+        @if (_activeTab == 3)
+        {
+            <div class="tab-panel">
                 @if (AuthState.IsClient)
                 {
-                    <AuthorizeView>
-                        <ChildContent>
-                            <ClientProfileForm />
-                        </ChildContent>
-                        <NotAuthorizedContent>
-                            <MudAlert Severity="Severity.Warning">
-                                This section is only available for clients.
-                            </MudAlert>
-                        </NotAuthorizedContent>
-                    </AuthorizeView>
+                    <ClientProfileForm />
                 }
                 else if (AuthState.IsTrainer)
                 {
-                    <AuthorizeView>
-                        <ChildContent>
-                            <TrainerProfileForm />
-                        </ChildContent>
-                        <NotAuthorizedContent>
-                            <MudAlert Severity="Severity.Warning">
-                                This section is only available for trainers.
-                            </MudAlert>
-                        </NotAuthorizedContent>
-                    </AuthorizeView>
+                    <TrainerProfileForm />
                 }
-            </div>
-            </MudTabPanel>
-        </ChildContent>
-        <NotAuthorizedContent>
-            <MudTabPanel Class="tab-panel" Icon="@Icons.Material.Filled.Lock" Text="Profile" Disabled="true">
-                <div class="tab-content">
+                else
+                {
                     <MudAlert Severity="Severity.Error">
                         You don't have permission to edit your profile.
                     </MudAlert>
-                </div>
-            </MudTabPanel>
-        </NotAuthorizedContent>
-    </AuthorizeView>
-
-    <!-- Notifications Tab -->
-    <AuthorizeView>
-        <ChildContent>
-            <MudTabPanel Class="tab-panel" Icon="@Icons.Material.Filled.Notifications" Text="Notifications">
-            <div class="tab-content">
-                <NotificationSettings />
+                }
             </div>
-            </MudTabPanel>
-        </ChildContent>
-        <NotAuthorizedContent>
-            <MudTabPanel Class="tab-panel" Icon="@Icons.Material.Filled.NotificationsOff" Text="Notifications" Disabled="true">
-                <div class="tab-content">
-                    <MudAlert Severity="Severity.Error">
-                        You don't have permission to manage notifications.
-                    </MudAlert>
-                </div>
-            </MudTabPanel>
-        </NotAuthorizedContent>
-    </AuthorizeView>
-
-    <!-- Privacy & Sharing Tab (Client only) -->
-    <AuthorizeView>
-        <ChildContent>
-            <MudTabPanel Class="tab-panel" Icon="@Icons.Material.Filled.PrivacyTip" Text="Privacy & Sharing">
-                <div class="tab-content">
-                    <PrivacySettings />
-                </div>
-            </MudTabPanel>
-        </ChildContent>
-    </AuthorizeView>
-
-    <!-- Account Tab -->
-    <AuthorizeView>
-        <ChildContent>
-            <MudTabPanel Class="tab-panel" Icon="@Icons.Material.Filled.AccountCircle" Text="Account">
-            <div class="tab-content">
-                <AccountSettings />
-            </div>
-            </MudTabPanel>
-        </ChildContent>
-        <NotAuthorizedContent>
-            <MudTabPanel Class="tab-panel" Icon="@Icons.Material.Filled.Lock" Text="Account" Disabled="true">
-                <div class="tab-content">
-                    <MudAlert Severity="Severity.Error">
-                        You must be authenticated to access account settings.
-                    </MudAlert>
-                </div>
-            </MudTabPanel>
-        </NotAuthorizedContent>
-    </AuthorizeView>
-
-    <!-- Help Tab -->
-    <MudTabPanel Class="tab-panel" Icon="@Icons.Material.Filled.Help" Text="Help">
-        <div class="tab-content">
-            <MudStack Spacing="4">
-                <MudText Typo="Typo.h6">Help & Support</MudText>
-
-                <MudPaper Class="pa-4" Variant="Variant.Outlined">
-                    <MudStack Spacing="3">
-                        <MudText Typo="Typo.subtitle1">Quick Links</MudText>
-
-                        <MudList T="string" Dense="true">
-                            <MudListItem T="string" Icon="@Icons.Material.Filled.QuestionAnswer"
-                                        Text="FAQ"
-                                        OnClick="@(() => ShowComingSoon("FAQ"))" />
-                            <MudListItem T="string" Icon="@Icons.Material.Filled.ContactSupport"
-                                        Text="Contact Support"
-                                        OnClick="@(() => ShowComingSoon("Contact Support"))" />
-                            <MudListItem T="string" Icon="@Icons.Material.Filled.Book"
-                                        Text="User Guide"
-                                        OnClick="@(() => ShowComingSoon("User Guide"))" />
-                            <MudListItem T="string" Icon="@Icons.Material.Filled.Security"
-                                        Text="Privacy Policy"
-                                        OnClick="@(() => ShowComingSoon("Privacy Policy"))" />
-                            <MudListItem T="string" Icon="@Icons.Material.Filled.Gavel"
-                                        Text="Terms of Service"
-                                        OnClick="@(() => ShowComingSoon("Terms of Service"))" />
-                        </MudList>
-                    </MudStack>
-                </MudPaper>
-
-                <MudPaper Class="pa-4" Variant="Variant.Outlined">
-                    <MudStack Spacing="2">
-                        <MudText Typo="Typo.subtitle1">App Version</MudText>
-                        <MudText Typo="Typo.body2" Color="Color.Default">
-                            Adaplio v1.0.0
-                        </MudText>
-                        <MudText Typo="Typo.caption" Color="Color.Default">
-                            Last updated: @DateTime.Now.ToString("MMMM dd, yyyy")
-                        </MudText>
-                    </MudStack>
-                </MudPaper>
-            </MudStack>
-        </div>
-    </MudTabPanel>
-</MudTabs>
+        }
+    </div>
+</div>
 
 <style>
-.profile-tabs {
+.modern-profile-tabs {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--elevation-2);
+}
+
+.tab-navigation {
+    background: var(--color-neutral-100);
+    padding: var(--space-xs);
+    border-bottom: 1px solid var(--color-neutral-200);
+}
+
+.tab-nav-container {
+    display: flex;
+    gap: var(--space-xs);
     width: 100%;
-}
-
-.profile-tabs ::deep .mud-tabs-header {
-    background: transparent;
-    border-bottom: 1px solid var(--mud-palette-divider);
-}
-
-.profile-tabs ::deep .mud-tab {
-    min-height: 48px;
-    padding: 0 24px;
-    font-weight: var(--font-weight-medium);
-    text-transform: none;
-    opacity: 0.7;
-    transition: all 0.2s ease;
-}
-
-.profile-tabs ::deep .mud-tab:hover {
-    opacity: 0.9;
-}
-
-.profile-tabs ::deep .mud-tab.mud-tab-active {
-    opacity: 1;
-    font-weight: var(--font-weight-semibold);
-}
-
-.profile-tabs ::deep .mud-tab-slider {
-    height: 3px;
-    background: linear-gradient(90deg, var(--mud-palette-primary) 0%, var(--mud-palette-secondary) 100%);
-    border-radius: 2px;
-}
-
-.tab-panel {
-    min-height: 500px;
-}
-
-.tab-content {
-    padding: var(--space-xl) var(--space-lg);
-    max-width: 800px;
+    max-width: 600px;
     margin: 0 auto;
 }
 
-/* Media queries temporarily disabled due to parsing issues */
-/*
-@@media (max-width: 768px) {
-    .profile-tabs ::deep .mud-tab {
-        padding: 0 12px;
-        font-size: var(--font-size-sm);
-        min-width: auto;
+.tab-button {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    padding: var(--space-md) var(--space-lg);
+    border: none;
+    background: transparent;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-neutral-600);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--easing-standard);
+    position: relative;
+}
+
+.tab-button:hover {
+    color: var(--color-neutral-900);
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.tab-button.active {
+    background: var(--color-surface);
+    color: var(--color-primary);
+    box-shadow: var(--elevation-1);
+    border: 1px solid var(--color-neutral-200);
+}
+
+.tab-button.active .mud-icon-root {
+    color: var(--color-primary);
+}
+
+.tab-text {
+    white-space: nowrap;
+}
+
+.tab-content-area {
+    padding: var(--space-xl);
+    min-height: 400px;
+}
+
+.tab-panel {
+    animation: tabSlideIn var(--duration-base) var(--easing-standard);
+}
+
+@keyframes tabSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .tab-nav-container {
+        overflow-x: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
     }
 
-    .profile-tabs ::deep .mud-tab .mud-tab-text {
+    .tab-nav-container::-webkit-scrollbar {
         display: none;
     }
 
-    .profile-tabs ::deep .mud-tab .mud-icon-root {
-        margin-right: 0;
+    .tab-button {
+        flex-shrink: 0;
+        min-width: 120px;
+        padding: var(--space-md);
     }
 
-    .tab-content {
-        padding: var(--space-lg) var(--space-md);
+    .tab-content-area {
+        padding: var(--space-lg);
     }
 }
 
-@@media (max-width: 480px) {
-    .tab-content {
+@media (max-width: 480px) {
+    .tab-button .tab-text {
+        display: none;
+    }
+
+    .tab-button {
+        min-width: 60px;
         padding: var(--space-md) var(--space-sm);
     }
 }
-*/
 </style>
 
 @code {
-    private MudTabPanel? _activeTab;
+    private int _activeTab = 0;
 
-    private string GetPersonalTabIcon()
+    private void SetActiveTab(int tabIndex)
     {
-        return AuthState.IsClient ? Icons.Material.Filled.Person : Icons.Material.Filled.Business;
-    }
-
-    private string GetPersonalTabTitle()
-    {
-        return AuthState.IsClient ? "Personal" : "Clinic";
-    }
-
-    private void ShowComingSoon(string feature)
-    {
-        Snackbar.Add($"{feature} coming soon! We're working on this feature.", Severity.Info);
+        _activeTab = tabIndex;
     }
 }

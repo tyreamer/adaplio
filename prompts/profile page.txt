@@ -1,0 +1,134 @@
+This must feel like a 2025 SaaS app: clean, minimal, beautiful, mobile-responsive, and professional.
+Avoid “enterprise admin dashboard” vibes. Prioritize human warmth + sleek modern design.
+
+🎨 Design System
+
+Primary Accent (Energy & Motivation): Energetic Orange #FF7A00 (for CTAs, highlights).
+
+Core Neutral (Professionalism & Strength): Deep Charcoal #1E2837 (headers, dark mode surfaces).
+
+Secondary Accent (Growth & Vitality): Teal #00BFA5 (for progress states, health cues).
+
+Lighter Neutral (Cleanliness & Space): Warm Light Grey #F5F5F5 (backgrounds, cards).
+
+Typography: Inter or Poppins (variable font weights, larger headings, light subtext).
+
+Shapes: Rounded corners (16–20px), subtle shadows (Material 2dp).
+
+Motion: Smooth transitions, hover/focus states, reduced-motion fallback.
+
+🧑‍💻 Layout Structure
+
+1. Hero Section (Top Card)
+
+Full-width card at top with gradient background (charcoal → subtle teal, orange accents).
+
+Large avatar (uploadable photo, fallback initials).
+
+Progress ring around avatar (setup completion %, or adherence).
+
+Name + role badge (CLIENT / TRAINER).
+
+Location + join date displayed in small subtext.
+
+Key CTA button (Client: “➕ Add Trainer”, Trainer: “➕ Invite Client”) in top right.
+
+2. Tab Navigation (Below Hero)
+
+Clean segmented control or MudTabs:
+
+Overview (default)
+
+Plans
+
+Progress
+
+Settings
+
+3. Overview Tab
+
+For Client:
+
+Card: “Adherence Summary” (weekly % with mini chart).
+
+Card: “Assigned Trainer” (show alias/email, allow request for new trainer if empty).
+
+Card: “Recent Activity” (last 3 events logged).
+
+For Trainer:
+
+Card: “Client Stats” (total clients, avg adherence).
+
+Card: “Recent Client Activity” (3 latest progress events).
+
+4. Plans Tab
+
+Card grid of active/past plans with status (Active, Completed, Pending).
+
+Each plan shows: name, start/end, progress bar, quick action menu.
+
+5. Progress Tab
+
+Simple chart (weekly adherence, streaks, XP earned).
+
+Motivational copy: “Great job! Keep up your streak 🚀”.
+
+6. Settings Tab
+
+Card layout:
+
+Personal Info (editable form).
+
+Notifications (toggles).
+
+Privacy & Sharing (scope: summary / details).
+
+Account Management (reset password, delete account).
+
+🧩 Empty States
+
+No Trainer (Client):
+
+“You haven’t connected with a trainer yet. Add a trainer to start your recovery journey!”
+➕ Button: “Add Trainer”
+
+No Plans Assigned:
+
+“Your trainer hasn’t assigned a plan yet. Once they do, it will appear here.”
+Illustration/graphic placeholder.
+
+No Progress Yet:
+
+“Your progress will show here once you log your first exercise.”
+
+📱 Responsiveness
+
+On mobile:
+
+Hero collapses to card with avatar + name + progress ring.
+
+Tabs convert to bottom nav or top scrollable segmented control.
+
+Cards stack vertically with larger tap targets.
+
+✅ Deliverables
+
+Update Profile.razor (and related components) to implement the above structure.
+
+Create reusable components: ProfileHero.razor, ProfileTabs.razor, ProfileCard.razor.
+
+Apply theme tokens consistently (DesignTokens.cs).
+
+Ensure dark/light theme compatibility.
+
+Include sample dummy data for testing empty states, trainers, plans, and progress.
+
+✨ Inspiration References
+
+Stripe Dashboard (2025) → minimal whitespace, clear hierarchy.
+
+Linear.app → clean typography + pill-style tabs.
+
+Notion → soft backgrounds + subtle shadows.
+
+Duolingo → playful, motivational empty states.

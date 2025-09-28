@@ -132,7 +132,7 @@ public static class OnboardingEndpoints
                     new MissionDto("Welcome", "Get started with your PT plan", false, "beginner"),
                     new MissionDto("Setup Complete", "Complete your profile setup", false, "easy")
                 },
-                Message: "Your PT is preparing your plan 🔜"
+                Message: "You don't have any assigned exercises yet. Once you do, they’ll appear here."
             );
 
             return Results.Ok(weeklyBoard);

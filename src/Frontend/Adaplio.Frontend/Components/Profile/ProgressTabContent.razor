@@ -1,0 +1,589 @@
+@using Adaplio.Frontend.Services
+@inject AuthStateService AuthState
+
+<div class="progress-content">
+    @if (!HasProgressData)
+    {
+        <div class="empty-progress">
+            <div class="empty-state-icon">
+                <MudIcon Icon="@Icons.Material.Outlined.TrendingUp" Size="Size.Large" />
+            </div>
+            <h3 class="empty-state-title">No Progress Yet</h3>
+            <p class="empty-state-description">
+                Your progress will show here once you log your first exercise. Start your journey today!
+            </p>
+            @if (AuthState.IsClient)
+            {
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PlayArrow">
+                    Start First Exercise
+                </MudButton>
+            }
+        </div>
+    }
+    else
+    {
+        <!-- Motivational Header -->
+        <div class="progress-hero">
+            <div class="motivation-message">
+                <h2>🚀 Great job! Keep up your streak</h2>
+                <p>You're making amazing progress on your recovery journey.</p>
+            </div>
+            <div class="current-streak">
+                <div class="streak-number">@CurrentStreak</div>
+                <div class="streak-label">Day Streak</div>
+            </div>
+        </div>
+
+        <div class="progress-grid">
+            <!-- Weekly Adherence Chart -->
+            <ProfileCard Title="Weekly Adherence"
+                        Icon="@Icons.Material.Filled.TrendingUp"
+                        Badge="@($"{WeeklyAdherence}%")"
+                        BadgeVariant="success"
+                        CssClass="chart-card">
+                <div class="adherence-chart-container">
+                    <svg viewBox="0 0 400 200" class="adherence-chart">
+                        <!-- Background grid -->
+                        <defs>
+                            <pattern id="grid" width="50" height="40" patternUnits="userSpaceOnUse">
+                                <path d="M 50 0 L 0 0 0 40" fill="none" stroke="var(--color-neutral-200)" stroke-width="1"/>
+                            </pattern>
+                        </defs>
+                        <rect width="400" height="200" fill="url(#grid)" />
+
+                        <!-- Chart bars -->
+                        @for (int i = 0; i < WeeklyData.Count; i++)
+                        {
+                            var day = WeeklyData[i];
+                            var barHeight = (day.Percentage / 100.0) * 140;
+                            var x = 40 + (i * 45);
+                            var y = 160 - barHeight;
+
+                            <rect x="@(x)" y="@(y)" width="30" height="@(barHeight)"
+                                  fill="@GetBarColor(day.Percentage)" rx="4" />
+
+                            <!-- Day labels -->
+                            <text x="@(x + 15)" y="180" text-anchor="middle" fill="var(--color-neutral-600)"
+                                  font-size="12" font-family="var(--font-family-primary)">
+                                @day.DayName.Substring(0, 3)
+                            </text>
+
+                            <!-- Percentage labels -->
+                            <text x="@(x + 15)" y="@(y - 5)" text-anchor="middle" fill="var(--color-neutral-700)"
+                                  font-size="10" font-family="var(--font-family-primary)" font-weight="600">
+                                @day.Percentage%
+                            </text>
+                        }
+                    </svg>
+                </div>
+            </ProfileCard>
+
+            <!-- XP and Achievements -->
+            <ProfileCard Title="Experience Points"
+                        Icon="@Icons.Material.Filled.EmojiEvents"
+                        Badge="Level @CurrentLevel"
+                        BadgeVariant="primary">
+                <div class="xp-display">
+                    <div class="xp-circle">
+                        <svg viewBox="0 0 120 120" class="xp-progress">
+                            <circle cx="60" cy="60" r="50" fill="none" stroke="var(--color-neutral-200)" stroke-width="8"/>
+                            <circle cx="60" cy="60" r="50" fill="none" stroke="var(--color-primary)" stroke-width="8"
+                                    stroke-dasharray="314" stroke-dashoffset="@(314 - (CurrentXP / (double)NextLevelXP) * 314)"
+                                    stroke-linecap="round" transform="rotate(-90 60 60)"/>
+                        </svg>
+                        <div class="xp-center">
+                            <div class="xp-value">@CurrentXP</div>
+                            <div class="xp-label">XP</div>
+                        </div>
+                    </div>
+                    <div class="xp-details">
+                        <div class="xp-info">
+                            <span>@(NextLevelXP - CurrentXP) XP to level @(CurrentLevel + 1)</span>
+                        </div>
+                        <div class="recent-achievements">
+                            @foreach (var achievement in RecentAchievements.Take(2))
+                            {
+                                <div class="achievement-item">
+                                    <MudIcon Icon="@achievement.Icon" Size="Size.Small" />
+                                    @achievement.Name
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </ProfileCard>
+
+            <!-- Exercise Streak -->
+            <ProfileCard Title="Exercise Consistency"
+                        Icon="@Icons.Material.Filled.CalendarToday"
+                        CssClass="streak-card">
+                <div class="consistency-grid">
+                    @for (int week = 0; week < 8; week++)
+                    {
+                        <div class="week-row">
+                            @for (int day = 0; day < 7; day++)
+                            {
+                                var dayData = GetDayData(week, day);
+                                <div class="day-cell @GetDayClass(dayData.Status)"
+                                     title="@($"{dayData.Date:MMM dd}: {dayData.Status}")">
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+                <div class="consistency-legend">
+                    <div class="legend-item">
+                        <div class="legend-dot completed"></div>
+                        <span>Completed</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot partial"></div>
+                        <span>Partial</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot missed"></div>
+                        <span>Missed</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot future"></div>
+                        <span>Future</span>
+                    </div>
+                </div>
+            </ProfileCard>
+
+            <!-- Progress Milestones -->
+            <ProfileCard Title="Milestones"
+                        Icon="@Icons.Material.Filled.Flag"
+                        CssClass="milestones-card">
+                <div class="milestones-timeline">
+                    @foreach (var milestone in Milestones)
+                    {
+                        <div class="milestone-item @(milestone.IsCompleted ? "completed" : "pending")">
+                            <div class="milestone-icon">
+                                <MudIcon Icon="@(milestone.IsCompleted ? Icons.Material.Filled.CheckCircle : Icons.Material.Outlined.Circle)"
+                                         Size="Size.Small" />
+                            </div>
+                            <div class="milestone-content">
+                                <div class="milestone-title">@milestone.Title</div>
+                                <div class="milestone-description">@milestone.Description</div>
+                                @if (milestone.IsCompleted)
+                                {
+                                    <div class="milestone-date">Completed @milestone.CompletedDate?.ToString("MMM dd")</div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </ProfileCard>
+        </div>
+    }
+</div>
+
+<style>
+.progress-content {
+    width: 100%;
+}
+
+/* Empty State */
+.empty-progress {
+    text-align: center;
+    padding: var(--space-xxxxl) var(--space-xl);
+}
+
+.empty-state-icon {
+    color: var(--color-neutral-400);
+    margin-bottom: var(--space-xl);
+}
+
+.empty-state-title {
+    font-family: var(--font-family-display);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-neutral-700);
+    margin: 0 0 var(--space-md) 0;
+}
+
+.empty-state-description {
+    font-size: var(--font-size-base);
+    color: var(--color-neutral-500);
+    margin: 0 0 var(--space-xl) 0;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.5;
+}
+
+/* Progress Hero */
+.progress-hero {
+    background: linear-gradient(135deg, var(--color-accent-teal) 0%, var(--color-primary) 100%);
+    border-radius: var(--radius-xl);
+    padding: var(--space-xl);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-xl);
+}
+
+.motivation-message h2 {
+    font-family: var(--font-family-display);
+    font-size: var(--font-size-xxl);
+    font-weight: var(--font-weight-bold);
+    margin: 0 0 var(--space-sm) 0;
+}
+
+.motivation-message p {
+    font-size: var(--font-size-lg);
+    opacity: 0.9;
+    margin: 0;
+}
+
+.current-streak {
+    text-align: center;
+    padding: var(--space-lg);
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-lg);
+    backdrop-filter: blur(10px);
+}
+
+.streak-number {
+    font-family: var(--font-family-display);
+    font-size: var(--font-size-xxxxl);
+    font-weight: var(--font-weight-bold);
+    line-height: 1;
+}
+
+.streak-label {
+    font-size: var(--font-size-sm);
+    opacity: 0.8;
+    margin-top: var(--space-xs);
+}
+
+/* Progress Grid */
+.progress-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--space-xl);
+}
+
+.chart-card {
+    grid-column: span 2;
+}
+
+/* Adherence Chart */
+.adherence-chart-container {
+    width: 100%;
+    height: 200px;
+}
+
+.adherence-chart {
+    width: 100%;
+    height: 100%;
+}
+
+/* XP Display */
+.xp-display {
+    display: flex;
+    gap: var(--space-xl);
+    align-items: center;
+}
+
+.xp-circle {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    flex-shrink: 0;
+}
+
+.xp-progress {
+    width: 100%;
+    height: 100%;
+}
+
+.xp-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.xp-value {
+    font-family: var(--font-family-display);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary);
+    line-height: 1;
+}
+
+.xp-label {
+    font-size: var(--font-size-xs);
+    color: var(--color-neutral-600);
+    margin-top: var(--space-xs);
+}
+
+.xp-details {
+    flex: 1;
+}
+
+.xp-info {
+    font-size: var(--font-size-sm);
+    color: var(--color-neutral-600);
+    margin-bottom: var(--space-lg);
+}
+
+.recent-achievements {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.achievement-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm);
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+}
+
+/* Consistency Grid */
+.consistency-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-lg);
+}
+
+.week-row {
+    display: flex;
+    gap: var(--space-xs);
+}
+
+.day-cell {
+    width: 20px;
+    height: 20px;
+    border-radius: var(--radius-sm);
+    background: var(--color-neutral-200);
+}
+
+.day-cell.completed {
+    background: var(--color-accent-teal);
+}
+
+.day-cell.partial {
+    background: var(--color-primary);
+}
+
+.day-cell.missed {
+    background: var(--color-neutral-300);
+}
+
+.day-cell.future {
+    background: var(--color-neutral-100);
+}
+
+.consistency-legend {
+    display: flex;
+    gap: var(--space-lg);
+    justify-content: center;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: var(--font-size-xs);
+    color: var(--color-neutral-600);
+}
+
+.legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: var(--radius-sm);
+}
+
+.legend-dot.completed {
+    background: var(--color-accent-teal);
+}
+
+.legend-dot.partial {
+    background: var(--color-primary);
+}
+
+.legend-dot.missed {
+    background: var(--color-neutral-300);
+}
+
+.legend-dot.future {
+    background: var(--color-neutral-100);
+}
+
+/* Milestones Timeline */
+.milestones-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
+.milestone-item {
+    display: flex;
+    gap: var(--space-md);
+    align-items: flex-start;
+}
+
+.milestone-icon {
+    flex-shrink: 0;
+    margin-top: var(--space-xs);
+}
+
+.milestone-item.completed .milestone-icon {
+    color: var(--color-accent-teal);
+}
+
+.milestone-item.pending .milestone-icon {
+    color: var(--color-neutral-400);
+}
+
+.milestone-content {
+    flex: 1;
+}
+
+.milestone-title {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-neutral-900);
+    margin-bottom: var(--space-xs);
+}
+
+.milestone-description {
+    font-size: var(--font-size-sm);
+    color: var(--color-neutral-600);
+    margin-bottom: var(--space-xs);
+}
+
+.milestone-date {
+    font-size: var(--font-size-xs);
+    color: var(--color-accent-teal);
+    font-weight: var(--font-weight-medium);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .progress-hero {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--space-lg);
+    }
+
+    .motivation-message h2 {
+        font-size: var(--font-size-xl);
+    }
+
+    .progress-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-lg);
+    }
+
+    .chart-card {
+        grid-column: span 1;
+    }
+
+    .xp-display {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--space-lg);
+    }
+
+    .consistency-legend {
+        flex-wrap: wrap;
+        gap: var(--space-md);
+    }
+}
+</style>
+
+@code {
+    private bool HasProgressData = true;
+    private int CurrentStreak = 12;
+    private int WeeklyAdherence = 85;
+    private int CurrentLevel = 3;
+    private int CurrentXP = 1250;
+    private int NextLevelXP = 1500;
+
+    private List<DayData> WeeklyData = new()
+    {
+        new() { DayName = "Monday", Percentage = 100 },
+        new() { DayName = "Tuesday", Percentage = 80 },
+        new() { DayName = "Wednesday", Percentage = 100 },
+        new() { DayName = "Thursday", Percentage = 60 },
+        new() { DayName = "Friday", Percentage = 100 },
+        new() { DayName = "Saturday", Percentage = 90 },
+        new() { DayName = "Sunday", Percentage = 70 }
+    };
+
+    private List<Achievement> RecentAchievements = new()
+    {
+        new() { Name = "Week Warrior", Icon = Icons.Material.Filled.EmojiEvents },
+        new() { Name = "Consistency King", Icon = Icons.Material.Filled.Stars }
+    };
+
+    private List<Milestone> Milestones = new()
+    {
+        new() { Title = "First Exercise", Description = "Complete your first exercise", IsCompleted = true, CompletedDate = DateTime.Now.AddDays(-45) },
+        new() { Title = "7-Day Streak", Description = "Maintain a 7-day exercise streak", IsCompleted = true, CompletedDate = DateTime.Now.AddDays(-20) },
+        new() { Title = "Complete First Plan", Description = "Finish your first training plan", IsCompleted = true, CompletedDate = DateTime.Now.AddDays(-10) },
+        new() { Title = "30-Day Challenge", Description = "Exercise for 30 consecutive days", IsCompleted = false },
+        new() { Title = "Advanced Level", Description = "Reach advanced exercise difficulty", IsCompleted = false }
+    };
+
+    private string GetBarColor(int percentage)
+    {
+        return percentage >= 80 ? "var(--color-accent-teal)" :
+               percentage >= 60 ? "var(--color-primary)" :
+               "var(--color-neutral-400)";
+    }
+
+    private ConsistencyDay GetDayData(int week, int day)
+    {
+        var date = DateTime.Now.AddDays(-(week * 7 + day));
+        var status = date > DateTime.Now ? "future" :
+                    Random.Shared.NextDouble() > 0.2 ? "completed" :
+                    Random.Shared.NextDouble() > 0.5 ? "partial" : "missed";
+
+        return new ConsistencyDay { Date = date, Status = status };
+    }
+
+    private string GetDayClass(string status)
+    {
+        return status;
+    }
+
+    public class DayData
+    {
+        public string DayName { get; set; } = "";
+        public int Percentage { get; set; }
+    }
+
+    public class Achievement
+    {
+        public string Name { get; set; } = "";
+        public string Icon { get; set; } = "";
+    }
+
+    public class Milestone
+    {
+        public string Title { get; set; } = "";
+        public string Description { get; set; } = "";
+        public bool IsCompleted { get; set; }
+        public DateTime? CompletedDate { get; set; }
+    }
+
+    public class ConsistencyDay
+    {
+        public DateTime Date { get; set; }
+        public string Status { get; set; } = "";
+    }
+}

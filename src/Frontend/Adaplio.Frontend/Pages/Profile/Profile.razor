@@ -24,37 +24,52 @@
 }
 else
 {
-    <MudContainer MaxWidth="MaxWidth.Large" Class="profile-container">
-        <!-- Profile Header -->
-        <div class="profile-header mb-6">
-            <MudPaper Class="pa-6" Elevation="1">
-                <ProfileHeader />
-            </MudPaper>
-        </div>
+    <div class="profile-page">
+        <!-- Profile Hero Section -->
+        <ProfileHero />
 
-        <!-- Profile Tabs -->
-        <MudPaper Elevation="1" Class="profile-tabs-container">
+        <!-- Profile Content -->
+        <div class="profile-content">
             <ProfileTabs />
-        </MudPaper>
-    </MudContainer>
+        </div>
+    </div>
 }
 
 <style>
-.profile-container {
-    max-width: 1000px;
+.profile-page {
+    width: 100%;
+    min-height: 100vh;
+    background: var(--color-neutral-50);
+}
+
+.profile-content {
+    max-width: 1200px;
     margin: 0 auto;
-    padding: var(--space-lg);
+    padding: var(--space-xl);
+    position: relative;
+    z-index: 2;
+    margin-top: -100px;
 }
 
-.profile-header {
-    border-radius: var(--radius-xl);
+/* Authentication Required State */
+.profile-page .mud-container {
+    padding-top: var(--space-xxxl);
 }
 
-.profile-tabs-container {
-    border-radius: var(--radius-xl);
-    min-height: 600px;
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .profile-content {
+        padding: var(--space-lg);
+        margin-top: -60px;
+    }
 }
 
+@media (max-width: 480px) {
+    .profile-content {
+        padding: var(--space-md);
+        margin-top: -40px;
+    }
+}
 </style>
 
 @code {

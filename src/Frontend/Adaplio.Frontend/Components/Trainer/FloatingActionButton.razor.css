@@ -1,0 +1,38 @@
+@keyframes fabActionSlideIn {
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fabBackdropFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Mobile Adjustments */
+@media (max-width: 768px) {
+    .fab-container {
+        bottom: 90px; /* Account for mobile bottom nav */
+    }
+
+    .fab-action {
+        padding: var(--space-lg);
+        border-radius: var(--radius-lg);
+    }
+
+    .fab-action-label {
+        display: none;
+    }
+
+    .fab-actions {
+        align-items: center;
+        right: 50%;
+        transform: translateX(50%);
+        bottom: 72px;
+    }
+}
