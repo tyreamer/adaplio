@@ -248,5 +248,5 @@ public class ApiResponse<T> : ApiResponse
     }
 
     public static ApiResponse<T> FromSuccess(T? data) => new(true, data);
-    public static ApiResponse<T> FromError(string errorMessage, int? statusCode = null) => new(false, default, errorMessage, statusCode);
+    public static new ApiResponse<T> FromError(string errorMessage, int? statusCode = null) => new(false, default, errorMessage, statusCode);
 }

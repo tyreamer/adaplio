@@ -7,6 +7,7 @@ namespace Adaplio.Frontend.Services;
 
 public class ProfileService : BaseApiService
 {
+    private readonly HttpClient _httpClient;
     private readonly ILogger<ProfileService> _logger;
 
     // Cache for profile data
@@ -14,9 +15,10 @@ public class ProfileService : BaseApiService
     private DateTime? _lastFetch;
     private readonly TimeSpan _cacheExpiry = TimeSpan.FromMinutes(5);
 
-    public ProfileService(IAuthenticatedHttpClient httpClient, IErrorHandlingService errorHandler, ILogger<ProfileService> logger)
+    public ProfileService(IAuthenticatedHttpClient httpClient, HttpClient rawHttpClient, IErrorHandlingService errorHandler, ILogger<ProfileService> logger)
         : base(httpClient, errorHandler, logger)
     {
+        _httpClient = rawHttpClient;
         _logger = logger;
     }
 
@@ -84,7 +86,7 @@ public class ProfileService : BaseApiService
             if (uploadResponse.IsSuccessStatusCode)
             {
                 // Return the public URL (extract from the upload URL or construct it)
-                var publicUrl = ExtractPublicUrl(uploadUrl);
+                var publicUrl = uploadUrl != null ? ExtractPublicUrl(uploadUrl) : null;
                 return publicUrl;
             }
             else

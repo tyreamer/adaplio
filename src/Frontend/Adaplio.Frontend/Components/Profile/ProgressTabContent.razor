@@ -1,4 +1,5 @@
 @using Adaplio.Frontend.Services
+@using Microsoft.AspNetCore.Components
 @inject AuthStateService AuthState
 
 <div class="progress-content">
@@ -63,12 +64,10 @@
                                   fill="@GetBarColor(day.Percentage)" rx="4" />
 
                             <!-- Day labels -->
-                            <text x="@(x + 15)" y="180" text-anchor="middle" fill="var(--color-neutral-600)"
-                                  font-size="12" font-family="var(--font-family-primary)">@day.DayName.Substring(0, 3)</text>
+                            @(new MarkupString($"<text x=\"{x + 15}\" y=\"180\" text-anchor=\"middle\" fill=\"var(--color-neutral-600)\" font-size=\"12\" font-family=\"var(--font-family-primary)\">{day.DayName.Substring(0, 3)}</text>"))
 
                             <!-- Percentage labels -->
-                            <text x="@(x + 15)" y="@(y - 5)" text-anchor="middle" fill="var(--color-neutral-700)"
-                                  font-size="10" font-family="var(--font-family-primary)" font-weight="600">@day.Percentage%</text>
+                            @(new MarkupString($"<text x=\"{x + 15}\" y=\"{y - 5}\" text-anchor=\"middle\" fill=\"var(--color-neutral-700)\" font-size=\"10\" font-family=\"var(--font-family-primary)\" font-weight=\"600\">{day.Percentage}%</text>"))
                         }
                     </svg>
                 </div>

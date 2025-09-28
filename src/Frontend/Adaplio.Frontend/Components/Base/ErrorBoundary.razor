@@ -1,5 +1,4 @@
 @using Adaplio.Frontend.Services
-@implements IErrorBoundary
 @inject IErrorHandlingService ErrorHandler
 @inject ILogger<ErrorBoundary> Logger
 
@@ -136,10 +135,6 @@ else
         StateHasChanged();
     }
 
-    Task IErrorBoundary.RecoverAsync()
-    {
-        return RecoverAsync();
-    }
 
     protected override void OnParametersSet()
     {

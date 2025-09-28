@@ -69,7 +69,8 @@
             <ProfileCard Title="Recent Activity"
                         Icon="@Icons.Material.Filled.History"
                         CssClass="span-full">
-                <div class="activity-list">
+                <ChildContent>
+                    <div class="activity-list">
                     @foreach (var activity in RecentActivities.Take(3))
                     {
                         <div class="activity-item">
@@ -85,7 +86,8 @@
                             </div>
                         </div>
                     }
-                </div>
+                    </div>
+                </ChildContent>
                 <Footer>
                     <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth="true">
                         View All Activity
@@ -125,7 +127,8 @@
             <ProfileCard Title="Recent Client Activity"
                         Icon="@Icons.Material.Filled.Timeline"
                         CssClass="span-full">
-                <div class="client-activity-list">
+                <ChildContent>
+                    <div class="client-activity-list">
                     @foreach (var activity in RecentClientActivities.Take(4))
                     {
                         <div class="client-activity-item">
@@ -145,7 +148,8 @@
                             </div>
                         </div>
                     }
-                </div>
+                    </div>
+                </ChildContent>
                 <Footer>
                     <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth="true">
                         View All Client Activity

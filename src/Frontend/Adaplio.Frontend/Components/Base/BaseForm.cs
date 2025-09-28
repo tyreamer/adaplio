@@ -148,14 +148,16 @@ public abstract class BaseForm<T> : ComponentBase where T : class, new()
         return FormValidationResult.Success();
     }
 
-    protected virtual async Task OnSaveSuccessAsync()
+    protected virtual Task OnSaveSuccessAsync()
     {
         ErrorHandler.ShowSuccess("Data saved successfully!");
+        return Task.CompletedTask;
     }
 
-    protected virtual async Task OnResetAsync()
+    protected virtual Task OnResetAsync()
     {
         // Override if needed
+        return Task.CompletedTask;
     }
 
     protected virtual T CloneData(T data)

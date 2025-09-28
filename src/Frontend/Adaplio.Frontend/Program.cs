@@ -4,6 +4,7 @@ using MudBlazor.Services;
 using Adaplio.Frontend;
 using Adaplio.Frontend.Theme;
 using Adaplio.Frontend.Services;
+using Adaplio.Frontend.Authorization;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");

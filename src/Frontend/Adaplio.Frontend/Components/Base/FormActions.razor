@@ -5,7 +5,7 @@
     @if (!string.IsNullOrEmpty(ErrorMessage))
     {
         <div class="form-error">
-            <MudAlert Severity="Severity.Error" ShowCloseIcon="true" CloseIconClicked="@(() => OnErrorDismissed?.Invoke())">
+            <MudAlert Severity="Severity.Error" ShowCloseIcon="true" CloseIconClicked="@(() => OnErrorDismissed.InvokeAsync())">
                 @ErrorMessage
             </MudAlert>
         </div>
@@ -140,7 +140,7 @@
     min-width: 120px;
 }
 
-@media (max-width: 600px) {
+@@media (max-width: 600px) {
     .action-buttons {
         flex-direction: column;
         align-items: stretch;
