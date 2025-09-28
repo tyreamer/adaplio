@@ -1,4 +1,6 @@
 @page "/progress"
+@using Adaplio.Frontend.Components.Progress
+@using Adaplio.Frontend.Models
 @using System.Net.Http.Json
 @using System.Text.Json
 @inject HttpClient HttpClient
@@ -19,150 +21,313 @@
 
     <MudText Typo="Typo.h4" GutterBottom="true">
         <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Class="mr-2" />
-        My Progress & Adherence
+        My Weekly Progress
     </MudText>
 
     <MudGrid>
-        <!-- Log Progress Card -->
-        <MudItem xs="12" lg="6">
-            <MudCard>
+        <!-- Weekly Progress Ladder - Main Feature -->
+        <MudItem xs="12" lg="8">
+            <MudCard Class="pa-4">
                 <MudCardHeader>
                     <CardHeaderContent>
                         <MudText Typo="Typo.h6">
-                            <MudIcon Icon="@Icons.Material.Filled.Add" Class="mr-2" />
-                            Log Exercise Progress
+                            <MudIcon Icon="@Icons.Material.Filled.EmojiEvents" Class="mr-2" />
+                            Weekly Progress Ladder
                         </MudText>
                     </CardHeaderContent>
+                    <CardHeaderActions>
+                        <MudIconButton Icon="@Icons.Material.Filled.Refresh"
+                                       Color="Color.Default"
+                                       OnClick="LoadWeeklyProgress"
+                                       Disabled="@isLoadingWeeklyProgress" />
+                    </CardHeaderActions>
                 </MudCardHeader>
                 <MudCardContent>
-                    @if (exerciseInstances.Any())
+                    @if (isLoadingWeeklyProgress)
                     {
-                        <MudForm @ref="progressForm">
-                            <MudSelect @bind-Value="selectedExerciseId"
-                                       Label="Select Exercise"
-                                       Variant="Variant.Outlined"
-                                       Class="mb-4">
-                                @foreach (var exercise in exerciseInstances)
-                                {
-                                    <MudSelectItem T="int?" Value="@exercise.Id">
-                                        @exercise.ExerciseName (@exercise.TargetSets sets, @exercise.TargetReps reps)
-                                    </MudSelectItem>
-                                }
-                            </MudSelect>
-
-                            <MudSelect @bind-Value="logRequest.EventType"
-                                       Label="Progress Type"
-                                       Variant="Variant.Outlined"
-                                       Class="mb-4">
-                                <MudSelectItem T="string" Value="@ExerciseCompletedType">Exercise Completed</MudSelectItem>
-                                <MudSelectItem T="string" Value="@SetCompletedType">Set Completed</MudSelectItem>
-                            </MudSelect>
-
-                            @if (logRequest.EventType == SetCompletedType || logRequest.EventType == ExerciseCompletedType)
-                            {
-                                <MudGrid>
-                                    <MudItem xs="4">
-                                        <MudNumericField @bind-Value="logRequest.SetsCompleted"
-                                                         Label="Sets Completed"
-                                                         Variant="Variant.Outlined"
-                                                         Min="0" />
-                                    </MudItem>
-                                    <MudItem xs="4">
-                                        <MudNumericField @bind-Value="logRequest.RepsCompleted"
-                                                         Label="Reps Completed"
-                                                         Variant="Variant.Outlined"
-                                                         Min="0" />
-                                    </MudItem>
-                                    <MudItem xs="4">
-                                        <MudNumericField @bind-Value="logRequest.HoldSecondsCompleted"
-                                                         Label="Hold Seconds"
-                                                         Variant="Variant.Outlined"
-                                                         Min="0" />
-                                    </MudItem>
-                                </MudGrid>
-                            }
-
-                            <MudGrid Class="mt-4">
-                                <MudItem xs="6">
-                                    <MudSelect @bind-Value="logRequest.DifficultyRating"
-                                               Label="Difficulty (1-10)"
-                                               Variant="Variant.Outlined">
-                                        @for (int i = 1; i <= 10; i++)
-                                        {
-                                            <MudSelectItem T="int?" Value="@i">@i</MudSelectItem>
-                                        }
-                                    </MudSelect>
-                                </MudItem>
-                                <MudItem xs="6">
-                                    <MudSelect @bind-Value="logRequest.PainLevel"
-                                               Label="Pain Level (1-10)"
-                                               Variant="Variant.Outlined">
-                                        @for (int i = 1; i <= 10; i++)
-                                        {
-                                            <MudSelectItem T="int?" Value="@i">@i</MudSelectItem>
-                                        }
-                                    </MudSelect>
-                                </MudItem>
-                            </MudGrid>
-
-                            <MudTextField @bind-Value="logRequest.Notes"
-                                          Label="Notes (optional)"
-                                          Variant="Variant.Outlined"
-                                          Lines="3"
-                                          Class="mt-4" />
-                        </MudForm>
-                    }
-                    else if (isLoadingExercises)
-                    {
-                        <div class="d-flex justify-center pa-4">
+                        <div class="d-flex justify-center pa-8">
                             <MudProgressCircular Indeterminate="true" />
-                            <MudText Class="ml-3">Loading exercises...</MudText>
+                            <MudText Class="ml-3">Loading your progress...</MudText>
                         </div>
+                    }
+                    else if (weeklyProgressData != null)
+                    {
+                        <ProgressLadder Data="@progressLadderInput"
+                                        OnStartToday="@HandleStartToday"
+                                        OnTierClick="@HandleTierClick"
+                                        IsDarkMode="@isDarkMode"
+                                        IsCompact="false" />
+
+                        @if (weeklyProgressData.HasCelebration && !string.IsNullOrEmpty(weeklyProgressData.CelebrationMessage))
+                        {
+                            <MudAlert Severity="Severity.Success" Class="mt-4">
+                                <MudText>
+                                    <MudIcon Icon="@Icons.Material.Filled.Celebration" Class="mr-2" />
+                                    @weeklyProgressData.CelebrationMessage
+                                </MudText>
+                            </MudAlert>
+                        }
                     }
                     else
                     {
-                        <MudText Typo="Typo.body2" Color="Color.Secondary" Align="Align.Center" Class="py-4">
-                            No exercises found. Contact your trainer to get started!
+                        <MudText Typo="Typo.body2" Color="Color.Secondary" Align="Align.Center" Class="py-8">
+                            Unable to load weekly progress. Please try refreshing.
                         </MudText>
                     }
                 </MudCardContent>
-                <MudCardActions>
-                    <MudButton Variant="Variant.Filled"
-                               Color="Color.Primary"
-                               OnClick="LogProgress"
-                               Disabled="@(isLoggingProgress || selectedExerciseId == null || string.IsNullOrEmpty(logRequest.EventType))"
-                               StartIcon="@Icons.Material.Filled.Save">
-                        @if (isLoggingProgress)
-                        {
-                            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
-                            <MudText Class="ms-3">Logging...</MudText>
-                        }
-                        else
-                        {
-                            <MudText>Log Progress</MudText>
-                        }
-                    </MudButton>
-                </MudCardActions>
             </MudCard>
         </MudItem>
 
-        <!-- Recent Progress -->
-        <MudItem xs="12" lg="6">
-            <MudCard>
-                <MudCardHeader>
-                    <CardHeaderContent>
-                        <MudText Typo="Typo.h6">
-                            <MudIcon Icon="@Icons.Material.Filled.History" Class="mr-2" />
-                            Recent Activity
-                        </MudText>
-                    </CardHeaderContent>
-                </MudCardHeader>
-                <MudCardContent Style="max-height: 400px; overflow-y: auto;">
-                    <MudText Typo="Typo.body2" Color="Color.Secondary" Align="Align.Center" Class="py-4">
-                        Recent progress activity will be shown here
-                    </MudText>
-                </MudCardContent>
-            </MudCard>
+        <!-- Quick Actions & Stats -->
+        <MudItem xs="12" lg="4">
+            <MudGrid>
+                <!-- Quick Log Progress -->
+                <MudItem xs="12">
+                    <MudCard>
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6">
+                                    <MudIcon Icon="@Icons.Material.Filled.Add" Class="mr-2" />
+                                    Quick Log
+                                </MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            @if (exerciseInstances.Any())
+                            {
+                                <MudSelect @bind-Value="selectedExerciseId"
+                                           Label="Exercise"
+                                           Variant="Variant.Outlined"
+                                           Class="mb-3"
+                                           Dense="true">
+                                    @foreach (var exercise in exerciseInstances)
+                                    {
+                                        <MudSelectItem T="int?" Value="@exercise.Id">
+                                            @exercise.ExerciseName
+                                        </MudSelectItem>
+                                    }
+                                </MudSelect>
+
+                                <MudSelect @bind-Value="logRequest.EventType"
+                                           Label="Type"
+                                           Variant="Variant.Outlined"
+                                           Class="mb-3"
+                                           Dense="true">
+                                    <MudSelectItem T="string" Value="@ExerciseCompletedType">Exercise Done</MudSelectItem>
+                                    <MudSelectItem T="string" Value="@SetCompletedType">Set Done</MudSelectItem>
+                                </MudSelect>
+
+                                <MudButton Variant="Variant.Filled"
+                                           Color="Color.Primary"
+                                           OnClick="LogProgress"
+                                           Disabled="@(isLoggingProgress || selectedExerciseId == null)"
+                                           FullWidth="true"
+                                           StartIcon="@Icons.Material.Filled.Save">
+                                    @if (isLoggingProgress)
+                                    {
+                                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                                        <MudText Class="ms-3">Logging...</MudText>
+                                    }
+                                    else
+                                    {
+                                        <MudText>Log Progress</MudText>
+                                    }
+                                </MudButton>
+                            }
+                            else
+                            {
+                                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="text-center py-2">
+                                    No exercises available
+                                </MudText>
+                                <MudButton Variant="Variant.Text"
+                                           Color="Color.Primary"
+                                           FullWidth="true"
+                                           StartIcon="@Icons.Material.Filled.Assignment"
+                                           Href="/exercises">
+                                    View All Exercises
+                                </MudButton>
+                            }
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+
+                <!-- Current Stats -->
+                <MudItem xs="12">
+                    <MudCard>
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6">
+                                    <MudIcon Icon="@Icons.Material.Filled.Analytics" Class="mr-2" />
+                                    This Week
+                                </MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            @if (weeklyProgressData != null)
+                            {
+                                <MudGrid>
+                                    <MudItem xs="6">
+                                        <MudText Typo="Typo.h4" Color="Color.Primary" Class="text-center">
+                                            @weeklyProgressData.CurrentValue
+                                        </MudText>
+                                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="text-center">
+                                            XP Earned
+                                        </MudText>
+                                    </MudItem>
+                                    <MudItem xs="6">
+                                        <MudText Typo="Typo.h4" Color="@GetBreakEvenColor()" Class="text-center">
+                                            @((int)((double)weeklyProgressData.CurrentValue / weeklyProgressData.BreakEven * 100))%
+                                        </MudText>
+                                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="text-center">
+                                            vs Target
+                                        </MudText>
+                                    </MudItem>
+                                </MudGrid>
+
+                                @if (weeklyProgressData.NextEstimate != null)
+                                {
+                                    <MudDivider Class="my-3" />
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="text-center">
+                                        <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="Size.Small" Class="mr-1" />
+                                        @weeklyProgressData.NextEstimate.SuggestedAction
+                                    </MudText>
+                                }
+                            }
+                            else
+                            {
+                                <MudSkeleton Height="60px" />
+                            }
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            </MudGrid>
+        </MudItem>
+        <!-- Detailed Progress Form -->
+        <MudItem xs="12">
+            <MudExpansionPanels Elevation="2">
+                <MudExpansionPanel Text="Detailed Exercise Log">
+                    <TitleContent>
+                        <div style="display: flex; align-items: center">
+                            <MudIcon Icon="@Icons.Material.Filled.FitnessCenter" class="mr-3" />
+                            <MudText>Detailed Exercise Log</MudText>
+                        </div>
+                    </TitleContent>
+                    <ChildContent>
+                        @if (exerciseInstances.Any())
+                        {
+                            <MudForm @ref="progressForm">
+                                <MudGrid>
+                                    <MudItem xs="12" md="6">
+                                        <MudSelect @bind-Value="selectedExerciseId"
+                                                   Label="Select Exercise"
+                                                   Variant="Variant.Outlined"
+                                                   Class="mb-4">
+                                            @foreach (var exercise in exerciseInstances)
+                                            {
+                                                <MudSelectItem T="int?" Value="@exercise.Id">
+                                                    @exercise.ExerciseName (@exercise.TargetSets sets, @exercise.TargetReps reps)
+                                                </MudSelectItem>
+                                            }
+                                        </MudSelect>
+                                    </MudItem>
+                                    <MudItem xs="12" md="6">
+                                        <MudSelect @bind-Value="logRequest.EventType"
+                                                   Label="Progress Type"
+                                                   Variant="Variant.Outlined"
+                                                   Class="mb-4">
+                                            <MudSelectItem T="string" Value="@ExerciseCompletedType">Exercise Completed</MudSelectItem>
+                                            <MudSelectItem T="string" Value="@SetCompletedType">Set Completed</MudSelectItem>
+                                        </MudSelect>
+                                    </MudItem>
+                                </MudGrid>
+
+                                @if (logRequest.EventType == SetCompletedType || logRequest.EventType == ExerciseCompletedType)
+                                {
+                                    <MudGrid>
+                                        <MudItem xs="4">
+                                            <MudNumericField @bind-Value="logRequest.SetsCompleted"
+                                                             Label="Sets Completed"
+                                                             Variant="Variant.Outlined"
+                                                             Min="0" />
+                                        </MudItem>
+                                        <MudItem xs="4">
+                                            <MudNumericField @bind-Value="logRequest.RepsCompleted"
+                                                             Label="Reps Completed"
+                                                             Variant="Variant.Outlined"
+                                                             Min="0" />
+                                        </MudItem>
+                                        <MudItem xs="4">
+                                            <MudNumericField @bind-Value="logRequest.HoldSecondsCompleted"
+                                                             Label="Hold Seconds"
+                                                             Variant="Variant.Outlined"
+                                                             Min="0" />
+                                        </MudItem>
+                                    </MudGrid>
+                                }
+
+                                <MudGrid Class="mt-4">
+                                    <MudItem xs="6">
+                                        <MudSelect @bind-Value="logRequest.DifficultyRating"
+                                                   Label="Difficulty (1-10)"
+                                                   Variant="Variant.Outlined">
+                                            @for (int i = 1; i <= 10; i++)
+                                            {
+                                                <MudSelectItem T="int?" Value="@i">@i</MudSelectItem>
+                                            }
+                                        </MudSelect>
+                                    </MudItem>
+                                    <MudItem xs="6">
+                                        <MudSelect @bind-Value="logRequest.PainLevel"
+                                                   Label="Pain Level (1-10)"
+                                                   Variant="Variant.Outlined">
+                                            @for (int i = 1; i <= 10; i++)
+                                            {
+                                                <MudSelectItem T="int?" Value="@i">@i</MudSelectItem>
+                                            }
+                                        </MudSelect>
+                                    </MudItem>
+                                </MudGrid>
+
+                                <MudTextField @bind-Value="logRequest.Notes"
+                                              Label="Notes (optional)"
+                                              Variant="Variant.Outlined"
+                                              Lines="3"
+                                              Class="mt-4" />
+
+                                <MudButton Variant="Variant.Filled"
+                                           Color="Color.Primary"
+                                           OnClick="LogProgress"
+                                           Disabled="@(isLoggingProgress || selectedExerciseId == null || string.IsNullOrEmpty(logRequest.EventType))"
+                                           StartIcon="@Icons.Material.Filled.Save"
+                                           Class="mt-4">
+                                    @if (isLoggingProgress)
+                                    {
+                                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                                        <MudText Class="ms-3">Logging...</MudText>
+                                    }
+                                    else
+                                    {
+                                        <MudText>Log Detailed Progress</MudText>
+                                    }
+                                </MudButton>
+                            </MudForm>
+                        }
+                        else if (isLoadingExercises)
+                        {
+                            <div class="d-flex justify-center pa-4">
+                                <MudProgressCircular Indeterminate="true" />
+                                <MudText Class="ml-3">Loading exercises...</MudText>
+                            </div>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Secondary" Align="Align.Center" Class="py-4">
+                                No exercises found. Contact your trainer to get started!
+                            </MudText>
+                        }
+                    </ChildContent>
+                </MudExpansionPanel>
+            </MudExpansionPanels>
         </MudItem>
 
         <!-- Adherence Summary -->
@@ -243,11 +408,15 @@
 
     private List<ExerciseInfo> exerciseInstances = new();
     private AdherenceSummaryResponse? adherenceSummary;
+    private WeeklyProgressResponse? weeklyProgressData;
+    private ProgressLadderInput progressLadderInput = new();
     private MudForm? progressForm;
 
     private bool isLoadingExercises = false;
     private bool isLoadingAdherence = false;
+    private bool isLoadingWeeklyProgress = false;
     private bool isLoggingProgress = false;
+    private bool isDarkMode = false;
     private string errorMessage = "";
 
     private int? selectedExerciseId;
@@ -260,6 +429,7 @@
     {
         await CheckAuthAndRedirect();
         await LoadExercises();
+        await LoadWeeklyProgress();
         await LoadAdherenceSummary();
     }
 
@@ -363,7 +533,8 @@
                 selectedExerciseId = null;
                 logRequest = new LogProgressRequest { EventType = ExerciseCompletedType };
 
-                // Refresh adherence summary
+                // Refresh data
+                await LoadWeeklyProgress();
                 await LoadAdherenceSummary();
             }
             else
@@ -426,6 +597,78 @@
 
             await DialogService.ShowAsync<BadgeCelebrationDialog>("🎉 Achievement Unlocked!", parameters, options);
         }
+    }
+
+    private async Task LoadWeeklyProgress()
+    {
+        isLoadingWeeklyProgress = true;
+
+        try
+        {
+            var response = await HttpClient.GetAsync("/api/client/progress/week");
+            if (response.IsSuccessStatusCode)
+            {
+                weeklyProgressData = await response.Content.ReadFromJsonAsync<WeeklyProgressResponse>();
+
+                if (weeklyProgressData != null)
+                {
+                    // Convert to ProgressLadderInput format
+                    progressLadderInput = new ProgressLadderInput
+                    {
+                        Unit = weeklyProgressData.Unit == ProgressUnit.Xp ? ProgressUnit.Xp : ProgressUnit.Percent,
+                        CurrentValue = weeklyProgressData.CurrentValue,
+                        BreakEven = weeklyProgressData.BreakEven,
+                        Tiers = weeklyProgressData.Tiers,
+                        NextEstimate = weeklyProgressData.NextEstimate
+                    };
+                }
+            }
+        }
+        catch (Exception)
+        {
+            // Silently fail for weekly progress
+        }
+        finally
+        {
+            isLoadingWeeklyProgress = false;
+        }
+    }
+
+    private async Task HandleStartToday()
+    {
+        // Scroll to or expand the detailed exercise log
+        await JSRuntime.InvokeVoidAsync("scrollToElement", ".mud-expansion-panel");
+    }
+
+    private async Task HandleTierClick(ProgressTier tier)
+    {
+        var message = $"🎯 {tier.Label} Tier\n\nThreshold: {tier.Threshold} XP\nReward: {tier.Reward.Value}";
+
+        if (weeklyProgressData?.CurrentValue >= tier.Threshold)
+        {
+            message += "\n\n✅ Achieved!";
+        }
+        else
+        {
+            var needed = tier.Threshold - (weeklyProgressData?.CurrentValue ?? 0);
+            message += $"\n\n🎯 {needed} XP needed";
+        }
+
+        Snackbar.Add(message, Severity.Info, config =>
+        {
+            config.VisibleStateDuration = 4000;
+        });
+    }
+
+    private Color GetBreakEvenColor()
+    {
+        if (weeklyProgressData == null) return Color.Default;
+
+        var percentage = (double)weeklyProgressData.CurrentValue / weeklyProgressData.BreakEven;
+
+        if (percentage >= 1.0) return Color.Success;
+        if (percentage >= 0.7) return Color.Warning;
+        return Color.Error;
     }
 
     public class ExerciseInfo
@@ -525,4 +768,18 @@
     };
 
     // Using CSS transitions instead of keyframes to avoid Blazor parsing issues
+
+    window.scrollToElement = (selector) => {
+        const element = document.querySelector(selector);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+            // If it's an expansion panel, try to expand it
+            const panel = element.querySelector('.mud-expand-panel-header');
+            if (panel) {
+                panel.click();
+            }
+        }
+    };
 </script>
+
+<script src="~/js/progressLadder.js"></script>

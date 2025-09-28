@@ -24,6 +24,10 @@ public static class ProgressEndpoints
             .RequireAuthorization()
             .WithName("GetClientAdherenceSummary");
 
+        progressGroup.MapGet("/client/progress/week", GetWeeklyProgress)
+            .RequireAuthorization()
+            .WithName("GetWeeklyProgress");
+
         // Trainer endpoints
         progressGroup.MapGet("/trainer/clients/{clientAlias}/adherence", GetTrainerClientAdherence)
             .RequireAuthorization()
@@ -162,6 +166,75 @@ public static class ProgressEndpoints
         catch (Exception)
         {
             return Results.Problem("Failed to retrieve adherence summary. Please try again.");
+        }
+    }
+
+    private static async Task<IResult> GetWeeklyProgress(
+        AppDbContext context,
+        IGamificationService gamificationService,
+        HttpContext httpContext)
+    {
+        try
+        {
+            var userId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userType = httpContext.User.FindFirst("user_type")?.Value;
+
+            if (string.IsNullOrEmpty(userId) || userType != "client")
+            {
+                return Results.Forbid();
+            }
+
+            if (!int.TryParse(userId, out var parsedUserId))
+            {
+                return Results.Forbid();
+            }
+
+            // Get client profile
+            var clientProfile = await context.ClientProfiles
+                .FirstOrDefaultAsync(cp => cp.UserId == parsedUserId);
+
+            if (clientProfile == null)
+            {
+                return Results.NotFound("Client profile not found");
+            }
+
+            // Get weekly progress data
+            var weeklyProgress = await gamificationService.GetWeeklyProgressAsync(clientProfile.Id);
+
+            // Convert to response format
+            var response = new WeeklyProgressResponse
+            {
+                Unit = weeklyProgress.Unit,
+                CurrentValue = weeklyProgress.CurrentValue,
+                BreakEven = weeklyProgress.BreakEven,
+                Tiers = weeklyProgress.Tiers.Select(t => new ProgressTier
+                {
+                    Threshold = t.Threshold,
+                    Label = t.Label,
+                    Reward = new TierReward
+                    {
+                        Kind = t.Reward.Kind,
+                        Value = t.Reward.Value
+                    }
+                }).ToList(),
+                NextEstimate = weeklyProgress.NextEstimate != null
+                    ? new NextEstimate
+                    {
+                        NeededDelta = weeklyProgress.NextEstimate.NeededDelta,
+                        SuggestedAction = weeklyProgress.NextEstimate.SuggestedAction
+                    }
+                    : null,
+                WeekStartDate = weeklyProgress.WeekStartDate,
+                WeekEndDate = weeklyProgress.WeekEndDate,
+                HasCelebration = weeklyProgress.HasCelebration,
+                CelebrationMessage = weeklyProgress.CelebrationMessage
+            };
+
+            return Results.Ok(response);
+        }
+        catch (Exception)
+        {
+            return Results.Problem("Failed to retrieve weekly progress. Please try again.");
         }
     }
 

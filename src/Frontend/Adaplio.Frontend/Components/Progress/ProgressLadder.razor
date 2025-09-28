@@ -1,0 +1,225 @@
+@using Adaplio.Frontend.Models
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<div class="progress-ladder @(GetThemeClass())" role="progressbar"
+     aria-valuenow="@Data.CurrentValue"
+     aria-valuemin="0"
+     aria-valuemax="@(Data.Tiers.LastOrDefault()?.Threshold ?? 100)"
+     aria-label="Weekly progress ladder">
+
+    @if (Data.Tiers.Any())
+    {
+        <!-- Tiers -->
+        <div class="ladder-tiers">
+            @for (int i = Data.Tiers.Count - 1; i >= 0; i--)
+            {
+                var tier = Data.Tiers[i];
+                var isActive = Data.CurrentValue >= tier.Threshold;
+                var isNext = !isActive && (i == 0 || Data.CurrentValue >= Data.Tiers[i - 1].Threshold);
+                var position = CalculatePosition(tier.Threshold);
+
+                <div class="tier-row @(GetTierClass(tier, isActive, isNext))"
+                     style="top: @(position)%"
+                     tabindex="0"
+                     @onclick="() => ShowTierTooltip(tier)"
+                     @onkeydown="@(e => { if (e.Key == "Enter" || e.Key == " ") ShowTierTooltip(tier); })"
+                     aria-label="@GetTierAriaLabel(tier)">
+
+                    <!-- Tier Info -->
+                    <div class="tier-info">
+                        <div class="tier-threshold">@tier.Threshold</div>
+                        <div class="tier-label">@tier.Label</div>
+                    </div>
+
+                    <!-- Tier Reward -->
+                    <div class="tier-reward">
+                        <div class="reward-icon">@GetRewardIcon(tier.Reward)</div>
+                        <div class="reward-value">@tier.Reward.Value</div>
+                    </div>
+
+                    @if (isNext)
+                    {
+                        <div class="next-tier-indicator" aria-label="Next target">
+                            <MudIcon Icon="@Icons.Material.Filled.KeyboardArrowUp" Size="Size.Small" />
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        <!-- Central Progress Line -->
+        <div class="progress-line">
+            <!-- Break-even marker -->
+            @if (Data.BreakEven > 0)
+            {
+                var breakEvenPosition = CalculatePosition(Data.BreakEven);
+                <div class="break-even-marker"
+                     style="top: @(breakEvenPosition)%"
+                     aria-label="Break-even threshold: @Data.BreakEven">
+                    <div class="break-even-pill">Break-Even</div>
+                </div>
+            }
+
+            <!-- Progress marker -->
+            <div class="progress-marker @(GetProgressMarkerClass())"
+                 style="top: @(CalculatePosition(Data.CurrentValue))%; transition: top @(AnimationDuration)ms @(AnimationEasing)"
+                 aria-label="Current progress: @Data.CurrentValue">
+                <div class="marker-dot"></div>
+                <div class="marker-arrow">
+                    <MudIcon Icon="@Icons.Material.Filled.KeyboardArrowUp" Size="Size.Small" />
+                </div>
+                <div class="marker-value">@Data.CurrentValue</div>
+            </div>
+        </div>
+
+        <!-- Next Target Hint -->
+        @if (Data.NextEstimate != null)
+        {
+            <div class="next-target-hint">
+                <MudIcon Icon="@Icons.Material.Filled.Target" Size="Size.Small" Class="mr-2" />
+                <span>@Data.NextEstimate.SuggestedAction</span>
+                <div class="hint-details">+@Data.NextEstimate.NeededDelta to reach next tier</div>
+            </div>
+        }
+    }
+    else
+    {
+        <!-- Empty State -->
+        <div class="empty-state">
+            <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="Size.Large" Color="Color.Primary" />
+            <MudText Typo="Typo.h6" Class="mt-4">Your ladder appears after your first log</MudText>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.PlayArrow"
+                       OnClick="OnStartToday"
+                       Class="mt-4">
+                Start Today
+            </MudButton>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public ProgressLadderInput Data { get; set; } = new();
+    [Parameter] public EventCallback OnStartToday { get; set; }
+    [Parameter] public EventCallback<ProgressTier> OnTierClick { get; set; }
+    [Parameter] public bool IsDarkMode { get; set; }
+    [Parameter] public bool IsCompact { get; set; }
+
+    private const int AnimationDuration = 300;
+    private const string AnimationEasing = "cubic-bezier(0.4, 0.0, 0.2, 1)";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && Data.Tiers.Any())
+        {
+            await JSRuntime.InvokeVoidAsync("progressLadder.initialize", DotNetObjectReference.Create(this));
+        }
+    }
+
+    private double CalculatePosition(int value)
+    {
+        if (!Data.Tiers.Any()) return 50;
+
+        var maxTier = Data.Tiers.LastOrDefault()?.Threshold ?? 100;
+        var minTier = 0;
+
+        // Invert the percentage (100% = top of ladder)
+        var percentage = Math.Max(0, Math.Min(100, (double)(value - minTier) / (maxTier - minTier) * 100));
+        return 100 - percentage;
+    }
+
+    private string GetTierClass(ProgressTier tier, bool isActive, bool isNext)
+    {
+        var classes = new List<string>();
+
+        if (isActive) classes.Add("tier-active");
+        if (isNext) classes.Add("tier-next");
+        if (Data.CurrentValue < Data.BreakEven) classes.Add("tier-below-break-even");
+        else if (Data.CurrentValue >= Data.BreakEven && Data.CurrentValue < tier.Threshold) classes.Add("tier-at-break-even");
+        else if (isActive) classes.Add("tier-above-break-even");
+
+        return string.Join(" ", classes);
+    }
+
+    private string GetProgressMarkerClass()
+    {
+        if (Data.CurrentValue < Data.BreakEven) return "marker-below-break-even";
+        if (Data.CurrentValue == Data.BreakEven) return "marker-at-break-even";
+        return "marker-above-break-even";
+    }
+
+    private string GetThemeClass()
+    {
+        var classes = new List<string>();
+        if (IsDarkMode) classes.Add("dark-mode");
+        if (IsCompact) classes.Add("compact");
+        return string.Join(" ", classes);
+    }
+
+    private string GetRewardIcon(TierReward reward)
+    {
+        return reward.Kind switch
+        {
+            RewardKind.Multiplier => "⚡",
+            RewardKind.Badge => "🏆",
+            RewardKind.Perk => "🎁",
+            _ => "⭐"
+        };
+    }
+
+    private string GetTierAriaLabel(ProgressTier tier)
+    {
+        var progress = Data.CurrentValue >= tier.Threshold ? "Achieved" : "Not achieved";
+        return $"{progress}: {tier.Label} tier at {tier.Threshold}. Reward: {tier.Reward.Value}";
+    }
+
+    private async Task ShowTierTooltip(ProgressTier tier)
+    {
+        await OnTierClick.InvokeAsync(tier);
+    }
+
+    [JSInvokable]
+    public async Task TriggerCelebration()
+    {
+        await JSRuntime.InvokeVoidAsync("progressLadder.celebrate");
+    }
+
+    [JSInvokable]
+    public void RecalculatePositions()
+    {
+        StateHasChanged();
+    }
+
+    public async Task UpdateProgressAsync(int newValue)
+    {
+        var oldValue = Data.CurrentValue;
+        Data.CurrentValue = newValue;
+
+        await JSRuntime.InvokeVoidAsync("progressLadder.updateProgress", newValue, oldValue);
+        StateHasChanged();
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        // Trigger position recalculation when data changes
+        if (Data.Tiers.Any())
+        {
+            InvokeAsync(async () =>
+            {
+                await JSRuntime.InvokeVoidAsync("progressLadder.updateProgress", Data.CurrentValue, 0);
+            });
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (JSRuntime != null)
+        {
+            await JSRuntime.InvokeVoidAsync("progressLadder.dispose");
+        }
+    }
+}

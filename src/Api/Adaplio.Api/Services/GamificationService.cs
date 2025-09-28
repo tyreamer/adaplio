@@ -9,6 +9,7 @@ public interface IGamificationService
     Task<GamificationResult> AwardXpForProgressAsync(int progressEventId, int clientProfileId);
     Task<Domain.Gamification> GetOrCreateGamificationAsync(int clientProfileId);
     Task<Domain.Gamification?> GetGamificationAsync(int clientProfileId);
+    Task<WeeklyProgressData> GetWeeklyProgressAsync(int clientProfileId, DateTime? weekStart = null);
 }
 
 public class GamificationService : IGamificationService
@@ -312,6 +313,91 @@ public class GamificationService : IGamificationService
 
         return newBadges;
     }
+
+    public async Task<WeeklyProgressData> GetWeeklyProgressAsync(int clientProfileId, DateTime? weekStart = null)
+    {
+        // Calculate week boundaries
+        var startOfWeek = weekStart ?? GetStartOfWeek(DateTime.UtcNow);
+        var endOfWeek = startOfWeek.AddDays(7).AddTicks(-1);
+
+        // Get XP awards for this week
+        var weeklyXpAwards = await _context.XpAwards
+            .Where(xa => xa.UserId == clientProfileId &&
+                        xa.CreatedAt >= startOfWeek &&
+                        xa.CreatedAt <= endOfWeek)
+            .SumAsync(xa => xa.XpAwarded);
+
+        // Get total gamification data
+        var gamification = await GetOrCreateGamificationAsync(clientProfileId);
+
+        // Calculate tiers based on current level and total XP
+        var tiers = CalculateWeeklyTiers(gamification.Level, gamification.TotalXp);
+
+        // Calculate break-even threshold (minimum weekly XP expected)
+        var breakEven = CalculateBreakEvenXp(gamification.Level);
+
+        // Calculate next estimate
+        var nextTier = tiers.FirstOrDefault(t => t.Threshold > weeklyXpAwards);
+        var nextEstimate = nextTier != null
+            ? new WeeklyProgressNextEstimate
+            {
+                NeededDelta = nextTier.Threshold - weeklyXpAwards,
+                SuggestedAction = GetSuggestedAction(nextTier.Threshold - weeklyXpAwards)
+            }
+            : null;
+
+        return new WeeklyProgressData
+        {
+            Unit = "xp",
+            CurrentValue = weeklyXpAwards,
+            BreakEven = breakEven,
+            Tiers = tiers,
+            NextEstimate = nextEstimate,
+            WeekStartDate = startOfWeek,
+            WeekEndDate = endOfWeek.AddTicks(1),
+            HasCelebration = weeklyXpAwards > gamification.TotalXp * 0.1, // Celebration if weekly XP > 10% of total
+            CelebrationMessage = weeklyXpAwards > breakEven ? "Great work this week! 🎉" : null
+        };
+    }
+
+    private static DateTime GetStartOfWeek(DateTime date)
+    {
+        var diff = (7 + (date.DayOfWeek - DayOfWeek.Monday)) % 7;
+        return date.AddDays(-diff).Date;
+    }
+
+    private static List<WeeklyProgressTier> CalculateWeeklyTiers(int currentLevel, int totalXp)
+    {
+        // Base tiers that scale with user level
+        var baseMultiplier = Math.Max(1, currentLevel / 2);
+
+        return new List<WeeklyProgressTier>
+        {
+            new() { Threshold = 10 * baseMultiplier, Label = "Bronze", Reward = new WeeklyProgressReward { Kind = "badge", Value = "Bronze Week" } },
+            new() { Threshold = 25 * baseMultiplier, Label = "Silver", Reward = new WeeklyProgressReward { Kind = "multiplier", Value = "1.5×" } },
+            new() { Threshold = 45 * baseMultiplier, Label = "Gold", Reward = new WeeklyProgressReward { Kind = "multiplier", Value = "2×" } },
+            new() { Threshold = 70 * baseMultiplier, Label = "Platinum", Reward = new WeeklyProgressReward { Kind = "perk", Value = "PT shout-out" } },
+            new() { Threshold = 100 * baseMultiplier, Label = "Diamond", Reward = new WeeklyProgressReward { Kind = "multiplier", Value = "2.5×" } }
+        };
+    }
+
+    private static int CalculateBreakEvenXp(int currentLevel)
+    {
+        // Break-even is typically 60% of Gold tier
+        var baseMultiplier = Math.Max(1, currentLevel / 2);
+        return (int)(45 * baseMultiplier * 0.6);
+    }
+
+    private static string GetSuggestedAction(int neededXp)
+    {
+        return neededXp switch
+        {
+            <= 5 => "Complete one more exercise",
+            <= 15 => "Log 2-3 more exercises",
+            <= 30 => "Complete your daily routine",
+            _ => "Focus on this week's exercises"
+        };
+    }
 }
 
 public class GamificationResult
@@ -323,4 +409,36 @@ public class GamificationResult
     public int TotalXp { get; set; }
     public int CurrentStreak { get; set; }
     public bool AlreadyAwarded { get; set; }
+}
+
+public class WeeklyProgressData
+{
+    public string Unit { get; set; } = "xp";
+    public int CurrentValue { get; set; }
+    public int BreakEven { get; set; }
+    public List<WeeklyProgressTier> Tiers { get; set; } = new();
+    public WeeklyProgressNextEstimate? NextEstimate { get; set; }
+    public DateTime WeekStartDate { get; set; }
+    public DateTime WeekEndDate { get; set; }
+    public bool HasCelebration { get; set; }
+    public string? CelebrationMessage { get; set; }
+}
+
+public class WeeklyProgressTier
+{
+    public int Threshold { get; set; }
+    public string? Label { get; set; }
+    public WeeklyProgressReward Reward { get; set; } = new();
+}
+
+public class WeeklyProgressReward
+{
+    public string Kind { get; set; } = "multiplier";
+    public string Value { get; set; } = "";
+}
+
+public class WeeklyProgressNextEstimate
+{
+    public int NeededDelta { get; set; }
+    public string SuggestedAction { get; set; } = "";
 }

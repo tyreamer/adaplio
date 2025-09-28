@@ -1,0 +1,612 @@
+.progress-ladder {
+    position: relative;
+    width: 100%;
+    min-height: 500px;
+    background: linear-gradient(180deg,
+        var(--mud-palette-surface) 0%,
+        var(--mud-palette-background) 100%);
+    border-radius: 12px;
+    padding: 24px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.progress-ladder.dark-mode {
+    background: linear-gradient(180deg,
+        var(--mud-palette-dark-surface) 0%,
+        var(--mud-palette-dark-background) 100%);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.progress-ladder.compact {
+    min-height: 300px;
+    padding: 16px;
+}
+
+/* Ladder Tiers */
+.ladder-tiers {
+    position: relative;
+    height: 100%;
+    min-height: 400px;
+    margin: 0 auto;
+    max-width: 600px;
+}
+
+.tier-row {
+    position: absolute;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(8px);
+    transition: all 300ms cubic-bezier(0.4, 0.0, 0.2, 1);
+    cursor: pointer;
+    z-index: 2;
+    transform: translateX(0);
+}
+
+.dark-mode .tier-row {
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.tier-row:hover {
+    transform: translateX(4px) scale(1.02);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.tier-row:focus {
+    outline: none;
+    border-color: var(--mud-palette-primary);
+    box-shadow: 0 0 0 3px rgba(var(--mud-palette-primary-rgb), 0.2);
+}
+
+/* Tier States */
+.tier-active {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: white;
+    border-color: #15803d;
+    animation: tier-achieved 600ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.tier-next {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    border-color: #b45309;
+    animation: tier-pulse 2s ease-in-out infinite;
+}
+
+.tier-below-break-even {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    border-color: #b91c1c;
+}
+
+.tier-at-break-even {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    border-color: #b45309;
+}
+
+.tier-above-break-even {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: white;
+    border-color: #15803d;
+}
+
+/* Tier Content */
+.tier-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.tier-threshold {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.tier-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    opacity: 0.9;
+}
+
+.tier-reward {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.reward-icon {
+    font-size: 1.25rem;
+    opacity: 0.9;
+}
+
+.reward-value {
+    font-size: 0.875rem;
+    font-weight: 600;
+    opacity: 0.9;
+}
+
+.next-tier-indicator {
+    position: absolute;
+    right: -8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--mud-palette-primary);
+    color: white;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: bounce 1s ease-in-out infinite;
+}
+
+/* Progress Line */
+.progress-line {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg,
+        var(--mud-palette-grey-light) 0%,
+        var(--mud-palette-grey-dark) 100%);
+    transform: translateX(-50%);
+    z-index: 1;
+    border-radius: 2px;
+}
+
+.dark-mode .progress-line {
+    background: linear-gradient(180deg,
+        var(--mud-palette-dark-grey-light) 0%,
+        var(--mud-palette-dark-grey-dark) 100%);
+}
+
+/* Break-even Marker */
+.break-even-marker {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+}
+
+.break-even-pill {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+    transform: translateX(-50%);
+    position: relative;
+    left: 50%;
+}
+
+.break-even-pill::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid #d97706;
+}
+
+/* Progress Marker */
+.progress-marker {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.marker-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--mud-palette-primary);
+    border: 3px solid white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    margin-bottom: 4px;
+}
+
+.marker-arrow {
+    color: var(--mud-palette-primary);
+    margin-bottom: 4px;
+    animation: marker-pulse 2s ease-in-out infinite;
+}
+
+.marker-value {
+    background: var(--mud-palette-primary);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(var(--mud-palette-primary-rgb), 0.3);
+}
+
+.marker-below-break-even .marker-dot {
+    background: #ef4444;
+    animation: marker-urgent 1s ease-in-out infinite;
+}
+
+.marker-below-break-even .marker-value {
+    background: #ef4444;
+}
+
+.marker-at-break-even .marker-dot {
+    background: #f59e0b;
+}
+
+.marker-at-break-even .marker-value {
+    background: #f59e0b;
+}
+
+.marker-above-break-even .marker-dot {
+    background: #22c55e;
+}
+
+.marker-above-break-even .marker-value {
+    background: #22c55e;
+}
+
+/* Next Target Hint */
+.next-target-hint {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    text-align: center;
+    max-width: 280px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.dark-mode .next-target-hint {
+    background: rgba(0, 0, 0, 0.8);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.hint-details {
+    font-size: 0.75rem;
+    opacity: 0.7;
+    margin-top: 4px;
+}
+
+/* Empty State */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 400px;
+    text-align: center;
+}
+
+/* Animations */
+@keyframes tier-achieved {
+    0% {
+        transform: translateX(0) scale(1);
+    }
+    50% {
+        transform: translateX(8px) scale(1.05);
+    }
+    100% {
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes tier-pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+    50% {
+        opacity: 0.9;
+        transform: translateX(2px) scale(1.01);
+    }
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(-50%) translateX(0);
+    }
+    40% {
+        transform: translateY(-50%) translateX(-2px);
+    }
+    60% {
+        transform: translateY(-50%) translateX(2px);
+    }
+}
+
+@keyframes marker-pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.1);
+    }
+}
+
+@keyframes marker-urgent {
+    0%, 100% {
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+    }
+    50% {
+        box-shadow: 0 2px 16px rgba(239, 68, 68, 0.6);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .progress-ladder {
+        padding: 16px;
+        min-height: 400px;
+    }
+
+    .tier-row {
+        padding: 8px 12px;
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+        margin: 4px 0;
+    }
+
+    .tier-info {
+        align-items: center;
+        order: 1;
+    }
+
+    .tier-reward {
+        order: 2;
+        justify-content: center;
+    }
+
+    .tier-threshold {
+        font-size: 1.25rem;
+    }
+
+    .tier-label {
+        font-size: 0.75rem;
+    }
+
+    .next-target-hint {
+        max-width: 240px;
+        padding: 8px 12px;
+        bottom: 8px;
+        font-size: 0.875rem;
+    }
+
+    .next-tier-indicator {
+        right: -6px;
+        width: 24px;
+        height: 24px;
+    }
+
+    .progress-line {
+        width: 3px;
+    }
+
+    .marker-dot {
+        width: 12px;
+        height: 12px;
+    }
+
+    .marker-value {
+        font-size: 0.625rem;
+        padding: 2px 6px;
+    }
+
+    .break-even-pill {
+        font-size: 0.625rem;
+        padding: 2px 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .progress-ladder {
+        padding: 12px;
+        min-height: 350px;
+    }
+
+    .ladder-tiers {
+        min-height: 300px;
+    }
+
+    .tier-row {
+        padding: 6px 8px;
+        margin: 3px 0;
+        border-radius: 6px;
+    }
+
+    .tier-threshold {
+        font-size: 1rem;
+    }
+
+    .tier-label {
+        font-size: 0.625rem;
+    }
+
+    .reward-value {
+        font-size: 0.625rem;
+    }
+
+    .reward-icon {
+        font-size: 1rem;
+    }
+
+    .next-target-hint {
+        max-width: 200px;
+        padding: 6px 10px;
+        font-size: 0.75rem;
+        bottom: 6px;
+    }
+
+    .hint-details {
+        font-size: 0.625rem;
+    }
+
+    .progress-line {
+        width: 2px;
+    }
+
+    .marker-dot {
+        width: 10px;
+        height: 10px;
+        border-width: 2px;
+    }
+
+    .marker-value {
+        font-size: 0.5rem;
+        padding: 1px 4px;
+        border-radius: 4px;
+    }
+
+    .break-even-pill {
+        font-size: 0.5rem;
+        padding: 1px 6px;
+    }
+
+    .empty-state {
+        height: 300px;
+        padding: 20px;
+    }
+}
+
+/* Touch-friendly improvements */
+@media (pointer: coarse) {
+    .tier-row {
+        min-height: 48px;
+        padding: 12px 16px;
+    }
+
+    .tier-row:hover {
+        transform: none;
+    }
+
+    .tier-row:active {
+        transform: translateX(2px) scale(0.98);
+        transition: transform 100ms ease-out;
+    }
+
+    .next-tier-indicator {
+        width: 36px;
+        height: 36px;
+    }
+}
+
+/* Landscape orientation adjustments */
+@media (max-width: 768px) and (orientation: landscape) {
+    .progress-ladder {
+        min-height: 300px;
+        display: flex;
+        align-items: center;
+    }
+
+    .ladder-tiers {
+        min-height: 250px;
+        width: 100%;
+    }
+
+    .tier-row {
+        flex-direction: row;
+        text-align: left;
+        padding: 6px 12px;
+    }
+
+    .tier-info {
+        align-items: flex-start;
+        order: initial;
+    }
+
+    .tier-reward {
+        order: initial;
+        justify-content: flex-end;
+    }
+
+    .next-target-hint {
+        max-width: 300px;
+        bottom: 8px;
+    }
+}
+
+/* Ultra-wide screens */
+@media (min-width: 1200px) {
+    .progress-ladder {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .tier-row {
+        padding: 16px 24px;
+        border-radius: 12px;
+    }
+
+    .tier-threshold {
+        font-size: 1.75rem;
+    }
+
+    .tier-label {
+        font-size: 1rem;
+    }
+
+    .reward-value {
+        font-size: 1rem;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .tier-row {
+        border-width: 3px;
+    }
+
+    .tier-active,
+    .tier-next,
+    .tier-below-break-even,
+    .tier-at-break-even,
+    .tier-above-break-even {
+        border-width: 3px;
+    }
+
+    .marker-dot {
+        border-width: 4px;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .tier-row,
+    .progress-marker,
+    .marker-dot,
+    .marker-arrow,
+    .next-tier-indicator {
+        transition: none;
+        animation: none;
+    }
+}

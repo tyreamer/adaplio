@@ -1,0 +1,105 @@
+Context: Blazor WASM + MudBlazor. We want a sleek, vertical progress tracker like the screenshot: two columns (Score/Tier and Reward), a central vertical gauge that the user’s marker climbs, labels for multipliers (e.g., “2×”, “2.5×”), and a Break-Even line. It should feel game-y, animate upward when the patient logs work, and work great on mobile.
+
+Build these behaviors (fit into the existing app structure):
+
+1) Component behavior
+
+Renders a vertical ladder of tiers (top = best). Each row shows:
+
+Tier label (e.g., “57209” in the sample — for us this is XP or Adherence% threshold),
+
+Reward/Perk (e.g., “2×”, “2.5×”, “Badge”, “Streak boost”, “PT shout-out”, etc.).
+
+A center line with a moving marker (dot + up arrow) shows the patient’s current weekly progress.
+
+Show a Break-Even pill at the threshold where the week is “on track” (e.g., 70% of scheduled missions or defined by backend).
+
+Above/below the marker, fade tiers smoothly; the next target is highlighted with an arrow and helper text (“1 more mission to hit Silver / 2×”).
+
+Animate upward only when progress increases. If a log is edited downward, don’t yank the marker down—show a subtle nudge (“adjusted”) and re-compute quietly on next render.
+
+2) Data model (props / inputs)
+
+Accept a simple input object; adapt names to our codebase:
+
+ProgressLadderInput = {
+  unit: "xp" | "percent",              // display style
+  currentValue: number,                // e.g., 46 (XP) or 62 (%) for the week
+  breakEven: number,                   // e.g., 50 (xp) or 70 (%)
+  tiers: Array<{
+    threshold: number,                 // ascending numeric thresholds
+    label?: string,                    // optional display label (e.g., "Gold")
+    reward: { kind: "multiplier"|"badge"|"perk", value: string } // e.g., "2×" or "Gold Badge"
+  }>,
+  nextEstimate?: {                     // optional CTA hint
+    neededDelta: number,               // how much to reach next tier
+    suggestedAction: string            // e.g., "Complete Quad Sets once"
+  }
+}
+
+3) Visual & UX details
+
+Dark/light aware; smooth 200–400ms transitions; physics-y ease for the marker.
+
+Color language:
+
+Below break-even = subtle danger (desaturated red),
+
+At/near break-even = neutral/amber,
+
+Above = success/green.
+
+Compact mobile version (full-height, scrollable list; sticky center line).
+
+Tooltips on tiers (“Threshold 50 XP → Streak 2×”).
+
+Optional confetti/burst when crossing a new tier (once per week).
+
+4) Integration points
+
+Fetch weekly progress and tiers from an endpoint; example shapes (adapt to our APIs):
+
+GET /api/client/progress/week
+{
+  "unit": "xp",
+  "currentValue": 46,
+  "breakEven": 40,
+  "tiers": [
+    { "threshold": 20, "reward": { "kind":"badge", "value":"Starter" } },
+    { "threshold": 40, "reward": { "kind":"multiplier", "value":"2×" } },
+    { "threshold": 55, "reward": { "kind":"perk", "value":"PT shout-out" } },
+    { "threshold": 70, "reward": { "kind":"multiplier", "value":"2.5×" } }
+  ],
+  "nextEstimate": { "neededDelta": 1, "suggestedAction":"Log Hip Flexor Stretch once" }
+}
+
+
+Subscribe/poll so the marker animates after a log is posted (/api/client/logs).
+
+5) Empty/edge states
+
+If no data yet: show skeleton rows and a “Your ladder appears after your first log” card with a Start today button.
+
+If tiers missing: fall back to a default ladder (e.g., 20/40/55/70) derived from plan size.
+
+Handle extreme values (cap at min/max; marker pins to top/bottom with a soft glow).
+
+6) Accessibility
+
+Keyboard focusable tiers; ARIA labels (“Current progress: 46 XP. Next tier at 55 XP: Perk PT shout-out.”).
+
+High-contrast mode friendly.
+
+7) Acceptance criteria
+
+Given input data, the ladder renders tiers, break-even pill, and a moving marker.
+
+Marker animates upward after a successful log, and the “next target” hint updates.
+
+Crossing a tier shows a one-time celebration and updates the reward state.
+
+Works on mobile and desktop; no layout shift; honors dark/light theme.
+
+No trainer-only UI is shown on patient screens.
+
+Notes: Keep implementation cohesive with MudBlazor, but feel free to use lightweight CSS for the vertical line/marker. Don’t rename existing files unless necessary. Provide small unit/UI tests for: tier mapping, next target calculation, and animation boundary cases.
