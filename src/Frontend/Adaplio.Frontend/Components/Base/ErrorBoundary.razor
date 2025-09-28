@@ -1,0 +1,177 @@
+@using Adaplio.Frontend.Services
+@implements IErrorBoundary
+@inject IErrorHandlingService ErrorHandler
+@inject ILogger<ErrorBoundary> Logger
+
+@if (CurrentException == null)
+{
+    @ChildContent
+}
+else
+{
+    <div class="error-boundary">
+        <MudContainer MaxWidth="MaxWidth.Medium" Class="py-8">
+            <MudPaper Class="pa-6">
+                <div class="error-content">
+                    <div class="error-icon">
+                        <MudIcon Icon="@Icons.Material.Filled.ErrorOutline"
+                                Size="Size.Large"
+                                Color="Color.Error" />
+                    </div>
+
+                    <div class="error-message">
+                        <MudText Typo="Typo.h5" Class="mb-2" Color="Color.Error">
+                            Something went wrong
+                        </MudText>
+
+                        <MudText Typo="Typo.body1" Class="mb-4" Color="Color.Secondary">
+                            @ErrorMessage
+                        </MudText>
+
+                        @if (ShowDetails && !string.IsNullOrEmpty(ExceptionDetails))
+                        {
+                            <MudExpansionPanels Class="mt-4">
+                                <MudExpansionPanel Text="Technical Details">
+                                    <div class="technical-details">
+                                        <MudText Typo="Typo.caption" Class="text-monospace">
+                                            @ExceptionDetails
+                                        </MudText>
+                                    </div>
+                                </MudExpansionPanel>
+                            </MudExpansionPanels>
+                        }
+                    </div>
+
+                    <div class="error-actions">
+                        <MudButton Variant="Variant.Filled"
+                                  Color="Color.Primary"
+                                  OnClick="Recover"
+                                  StartIcon="@Icons.Material.Filled.Refresh"
+                                  Class="mr-2">
+                            Try Again
+                        </MudButton>
+
+                        <MudButton Variant="Variant.Text"
+                                  Color="Color.Secondary"
+                                  OnClick="GoHome"
+                                  StartIcon="@Icons.Material.Filled.Home">
+                            Go Home
+                        </MudButton>
+
+                        @if (CanShowDetails)
+                        {
+                            <MudButton Variant="Variant.Text"
+                                      Color="Color.Default"
+                                      OnClick="ToggleDetails"
+                                      Class="ml-2">
+                                @(ShowDetails ? "Hide" : "Show") Details
+                            </MudButton>
+                        }
+                    </div>
+                </div>
+            </MudPaper>
+        </MudContainer>
+    </div>
+}
+
+<style>
+.error-boundary {
+    min-height: 50vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.error-content {
+    text-align: center;
+}
+
+.error-icon {
+    margin-bottom: var(--space-lg);
+}
+
+.error-message {
+    margin-bottom: var(--space-xl);
+}
+
+.error-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+}
+
+.technical-details {
+    background: var(--color-neutral-100);
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    max-height: 200px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.text-monospace {
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: var(--font-size-xs);
+}
+</style>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string? ErrorMessage { get; set; }
+    [Parameter] public bool CanShowDetails { get; set; } = true;
+
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+
+    public Exception? CurrentException { get; set; }
+    private bool ShowDetails { get; set; } = false;
+    private string ExceptionDetails => CurrentException?.ToString() ?? "";
+
+    public async Task RecoverAsync()
+    {
+        ShowDetails = false;
+        CurrentException = null;
+        StateHasChanged();
+    }
+
+    Task IErrorBoundary.RecoverAsync()
+    {
+        return RecoverAsync();
+    }
+
+    protected override void OnParametersSet()
+    {
+        // Reset error state when parameters change (e.g., navigation)
+        if (CurrentException != null)
+        {
+            RecoverAsync();
+        }
+    }
+
+    private async Task Recover()
+    {
+        await RecoverAsync();
+    }
+
+    private void GoHome()
+    {
+        Navigation.NavigateTo("/", forceLoad: true);
+    }
+
+    private void ToggleDetails()
+    {
+        ShowDetails = !ShowDetails;
+        StateHasChanged();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (CurrentException != null && firstRender)
+        {
+            // Log the error when the boundary catches it
+            ErrorHandler.HandleError(CurrentException, ErrorMessage, "ErrorBoundary");
+        }
+    }
+}

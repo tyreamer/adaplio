@@ -1,133 +1,71 @@
 using Adaplio.Frontend.Models;
+using Adaplio.Frontend.Extensions;
 using System.Net.Http.Json;
 using System.Text.Json;
 
 namespace Adaplio.Frontend.Services;
 
-public class ProfileService
+public class ProfileService : BaseApiService
 {
-    private readonly HttpClient _httpClient;
     private readonly ILogger<ProfileService> _logger;
-    private readonly JsonSerializerOptions _jsonOptions;
 
     // Cache for profile data
     private ProfileResponse? _cachedProfile;
     private DateTime? _lastFetch;
     private readonly TimeSpan _cacheExpiry = TimeSpan.FromMinutes(5);
 
-    public ProfileService(HttpClient httpClient, ILogger<ProfileService> logger)
+    public ProfileService(IAuthenticatedHttpClient httpClient, IErrorHandlingService errorHandler, ILogger<ProfileService> logger)
+        : base(httpClient, errorHandler, logger)
     {
-        _httpClient = httpClient;
         _logger = logger;
-        _jsonOptions = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
     }
 
     public async Task<ProfileResponse?> GetProfileAsync(bool forceRefresh = false)
     {
-        try
+        // Return cached data if available and not expired
+        if (!forceRefresh && _cachedProfile != null && _lastFetch.HasValue &&
+            DateTime.UtcNow - _lastFetch.Value < _cacheExpiry)
         {
-            // Return cached data if available and not expired
-            if (!forceRefresh && _cachedProfile != null && _lastFetch.HasValue &&
-                DateTime.UtcNow - _lastFetch.Value < _cacheExpiry)
-            {
-                return _cachedProfile;
-            }
-
-            var response = await _httpClient.GetAsync("/api/me/profile");
-
-            if (response.IsSuccessStatusCode)
-            {
-                var profile = await response.Content.ReadFromJsonAsync<ProfileResponse>(_jsonOptions);
-
-                // Update cache
-                _cachedProfile = profile;
-                _lastFetch = DateTime.UtcNow;
-
-                return profile;
-            }
-            else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-            {
-                // Profile doesn't exist yet, return null
-                return null;
-            }
-            else
-            {
-                _logger.LogError("Failed to fetch profile. Status: {StatusCode}", response.StatusCode);
-                throw new HttpRequestException($"Failed to fetch profile: {response.StatusCode}");
-            }
+            return _cachedProfile;
         }
-        catch (Exception ex)
+
+        var profile = await GetAsync<ProfileResponse>("/api/me/profile", "GetProfile");
+
+        if (profile != null)
         {
-            _logger.LogError(ex, "Error fetching profile");
-            throw;
+            // Update cache
+            _cachedProfile = profile;
+            _lastFetch = DateTime.UtcNow;
         }
+
+        return profile;
     }
 
-    public async Task<ProfileResponse> UpdateProfileAsync(UpdateProfileRequest request)
+    public async Task<ProfileResponse?> UpdateProfileAsync(UpdateProfileRequest request)
     {
-        try
+        var profile = await PutAsync<ProfileResponse>("/api/me/profile", request, "UpdateProfile");
+
+        if (profile != null)
         {
-            var response = await _httpClient.PatchAsJsonAsync("/api/me/profile", request, _jsonOptions);
-
-            if (response.IsSuccessStatusCode)
-            {
-                var updatedProfile = await response.Content.ReadFromJsonAsync<ProfileResponse>(_jsonOptions);
-
-                // Update cache with new data
-                _cachedProfile = updatedProfile;
-                _lastFetch = DateTime.UtcNow;
-
-                return updatedProfile!;
-            }
-            else
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                _logger.LogError("Failed to update profile. Status: {StatusCode}, Error: {Error}",
-                    response.StatusCode, errorContent);
-                throw new HttpRequestException($"Failed to update profile: {response.StatusCode}");
-            }
+            // Update cache with new data
+            _cachedProfile = profile;
+            _lastFetch = DateTime.UtcNow;
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating profile");
-            throw;
-        }
+
+        return profile;
     }
 
-    public async Task<string> GetUploadUrlAsync(string fileName, string contentType, long fileSize)
+    public async Task<string?> GetUploadUrlAsync(string fileName, string contentType, long fileSize)
     {
-        try
+        var request = new
         {
-            var request = new
-            {
-                FileName = fileName,
-                ContentType = contentType,
-                FileSize = fileSize
-            };
+            FileName = fileName,
+            ContentType = contentType,
+            FileSize = fileSize
+        };
 
-            var response = await _httpClient.PostAsJsonAsync("/api/upload/presigned-url", request, _jsonOptions);
-
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadFromJsonAsync<UploadUrlResponse>(_jsonOptions);
-                return result!.UploadUrl;
-            }
-            else
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                _logger.LogError("Failed to get upload URL. Status: {StatusCode}, Error: {Error}",
-                    response.StatusCode, errorContent);
-                throw new HttpRequestException($"Failed to get upload URL: {response.StatusCode}");
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting upload URL");
-            throw;
-        }
+        var result = await PostAsync<UploadUrlResponse>("/api/upload/presigned-url", request, "GetUploadUrl");
+        return result?.UploadUrl;
     }
 
     public async Task<string> UploadFileAsync(Stream fileStream, string fileName, string contentType)
@@ -162,78 +100,36 @@ public class ProfileService
         }
     }
 
-    public async Task UpdateTrainerSharingAsync(int trainerId, TrainerSharingScope scope)
+    public async Task<bool> UpdateTrainerSharingAsync(int trainerId, TrainerSharingScope scope)
     {
-        try
+        var request = new { Scope = scope };
+        var success = await PutAsync($"/api/client/trainers/{trainerId}/scope", request, "UpdateTrainerSharing");
+
+        if (success)
         {
-            var request = new { Scope = scope };
-            var response = await _httpClient.PatchAsJsonAsync($"/api/client/trainers/{trainerId}/scope", request, _jsonOptions);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                _logger.LogError("Failed to update trainer sharing. Status: {StatusCode}, Error: {Error}",
-                    response.StatusCode, errorContent);
-                throw new HttpRequestException($"Failed to update trainer sharing: {response.StatusCode}");
-            }
-
             // Invalidate cache since sharing settings changed
             InvalidateCache();
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating trainer sharing");
-            throw;
-        }
+
+        return success;
     }
 
-    public async Task RemoveTrainerAsync(int trainerId)
+    public async Task<bool> RemoveTrainerAsync(int trainerId)
     {
-        try
+        var success = await DeleteAsync($"/api/client/trainers/{trainerId}", "RemoveTrainer");
+
+        if (success)
         {
-            var response = await _httpClient.DeleteAsync($"/api/client/trainers/{trainerId}");
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                _logger.LogError("Failed to remove trainer. Status: {StatusCode}, Error: {Error}",
-                    response.StatusCode, errorContent);
-                throw new HttpRequestException($"Failed to remove trainer: {response.StatusCode}");
-            }
-
             // Invalidate cache since trainer relationship changed
             InvalidateCache();
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error removing trainer");
-            throw;
-        }
+
+        return success;
     }
 
-    public async Task<byte[]> ExportDataAsync()
+    public async Task<byte[]?> ExportDataAsync()
     {
-        try
-        {
-            var response = await _httpClient.GetAsync("/api/me/export");
-
-            if (response.IsSuccessStatusCode)
-            {
-                return await response.Content.ReadAsByteArrayAsync();
-            }
-            else
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                _logger.LogError("Failed to export data. Status: {StatusCode}, Error: {Error}",
-                    response.StatusCode, errorContent);
-                throw new HttpRequestException($"Failed to export data: {response.StatusCode}");
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error exporting data");
-            throw;
-        }
+        return await GetAsync<byte[]>("/api/me/export", "ExportData");
     }
 
     public void InvalidateCache()

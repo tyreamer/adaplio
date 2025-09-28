@@ -1,0 +1,170 @@
+ 1. LocalStorage Operations - HIGH PRIORITY
+
+  Location:
+  - AuthStateService.cs:147-181, 223-253
+  - ThemeService.cs:44, 90, 103
+
+  Duplication: Both services implement identical localStorage wrapper methods:
+  - localStorage.getItem
+  - localStorage.setItem
+  - localStorage.removeItem
+
+  Issues:
+  - Duplicate error handling patterns
+  - Same try-catch blocks in both services
+  - No centralized localStorage abstraction
+
+  Consolidation Opportunity: Create a LocalStorageService
+  public class LocalStorageService
+  {
+      private readonly IJSRuntime _jsRuntime;
+
+      public async Task<T?> GetItemAsync<T>(string key)
+      public async Task SetItemAsync<T>(string key, T value)
+      public async Task RemoveItemAsync(string key)
+  }
+
+  Estimated Effort: 2-3 hours
+
+  ---
+  2. HTTP Authorization Header Management - MEDIUM PRIORITY
+
+  Location:
+  - AuthStateService.cs:183-191
+  - Potentially repeated in other HTTP services
+
+  Duplication:
+  - SetAuthorizationHeader() and ClearAuthorizationHeader() patterns
+  - Bearer token handling logic
+
+  Consolidation Opportunity: Create an HttpClientAuthExtension or inject token management into HttpClient through DI
+
+  Estimated Effort: 2 hours
+
+  ---
+  3. OnInitializedAsync Patterns - HIGH PRIORITY
+
+  Location: Found in 30+ components/pages
+  - Every page calls AuthState.InitializeAsync()
+  - Repeated auth state checking patterns
+  - Similar component initialization flows
+
+  Common Pattern:
+  protected override async Task OnInitializedAsync()
+  {
+      if (!AuthState.IsInitialized)
+      {
+          await AuthState.InitializeAsync();
+      }
+      // Additional initialization...
+  }
+
+  Consolidation Opportunity:
+  - Create a BasePageComponent with common initialization
+  - Use a global initialization service in App.razor
+  - Implement component base classes
+
+  Estimated Effort: 4-6 hours
+
+  ---
+  4. Authorization Checking Patterns - MEDIUM PRIORITY
+
+  Location:
+  - AuthorizationService.cs:18-166 - Multiple similar permission methods
+  - Repeated IsAuthenticatedAsync(), IsClientAsync(), IsTrainerAsync() calls
+
+  Duplication:
+  - Every permission method has identical auth state checking
+  - Similar validation patterns for role-based permissions
+  - Repeated business rule structures
+
+  Consolidation Opportunity:
+  - Use attribute-based authorization
+  - Create base permission classes
+  - Implement policy-based authorization
+
+  Estimated Effort: 3-4 hours
+
+  ---
+  5. Error Handling Patterns - MEDIUM PRIORITY
+
+  Location: Throughout services and controllers
+  - AuthStateService.cs - Multiple identical try-catch blocks
+  - ThemeService.cs - Repeated error handling
+  - Controllers have similar exception handling
+
+  Common Pattern:
+  try
+  {
+      // Operation
+  }
+  catch
+  {
+      // Ignore errors or log
+      return null/false;
+  }
+
+  Consolidation Opportunity:
+  - Create error handling middleware
+  - Implement common error handling decorators
+  - Use global exception handlers
+
+  Estimated Effort: 3-4 hours
+
+  ---
+  6. Component State Management - LOW PRIORITY
+
+  Location: Profile components
+  - Similar loading states (_isLoading, _isSaving)
+  - Repeated form validation patterns
+  - Common data fetching patterns
+
+  Consolidation Opportunity:
+  - Create reusable form base components
+  - Implement state management abstractions
+  - Use shared component libraries
+
+  Estimated Effort: 6-8 hours
+
+  ---
+  7. API Response Handling - MEDIUM PRIORITY
+
+  Location: Throughout frontend services
+  - Similar JSON deserialization patterns
+  - Repeated response validation
+  - Common error response handling
+
+  Consolidation Opportunity:
+  - Create API client abstraction
+  - Implement response wrapper types
+  - Use HTTP client extensions
+
+  Estimated Effort: 4-5 hours
+
+  ---
+  📊 Priority Recommendations
+
+  Immediate (Next Sprint):
+
+  1. LocalStorage Service - Most duplicated, easy wins
+  2. OnInitializedAsync Patterns - Affects many components
+  3. Authorization Patterns - Security-critical redundancy
+
+  Medium Term:
+
+  4. Error Handling Standardization
+  5. HTTP Client Management
+  6. API Response Patterns
+
+  Long Term:
+
+  7. Component State Management Refactoring
+
+  💡 Quick Wins Available:
+
+  - Extract LocalStorage service (2-3 hours, high impact)
+  - Create BasePageComponent for auth initialization (3-4 hours, high impact)
+  - Consolidate authorization checking methods (2-3 hours, medium impact)
+
+  The most critical redundancies are in the authentication and localStorage patterns, which are used throughout the
+  application and create maintenance overhead.

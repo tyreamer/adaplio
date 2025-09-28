@@ -1,0 +1,69 @@
+@using Adaplio.Frontend.Components.Base
+@inherits BasePage
+
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="error-container">
+        <MudAlert Severity="Severity.Error" ShowCloseIcon="true" CloseIconClicked="@(() => ErrorMessage = null)">
+            @ErrorMessage
+        </MudAlert>
+        <div class="error-actions">
+            <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="RefreshPageAsync" StartIcon="@Icons.Material.Filled.Refresh">
+                Try Again
+            </MudButton>
+        </div>
+    </div>
+}
+else if (IsLoading && !IsInitialized)
+{
+    <div class="loading-container">
+        @LoadingContent
+    </div>
+}
+else if (IsInitialized)
+{
+    <div class="page-content">
+        @PageContent
+    </div>
+}
+
+@code {
+    [Parameter] public RenderFragment? LoadingContent { get; set; }
+    [Parameter] public RenderFragment? PageContent { get; set; }
+}
+
+<style>
+.error-container {
+    padding: var(--space-lg);
+    max-width: 600px;
+    margin: var(--space-xl) auto;
+}
+
+.error-actions {
+    margin-top: var(--space-md);
+    text-align: center;
+}
+
+.loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    padding: var(--space-xl);
+}
+
+.page-content {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>

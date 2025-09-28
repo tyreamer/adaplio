@@ -1,4 +1,5 @@
 using Adaplio.Frontend.Services;
+using Adaplio.Frontend.Authorization;
 using System.Security.Claims;
 
 namespace Adaplio.Frontend.Services;
@@ -6,39 +7,40 @@ namespace Adaplio.Frontend.Services;
 public class AuthorizationService
 {
     private readonly AuthStateService _authState;
+    private readonly IAuthorizationPolicyProvider _policyProvider;
     private readonly ILogger<AuthorizationService> _logger;
 
-    public AuthorizationService(AuthStateService authState, ILogger<AuthorizationService> logger)
+    public AuthorizationService(AuthStateService authState, IAuthorizationPolicyProvider policyProvider, ILogger<AuthorizationService> logger)
     {
         _authState = authState;
+        _policyProvider = policyProvider;
         _logger = logger;
     }
 
     // Profile access permissions
     public async Task<bool> CanEditProfileAsync()
     {
-        return await IsAuthenticatedAsync();
+        var result = await _policyProvider.EvaluatePolicyAsync("ProfileEdit");
+        return result.IsAuthorized;
     }
 
     public async Task<bool> CanViewProfileAsync()
     {
-        return await IsAuthenticatedAsync();
+        var result = await _policyProvider.EvaluatePolicyAsync("RequireAuthentication");
+        return result.IsAuthorized;
     }
 
     public async Task<bool> CanDeleteAccountAsync()
     {
-        var isAuthenticated = await IsAuthenticatedAsync();
-
-        // Additional business rules can be added here
-        // For example: account must be older than 30 days, no active subscriptions, etc.
-
-        return isAuthenticated;
+        var result = await _policyProvider.EvaluatePolicyAsync("RequireAuthentication");
+        return result.IsAuthorized;
     }
 
     // Data management permissions
     public async Task<bool> CanExportDataAsync()
     {
-        return await IsAuthenticatedAsync();
+        var result = await _policyProvider.EvaluatePolicyAsync("DataExport");
+        return result.IsAuthorized;
     }
 
     public async Task<bool> CanManageNotificationsAsync()
@@ -49,62 +51,71 @@ public class AuthorizationService
     // Privacy and sharing permissions
     public async Task<bool> CanManagePrivacySettingsAsync()
     {
-        // Only clients can manage trainer sharing settings
-        return await IsClientAsync();
+        var result = await _policyProvider.EvaluateRoleAsync("client");
+        return result.IsAuthorized;
     }
 
     public async Task<bool> CanViewConnectedTrainersAsync()
     {
-        return await IsClientAsync();
+        var result = await _policyProvider.EvaluateRoleAsync("client");
+        return result.IsAuthorized;
     }
 
     public async Task<bool> CanRemoveTrainerAccessAsync()
     {
-        return await IsClientAsync();
+        var result = await _policyProvider.EvaluateRoleAsync("client");
+        return result.IsAuthorized;
     }
 
     // Trainer-specific permissions
     public async Task<bool> CanManageClinicInfoAsync()
     {
-        return await IsTrainerAsync();
+        var result = await _policyProvider.EvaluateRoleAsync("trainer");
+        return result.IsAuthorized;
     }
 
     public async Task<bool> CanManageSpecialtiesAsync()
     {
-        return await IsTrainerAsync();
+        var result = await _policyProvider.EvaluateRoleAsync("trainer");
+        return result.IsAuthorized;
     }
 
     public async Task<bool> CanUploadLogoAsync()
     {
-        return await IsTrainerAsync();
+        var result = await _policyProvider.EvaluateRoleAsync("trainer");
+        return result.IsAuthorized;
     }
 
     public async Task<bool> CanSetDefaultReminderTimeAsync()
     {
-        return await IsTrainerAsync();
+        var result = await _policyProvider.EvaluateRoleAsync("trainer");
+        return result.IsAuthorized;
     }
 
     // Client-specific permissions
     public async Task<bool> CanManageHealthInfoAsync()
     {
-        return await IsClientAsync();
+        var result = await _policyProvider.EvaluateRoleAsync("client");
+        return result.IsAuthorized;
     }
 
     public async Task<bool> CanManageEmergencyContactAsync()
     {
-        return await IsClientAsync();
+        var result = await _policyProvider.EvaluateRoleAsync("client");
+        return result.IsAuthorized;
     }
 
     public async Task<bool> CanManageAccessibilitySettingsAsync()
     {
-        return await IsClientAsync();
+        var result = await _policyProvider.EvaluateRoleAsync("client");
+        return result.IsAuthorized;
     }
 
     // Security permissions
     public async Task<bool> CanEnable2FAAsync()
     {
-        // 2FA is typically available for trainers only (higher privilege accounts)
-        return await IsTrainerAsync();
+        var result = await _policyProvider.EvaluateRoleAsync("trainer");
+        return result.IsAuthorized;
     }
 
     public async Task<bool> CanManagePasskeysAsync()

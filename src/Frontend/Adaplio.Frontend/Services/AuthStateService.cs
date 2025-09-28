@@ -1,23 +1,23 @@
 using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text.Json;
-using Microsoft.JSInterop;
 using System.Net.Http.Headers;
+using Adaplio.Frontend.Extensions;
 
 namespace Adaplio.Frontend.Services;
 
 public class AuthStateService
 {
     private readonly HttpClient _httpClient;
-    private readonly IJSRuntime _jsRuntime;
+    private readonly ILocalStorageService _localStorage;
     private UserInfo? _currentUser;
     private bool _isInitialized = false;
     private string? _authToken;
 
-    public AuthStateService(HttpClient httpClient, IJSRuntime jsRuntime)
+    public AuthStateService(HttpClient httpClient, ILocalStorageService localStorage)
     {
         _httpClient = httpClient;
-        _jsRuntime = jsRuntime;
+        _localStorage = localStorage;
     }
 
     public event Action? OnAuthStateChanged;
@@ -42,24 +42,23 @@ public class AuthStateService
         try
         {
             // Try to get token from localStorage
-            _authToken = await GetTokenFromStorage();
+            _authToken = await _localStorage.GetItemAsync("auth_token");
 
             if (!string.IsNullOrEmpty(_authToken))
             {
-                SetAuthorizationHeader(_authToken);
+                _httpClient.SetBearerToken(_authToken);
 
-                var response = await _httpClient.GetAsync("/auth/me");
-                if (response.IsSuccessStatusCode)
+                var response = await _httpClient.GetApiAsync<UserInfo>("/auth/me");
+                if (response.IsSuccess)
                 {
-                    var userInfo = await response.Content.ReadFromJsonAsync<UserInfo>();
-                    _currentUser = userInfo;
+                    _currentUser = response.Data;
                 }
                 else
                 {
                     // Token is invalid, clear it
-                    await ClearTokenFromStorage();
+                    await _localStorage.RemoveItemAsync("auth_token");
                     _authToken = null;
-                    ClearAuthorizationHeader();
+                    _httpClient.ClearBearerToken();
                     _currentUser = null;
                 }
             }
@@ -96,9 +95,9 @@ public class AuthStateService
         }
         finally
         {
-            await ClearTokenFromStorage();
+            await _localStorage.RemoveItemAsync("auth_token");
             _authToken = null;
-            ClearAuthorizationHeader();
+            _httpClient.ClearBearerToken();
             _currentUser = null;
             _isInitialized = true;
             NotifyAuthStateChanged();
@@ -112,8 +111,8 @@ public class AuthStateService
         if (!string.IsNullOrEmpty(token))
         {
             _authToken = token;
-            await SaveTokenToStorage(token);
-            SetAuthorizationHeader(token);
+            await _localStorage.SetItemAsync("auth_token", token);
+            _httpClient.SetBearerToken(token);
         }
 
         _isInitialized = true;
@@ -129,9 +128,9 @@ public class AuthStateService
 
     public async Task ClearUserAsync()
     {
-        await ClearTokenFromStorage();
+        await _localStorage.RemoveItemAsync("auth_token");
         _authToken = null;
-        ClearAuthorizationHeader();
+        _httpClient.ClearBearerToken();
         _currentUser = null;
         _isInitialized = true;
         NotifyAuthStateChanged();
@@ -144,51 +143,7 @@ public class AuthStateService
         NotifyAuthStateChanged();
     }
 
-    private async Task<string?> GetTokenFromStorage()
-    {
-        try
-        {
-            return await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", "auth_token");
-        }
-        catch
-        {
-            return null;
-        }
-    }
 
-    private async Task SaveTokenToStorage(string token)
-    {
-        try
-        {
-            await _jsRuntime.InvokeVoidAsync("localStorage.setItem", "auth_token", token);
-        }
-        catch
-        {
-            // Ignore storage errors
-        }
-    }
-
-    private async Task ClearTokenFromStorage()
-    {
-        try
-        {
-            await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", "auth_token");
-        }
-        catch
-        {
-            // Ignore storage errors
-        }
-    }
-
-    private void SetAuthorizationHeader(string token)
-    {
-        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-    }
-
-    private void ClearAuthorizationHeader()
-    {
-        _httpClient.DefaultRequestHeaders.Authorization = null;
-    }
 
     public async Task<bool> UpdateProfileAsync(string? displayName)
     {
@@ -218,38 +173,17 @@ public class AuthStateService
 
     public async Task SetPreferredRoleAsync(string preferredRole)
     {
-        try
-        {
-            await _jsRuntime.InvokeVoidAsync("localStorage.setItem", "preferred_role", preferredRole);
-        }
-        catch
-        {
-            // Ignore storage errors
-        }
+        await _localStorage.SetItemAsync("preferred_role", preferredRole);
     }
 
     public async Task<string?> GetPreferredRoleAsync()
     {
-        try
-        {
-            return await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", "preferred_role");
-        }
-        catch
-        {
-            return null;
-        }
+        return await _localStorage.GetItemAsync("preferred_role");
     }
 
     public async Task ClearPreferredRoleAsync()
     {
-        try
-        {
-            await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", "preferred_role");
-        }
-        catch
-        {
-            // Ignore storage errors
-        }
+        await _localStorage.RemoveItemAsync("preferred_role");
     }
 
     public async Task<bool> SetUserRoleAsync(string role)

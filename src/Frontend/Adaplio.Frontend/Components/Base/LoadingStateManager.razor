@@ -1,0 +1,210 @@
+@using Adaplio.Frontend.Services
+
+<div class="loading-state-container @CssClass">
+    @if (IsLoading && ShowLoadingOverlay)
+    {
+        <div class="loading-overlay">
+            <div class="loading-content">
+                @if (LoadingContent != null)
+                {
+                    @LoadingContent
+                }
+                else
+                {
+                    <MudStack AlignItems="AlignItems.Center" Spacing="4">
+                        <MudProgressCircular Size="@LoadingSize" Indeterminate="true" />
+                        @if (!string.IsNullOrEmpty(LoadingText))
+                        {
+                            <MudText Typo="Typo.body1" Color="Color.Secondary">@LoadingText</MudText>
+                        }
+                    </MudStack>
+                }
+            </div>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(ErrorMessage))
+    {
+        <div class="error-state">
+            <MudAlert Severity="Severity.Error"
+                     ShowCloseIcon="@ShowErrorDismiss"
+                     CloseIconClicked="@OnErrorDismissed">
+                @ErrorMessage
+            </MudAlert>
+            @if (ShowRetryButton)
+            {
+                <div class="error-actions">
+                    <MudButton Variant="Variant.Text"
+                              Color="Color.Primary"
+                              OnClick="OnRetry"
+                              StartIcon="@Icons.Material.Filled.Refresh"
+                              Disabled="@IsLoading">
+                        Try Again
+                    </MudButton>
+                </div>
+            }
+        </div>
+    }
+    else if (!IsLoading && IsInitialized)
+    {
+        <div class="content-state">
+            @if (HasData)
+            {
+                @ContentTemplate
+            }
+            else
+            {
+                <div class="empty-state">
+                    @if (EmptyStateContent != null)
+                    {
+                        @EmptyStateContent
+                    }
+                    else
+                    {
+                        <MudStack AlignItems="AlignItems.Center" Spacing="4" Class="py-8">
+                            <MudIcon Icon="@(EmptyStateIcon ?? Icons.Material.Outlined.Inbox)"
+                                    Size="Size.Large"
+                                    Color="Color.Secondary" />
+                            <MudText Typo="Typo.h6" Color="Color.Secondary">
+                                @(EmptyStateTitle ?? "No data available")
+                            </MudText>
+                            @if (!string.IsNullOrEmpty(EmptyStateDescription))
+                            {
+                                <MudText Typo="Typo.body2" Color="Color.Secondary" Align="Align.Center">
+                                    @EmptyStateDescription
+                                </MudText>
+                            }
+                            @if (EmptyStateActions != null)
+                            {
+                                <div class="empty-state-actions">
+                                    @EmptyStateActions
+                                </div>
+                            }
+                        </MudStack>
+                    }
+                </div>
+            }
+        </div>
+    }
+    else if (IsLoading && !ShowLoadingOverlay)
+    {
+        <div class="inline-loading">
+            @if (InlineLoadingContent != null)
+            {
+                @InlineLoadingContent
+            }
+            else
+            {
+                <MudSkeleton Height="@SkeletonHeight" />
+            }
+        </div>
+    }
+</div>
+
+<style>
+.loading-state-container {
+    position: relative;
+    min-height: 100px;
+}
+
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    backdrop-filter: blur(2px);
+}
+
+.loading-content {
+    padding: var(--space-xl);
+    text-align: center;
+}
+
+.error-state {
+    margin-bottom: var(--space-lg);
+}
+
+.error-actions {
+    margin-top: var(--space-md);
+    text-align: center;
+}
+
+.content-state {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.empty-state {
+    padding: var(--space-xl);
+    text-align: center;
+}
+
+.empty-state-actions {
+    margin-top: var(--space-lg);
+}
+
+.inline-loading {
+    padding: var(--space-md);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
+
+@code {
+    [Parameter] public bool IsLoading { get; set; }
+    [Parameter] public bool IsInitialized { get; set; }
+    [Parameter] public bool HasData { get; set; } = true;
+    [Parameter] public string? ErrorMessage { get; set; }
+    [Parameter] public string? CssClass { get; set; }
+
+    // Loading state configuration
+    [Parameter] public bool ShowLoadingOverlay { get; set; } = true;
+    [Parameter] public string LoadingText { get; set; } = "Loading...";
+    [Parameter] public Size LoadingSize { get; set; } = Size.Large;
+    [Parameter] public RenderFragment? LoadingContent { get; set; }
+    [Parameter] public RenderFragment? InlineLoadingContent { get; set; }
+    [Parameter] public string SkeletonHeight { get; set; } = "200px";
+
+    // Error state configuration
+    [Parameter] public bool ShowErrorDismiss { get; set; } = true;
+    [Parameter] public bool ShowRetryButton { get; set; } = true;
+    [Parameter] public EventCallback OnRetry { get; set; }
+    [Parameter] public EventCallback OnErrorDismissed { get; set; }
+
+    // Empty state configuration
+    [Parameter] public string? EmptyStateTitle { get; set; }
+    [Parameter] public string? EmptyStateDescription { get; set; }
+    [Parameter] public string? EmptyStateIcon { get; set; }
+    [Parameter] public RenderFragment? EmptyStateContent { get; set; }
+    [Parameter] public RenderFragment? EmptyStateActions { get; set; }
+
+    // Content
+    [Parameter] public RenderFragment? ContentTemplate { get; set; }
+
+    private async Task HandleErrorDismissed()
+    {
+        ErrorMessage = null;
+        await OnErrorDismissed.InvokeAsync();
+        StateHasChanged();
+    }
+
+    private async Task HandleRetry()
+    {
+        ErrorMessage = null;
+        await OnRetry.InvokeAsync();
+    }
+}

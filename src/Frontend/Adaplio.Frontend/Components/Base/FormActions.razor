@@ -1,0 +1,178 @@
+@using Adaplio.Frontend.Services
+@inject IErrorHandlingService ErrorHandler
+
+<div class="form-actions-container">
+    @if (!string.IsNullOrEmpty(ErrorMessage))
+    {
+        <div class="form-error">
+            <MudAlert Severity="Severity.Error" ShowCloseIcon="true" CloseIconClicked="@(() => OnErrorDismissed?.Invoke())">
+                @ErrorMessage
+            </MudAlert>
+        </div>
+    }
+
+    <div class="form-status">
+        @if (HasUnsavedChanges)
+        {
+            <div class="status-indicator warning">
+                <MudIcon Icon="@Icons.Material.Filled.Circle"
+                        Color="Color.Warning"
+                        Size="Size.Small" />
+                <span>You have unsaved changes</span>
+            </div>
+        }
+        else if (LastSaved.HasValue)
+        {
+            <div class="status-indicator success">
+                <MudIcon Icon="@Icons.Material.Filled.Check"
+                        Color="Color.Success"
+                        Size="Size.Small" />
+                <span>Saved at @LastSaved.Value.ToString("HH:mm")</span>
+            </div>
+        }
+        else if (ShowDefaultMessage)
+        {
+            <div class="status-indicator neutral">
+                <MudIcon Icon="@Icons.Material.Filled.Info"
+                        Color="Color.Default"
+                        Size="Size.Small" />
+                <span>Make changes to enable saving</span>
+            </div>
+        }
+    </div>
+
+    <div class="action-buttons">
+        @if (ShowResetButton)
+        {
+            <MudButton Color="Color.Default"
+                      OnClick="OnReset"
+                      Disabled="@(!HasUnsavedChanges || IsSaving)"
+                      StartIcon="@Icons.Material.Filled.Refresh"
+                      Class="reset-button">
+                @ResetButtonText
+            </MudButton>
+        }
+
+        @if (ShowCancelButton)
+        {
+            <MudButton Color="Color.Default"
+                      OnClick="OnCancel"
+                      Disabled="@IsSaving"
+                      StartIcon="@Icons.Material.Filled.Close"
+                      Class="cancel-button">
+                @CancelButtonText
+            </MudButton>
+        }
+
+        @if (ShowSaveButton)
+        {
+            <MudButton Color="Color.Primary"
+                      OnClick="OnSave"
+                      Disabled="@(!HasUnsavedChanges || IsSaving || !IsValid)"
+                      StartIcon="@(IsSaving ? null : Icons.Material.Filled.Save)"
+                      Class="save-button">
+                @if (IsSaving)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                    <span>@SavingText</span>
+                }
+                else
+                {
+                    <span>@SaveButtonText</span>
+                }
+            </MudButton>
+        }
+
+        @if (AdditionalActions != null)
+        {
+            @AdditionalActions
+        }
+    </div>
+</div>
+
+<style>
+.form-actions-container {
+    padding: var(--space-lg);
+    border-top: 1px solid var(--color-neutral-200);
+    background: var(--color-surface);
+}
+
+.form-error {
+    margin-bottom: var(--space-md);
+}
+
+.form-status {
+    margin-bottom: var(--space-lg);
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: var(--font-size-sm);
+}
+
+.status-indicator.warning {
+    color: var(--color-warning);
+}
+
+.status-indicator.success {
+    color: var(--color-success);
+}
+
+.status-indicator.neutral {
+    color: var(--color-neutral-600);
+}
+
+.action-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+}
+
+.reset-button, .cancel-button {
+    min-width: 100px;
+}
+
+.save-button {
+    min-width: 120px;
+}
+
+@media (max-width: 600px) {
+    .action-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .reset-button, .cancel-button, .save-button {
+        width: 100%;
+    }
+}
+</style>
+
+@code {
+    [Parameter] public bool HasUnsavedChanges { get; set; }
+    [Parameter] public bool IsSaving { get; set; }
+    [Parameter] public bool IsValid { get; set; } = true;
+    [Parameter] public DateTime? LastSaved { get; set; }
+    [Parameter] public string? ErrorMessage { get; set; }
+
+    [Parameter] public bool ShowSaveButton { get; set; } = true;
+    [Parameter] public bool ShowResetButton { get; set; } = true;
+    [Parameter] public bool ShowCancelButton { get; set; } = false;
+    [Parameter] public bool ShowDefaultMessage { get; set; } = true;
+
+    [Parameter] public string SaveButtonText { get; set; } = "Save Changes";
+    [Parameter] public string ResetButtonText { get; set; } = "Reset";
+    [Parameter] public string CancelButtonText { get; set; } = "Cancel";
+    [Parameter] public string SavingText { get; set; } = "Saving...";
+
+    [Parameter] public EventCallback OnSave { get; set; }
+    [Parameter] public EventCallback OnReset { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public EventCallback OnErrorDismissed { get; set; }
+
+    [Parameter] public RenderFragment? AdditionalActions { get; set; }
+}

@@ -18,10 +18,14 @@ builder.Services.AddScoped<HttpClient>(sp =>
     return httpClient;
 });
 builder.Services.AddMudServices();
+builder.Services.AddLocalStorageService();
+builder.Services.AddAuthenticatedHttpClient();
+builder.Services.AddErrorHandling();
 builder.Services.AddThemeService();
 
 // Add authentication services
 builder.Services.AddScoped<AuthStateService>();
+builder.Services.AddAuthorizationPolicies();
 builder.Services.AddScoped<AuthorizationService>();
 
 // Add profile management services

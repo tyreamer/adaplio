@@ -1,0 +1,140 @@
+@typeparam T
+
+<div class="form-field @(IsRequired ? "required" : "") @(HasError ? "has-error" : "") @CssClass">
+    @if (!string.IsNullOrEmpty(Label))
+    {
+        <div class="field-label">
+            <MudText Typo="Typo.subtitle2" Class="@(IsRequired ? "required-label" : "")">
+                @Label
+                @if (IsRequired)
+                {
+                    <span class="required-asterisk">*</span>
+                }
+            </MudText>
+        </div>
+    }
+
+    <div class="field-control">
+        @ChildContent
+    </div>
+
+    @if (!string.IsNullOrEmpty(HelperText) || !string.IsNullOrEmpty(ErrorText))
+    {
+        <div class="field-help">
+            @if (HasError && !string.IsNullOrEmpty(ErrorText))
+            {
+                <MudText Typo="Typo.caption" Color="Color.Error" Class="error-text">
+                    <MudIcon Icon="@Icons.Material.Filled.ErrorOutline" Size="Size.Small" Class="error-icon" />
+                    @ErrorText
+                </MudText>
+            }
+            else if (!string.IsNullOrEmpty(HelperText))
+            {
+                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="helper-text">
+                    @HelperText
+                </MudText>
+            }
+        </div>
+    }
+</div>
+
+<style>
+.form-field {
+    margin-bottom: var(--space-lg);
+}
+
+.field-label {
+    margin-bottom: var(--space-sm);
+}
+
+.required-label {
+    font-weight: var(--font-weight-medium);
+}
+
+.required-asterisk {
+    color: var(--color-error);
+    margin-left: 2px;
+}
+
+.field-control {
+    position: relative;
+}
+
+.field-help {
+    margin-top: var(--space-xs);
+    min-height: 20px;
+}
+
+.error-text {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.error-icon {
+    flex-shrink: 0;
+}
+
+.helper-text {
+    opacity: 0.8;
+}
+
+.form-field.has-error .field-control .mud-input-control {
+    border-color: var(--color-error);
+}
+
+.form-field.has-error .field-control .mud-input-control:focus-within {
+    border-color: var(--color-error);
+    box-shadow: 0 0 0 1px var(--color-error);
+}
+
+/* Compact variant */
+.form-field.compact {
+    margin-bottom: var(--space-md);
+}
+
+.form-field.compact .field-help {
+    min-height: 16px;
+}
+
+/* Inline variant */
+.form-field.inline {
+    display: flex;
+    align-items: center;
+    margin-bottom: var(--space-md);
+}
+
+.form-field.inline .field-label {
+    margin-bottom: 0;
+    margin-right: var(--space-lg);
+    min-width: 120px;
+}
+
+.form-field.inline .field-control {
+    flex: 1;
+}
+
+.form-field.inline .field-help {
+    margin-top: 0;
+    margin-left: var(--space-md);
+}
+</style>
+
+@code {
+    [Parameter] public string? Label { get; set; }
+    [Parameter] public string? HelperText { get; set; }
+    [Parameter] public string? ErrorText { get; set; }
+    [Parameter] public bool IsRequired { get; set; }
+    [Parameter] public bool HasError { get; set; }
+    [Parameter] public string? CssClass { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [Parameter] public T? Value { get; set; }
+    [Parameter] public EventCallback<T> ValueChanged { get; set; }
+
+    protected async Task OnValueChanged(T value)
+    {
+        Value = value;
+        await ValueChanged.InvokeAsync(value);
+    }
+}

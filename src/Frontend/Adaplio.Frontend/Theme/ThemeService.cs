@@ -1,19 +1,22 @@
 using Microsoft.JSInterop;
 using MudBlazor;
+using Adaplio.Frontend.Services;
 
 namespace Adaplio.Frontend.Theme;
 
 public class ThemeService
 {
     private readonly IJSRuntime _jsRuntime;
+    private readonly ILocalStorageService _localStorage;
     private bool _isDarkMode;
     private bool _isInitialized;
 
     public event Action? OnThemeChanged;
 
-    public ThemeService(IJSRuntime jsRuntime)
+    public ThemeService(IJSRuntime jsRuntime, ILocalStorageService localStorage)
     {
         _jsRuntime = jsRuntime;
+        _localStorage = localStorage;
     }
 
     public bool IsDarkMode => _isDarkMode;
@@ -41,7 +44,7 @@ public class ThemeService
         try
         {
             // Check if user has a stored preference
-            var storedTheme = await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", "theme");
+            var storedTheme = await _localStorage.GetItemAsync("theme");
 
             if (string.IsNullOrEmpty(storedTheme))
             {
@@ -85,14 +88,7 @@ public class ThemeService
 
     private async Task SaveThemePreferenceAsync()
     {
-        try
-        {
-            await _jsRuntime.InvokeVoidAsync("localStorage.setItem", "theme", _isDarkMode ? "dark" : "light");
-        }
-        catch
-        {
-            // Ignore localStorage errors
-        }
+        await _localStorage.SetItemAsync("theme", _isDarkMode ? "dark" : "light");
     }
 
     private async Task ApplyThemeAsync()
