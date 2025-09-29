@@ -3,7 +3,15 @@
   "outputDirectory": "src/Frontend/Adaplio.Frontend/bin/Release/net8.0/publish/wwwroot",
   "rewrites": [
     {
-      "source": "/((?!api/).*)",
+      "source": "/api/(.*)",
+      "destination": "https://adaplio.onrender.com/api/$1"
+    },
+    {
+      "source": "/auth/(.*)",
+      "destination": "https://adaplio.onrender.com/auth/$1"
+    },
+    {
+      "source": "/((?!api/|auth/).*)",
       "destination": "/index.html"
     }
   ],

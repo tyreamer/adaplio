@@ -17,9 +17,10 @@ builder.Services.AddAppConfiguration();
 builder.Services.AddScoped<HttpClient>(sp =>
 {
     var config = sp.GetRequiredService<AppConfiguration>();
-    var httpClient = new HttpClient { BaseAddress = new Uri(config.ApiBaseUrl) };
+    var baseUrl = string.IsNullOrEmpty(config.ApiBaseUrl) ?
+        builder.HostEnvironment.BaseAddress : config.ApiBaseUrl;
+    var httpClient = new HttpClient { BaseAddress = new Uri(baseUrl) };
 
-    // This won't work for Blazor WebAssembly cross-origin, so we'll need to handle this differently
     return httpClient;
 });
 builder.Services.AddMudServices();
