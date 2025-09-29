@@ -1,0 +1,613 @@
+@page "/settings"
+@using System.ComponentModel.DataAnnotations
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Settings - Adaplio</PageTitle>
+
+<div class="settings-page">
+    <!-- Header -->
+    <div class="settings-header">
+        <div class="header-content">
+            <button class="back-btn" @onclick="@(() => Navigation.NavigateTo("/profile"))">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15,18 9,12 15,6"></polyline>
+                </svg>
+            </button>
+            <div class="header-info">
+                <div class="brand-logo">
+                    <span class="logo-icon">🧡</span>
+                    <span class="brand-name">Adaplio</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="settings-icon-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"></path>
+                    </svg>
+                </button>
+                <div class="profile-avatar">
+                    <span class="avatar-initials">JD</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="settings-content">
+        <div class="settings-container">
+            <h1 class="settings-title">Settings</h1>
+
+            <!-- Account Section -->
+            <div class="settings-section">
+                <h2 class="section-title">Account</h2>
+
+                <div class="setting-item" @onclick="@(() => Navigation.NavigateTo("/profile"))">
+                    <div class="setting-icon">
+                        <div class="profile-avatar small">
+                            <span class="avatar-initials">JD</span>
+                        </div>
+                    </div>
+                    <div class="setting-content">
+                        <div class="setting-label">Profile</div>
+                        <div class="setting-description">Manage your profile information</div>
+                    </div>
+                    <div class="setting-action">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9,18 15,12 9,6"></polyline>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="setting-item" @onclick="ChangePassword">
+                    <div class="setting-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <circle cx="12" cy="16" r="1"></circle>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                    </div>
+                    <div class="setting-content">
+                        <div class="setting-label">Password</div>
+                        <div class="setting-description">Change your password</div>
+                    </div>
+                    <div class="setting-action">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9,18 15,12 9,6"></polyline>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications Section -->
+            <div class="settings-section">
+                <h2 class="section-title">Notifications</h2>
+
+                <div class="setting-item">
+                    <div class="setting-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg>
+                    </div>
+                    <div class="setting-content">
+                        <div class="setting-label">Exercise Reminders</div>
+                        <div class="setting-description">Receive reminders for your exercises</div>
+                    </div>
+                    <div class="setting-action">
+                        <label class="toggle-switch">
+                            <input type="checkbox" @bind="_exerciseReminders" @bind:after="ToggleExerciseReminders" />
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                            <polyline points="22,6 12,13 2,6"></polyline>
+                        </svg>
+                    </div>
+                    <div class="setting-content">
+                        <div class="setting-label">Message Alerts</div>
+                        <div class="setting-description">Get notified about new messages</div>
+                    </div>
+                    <div class="setting-action">
+                        <label class="toggle-switch">
+                            <input type="checkbox" @bind="_messageAlerts" @bind:after="ToggleMessageAlerts" />
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- App Preferences Section -->
+            <div class="settings-section">
+                <h2 class="section-title">App Preferences</h2>
+
+                <div class="setting-item">
+                    <div class="setting-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2">
+                            <circle cx="12" cy="12" r="5"></circle>
+                            <line x1="12" y1="1" x2="12" y2="3"></line>
+                            <line x1="12" y1="21" x2="12" y2="23"></line>
+                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                            <line x1="1" y1="12" x2="3" y2="12"></line>
+                            <line x1="21" y1="12" x2="23" y2="12"></line>
+                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                        </svg>
+                    </div>
+                    <div class="setting-content">
+                        <div class="setting-label">Theme</div>
+                        <div class="setting-description">Switch between light and dark mode</div>
+                    </div>
+                    <div class="setting-action">
+                        <label class="toggle-switch">
+                            <input type="checkbox" @bind="_darkMode" @bind:after="ToggleDarkMode" />
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="setting-item" @onclick="ManagePrivacy">
+                    <div class="setting-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        </svg>
+                    </div>
+                    <div class="setting-content">
+                        <div class="setting-label">Privacy Settings</div>
+                        <div class="setting-description">Manage your data and privacy</div>
+                    </div>
+                    <div class="setting-action">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9,18 15,12 9,6"></polyline>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- About Section -->
+            <div class="settings-section">
+                <h2 class="section-title">About</h2>
+
+                <div class="setting-item" @onclick="ShowAbout">
+                    <div class="setting-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M9,9h6v6H9z"></path>
+                            <path d="M9 1v6h6V1"></path>
+                        </svg>
+                    </div>
+                    <div class="setting-content">
+                        <div class="setting-label">About Us</div>
+                        <div class="setting-description"></div>
+                    </div>
+                    <div class="setting-action">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9,18 15,12 9,6"></polyline>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="setting-item" @onclick="ShowHelp">
+                    <div class="setting-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                    </div>
+                    <div class="setting-content">
+                        <div class="setting-label">Help / FAQ</div>
+                        <div class="setting-description"></div>
+                    </div>
+                    <div class="setting-action">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9,18 15,12 9,6"></polyline>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="setting-item" @onclick="ContactSupport">
+                    <div class="setting-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                        </svg>
+                    </div>
+                    <div class="setting-content">
+                        <div class="setting-label">Contact Support</div>
+                        <div class="setting-description"></div>
+                    </div>
+                    <div class="setting-action">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9,18 15,12 9,6"></polyline>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Log Out Section -->
+            <div class="settings-section logout-section">
+                <button class="logout-btn" @onclick="LogOut">
+                    Log Out
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.settings-page {
+    min-height: 100vh;
+    background: #F9F7F4; /* Cream background */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Header */
+.settings-header {
+    background: white;
+    border-bottom: 1px solid #E5E7EB;
+    padding: 16px 0;
+}
+
+.header-content {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.back-btn {
+    background: none;
+    border: none;
+    color: #6B7280;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+}
+
+.back-btn:hover {
+    background: #F3F4F6;
+}
+
+.header-info {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.brand-logo {
+    display: flex;
+    align-items: center;
+}
+
+.logo-icon {
+    font-size: 20px;
+    margin-right: 6px;
+}
+
+.brand-name {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1F2937; /* Navy */
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.settings-icon-btn {
+    background: none;
+    border: none;
+    color: #6B7280;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+}
+
+.settings-icon-btn:hover {
+    background: #F3F4F6;
+}
+
+.profile-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #FF6B35; /* Orange */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.profile-avatar.small {
+    width: 40px;
+    height: 40px;
+    font-size: 14px;
+}
+
+.avatar-initials {
+    text-transform: uppercase;
+}
+
+/* Content */
+.settings-content {
+    padding: 24px;
+}
+
+.settings-container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.settings-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1F2937; /* Navy */
+    margin: 0 0 32px 0;
+}
+
+/* Sections */
+.settings-section {
+    margin-bottom: 32px;
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1F2937; /* Navy */
+    margin: 0 0 16px 0;
+}
+
+/* Setting Items */
+.setting-item {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid #E5E7EB;
+}
+
+.setting-item:hover {
+    background: #F9FAFB;
+    border-color: #D1D5DB;
+}
+
+.setting-item:last-child {
+    margin-bottom: 0;
+}
+
+.setting-icon {
+    margin-right: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.setting-content {
+    flex: 1;
+}
+
+.setting-label {
+    font-size: 16px;
+    font-weight: 500;
+    color: #1F2937; /* Navy */
+    margin-bottom: 2px;
+}
+
+.setting-description {
+    font-size: 14px;
+    color: #6B7280; /* Gray */
+    line-height: 1.4;
+}
+
+.setting-action {
+    display: flex;
+    align-items: center;
+    color: #9CA3AF;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 28px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #E5E7EB;
+    border-radius: 28px;
+    transition: 0.3s;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    border-radius: 50%;
+    transition: 0.3s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+input:checked + .toggle-slider {
+    background-color: #FF6B35; /* Orange */
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(20px);
+}
+
+/* Logout Section */
+.logout-section {
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 1px solid #E5E7EB;
+}
+
+.logout-btn {
+    width: 100%;
+    padding: 16px;
+    background: transparent;
+    color: #EF4444; /* Red */
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.logout-btn:hover {
+    background: #FEF2F2;
+    border-color: #FECACA;
+}
+
+/* Responsive Design */
+@@media (max-width: 640px) {
+    .settings-content {
+        padding: 16px;
+    }
+
+    .header-content {
+        padding: 0 16px;
+    }
+
+    .settings-title {
+        font-size: 24px;
+        margin-bottom: 24px;
+    }
+
+    .setting-item {
+        padding: 14px;
+    }
+
+    .section-title {
+        font-size: 16px;
+    }
+}
+</style>
+
+@code {
+    private bool _exerciseReminders = true;
+    private bool _messageAlerts = true;
+    private bool _darkMode = false;
+
+    private async Task ToggleExerciseReminders()
+    {
+        await SaveNotificationSettings();
+    }
+
+    private async Task ToggleMessageAlerts()
+    {
+        await SaveNotificationSettings();
+    }
+
+    private async Task ToggleDarkMode()
+    {
+        await SaveAppSettings();
+    }
+
+    private async Task SaveNotificationSettings()
+    {
+        try
+        {
+            // TODO: Save notification settings to API
+            await Task.Delay(100); // Simulate API call
+            Snackbar.Add("Notification settings updated", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Failed to update settings", Severity.Error);
+        }
+    }
+
+    private async Task SaveAppSettings()
+    {
+        try
+        {
+            // TODO: Save app settings to API
+            await Task.Delay(100); // Simulate API call
+            Snackbar.Add("App preferences updated", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Failed to update settings", Severity.Error);
+        }
+    }
+
+    private void ChangePassword()
+    {
+        Navigation.NavigateTo("/settings/password");
+    }
+
+    private void ManagePrivacy()
+    {
+        Navigation.NavigateTo("/settings/privacy");
+    }
+
+    private void ShowAbout()
+    {
+        Navigation.NavigateTo("/about");
+    }
+
+    private void ShowHelp()
+    {
+        Navigation.NavigateTo("/help");
+    }
+
+    private void ContactSupport()
+    {
+        Navigation.NavigateTo("/support");
+    }
+
+    private async Task LogOut()
+    {
+        try
+        {
+            // TODO: Implement logout logic
+            Snackbar.Add("Logged out successfully", Severity.Success);
+            Navigation.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Failed to log out", Severity.Error);
+        }
+    }
+}

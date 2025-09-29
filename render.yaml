@@ -14,4 +14,6 @@ services:
         value: adaplio-api-render
       - key: JWT_AUDIENCE
         value: adaplio-frontend
+      - key: CORS__ORIGINS
+        value: https://adaplio.com,https://www.adaplio.com,https://tyreamer.github.io,http://localhost:5173,https://localhost:5173,https://adaplio.vercel.app
     healthCheckPath: /

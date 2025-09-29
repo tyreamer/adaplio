@@ -10,293 +10,991 @@
 @inject HttpClient HttpClient
 @implements IDisposable
 
-<PageTitle>Start your PT plan - Adaplio</PageTitle>
+<PageTitle>Adaplio: Your Partner in Physical Therapy</PageTitle>
 
 @if (!_isInitialized)
 {
     <!-- Loading state -->
-    <MudContainer MaxWidth="MaxWidth.Medium" Class="d-flex justify-center align-center" Style="min-height: 100vh;">
-        <MudStack AlignItems="AlignItems.Center" Spacing="4">
-            <MudProgressCircular Indeterminate="true" Size="Size.Large" Color="Color.Primary" />
-            <MudText Typo="Typo.h6" Color="Color.Secondary">Loading...</MudText>
-        </MudStack>
-    </MudContainer>
+    <div class="loading-container">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">Loading...</p>
+    </div>
 }
 else if (!AuthState.IsAuthenticated)
 {
-    <!-- Client-first landing page -->
+    <!-- Modern Landing Page -->
     <div class="landing-page">
-        <MudContainer MaxWidth="MaxWidth.Medium" Class="py-16">
-            <MudStack Spacing="6" AlignItems="AlignItems.Center">
-                <!-- Hero Section -->
-                <div class="hero-section text-center">
-                    <MudIcon Icon="@Icons.Material.Filled.FitnessCenter"
-                            Size="Size.Large"
-                            Color="Color.Primary"
-                            Class="hero-icon mb-4" />
-                    <MudText Typo="Typo.h2" Class="hero-title mb-4">Start your PT plan</MudText>
-                    <MudText Typo="Typo.h6" Color="Color.Secondary" Class="hero-subtitle mb-6">
-                        Choose how you'd like to connect with your therapist
-                    </MudText>
+        <!-- Navigation Header -->
+        <nav class="nav-header">
+            <div class="nav-container">
+                <div class="nav-brand">
+                    <span class="logo-icon">🧡</span>
+                    <span class="brand-name">Adaplio</span>
                 </div>
+                <div class="nav-links">
+                    <a href="#therapists" class="nav-link">For Therapists</a>
+                    <a href="#clients" class="nav-link">For Clients</a>
+                    <button class="get-started-btn" @onclick="StartJourney">Get Started</button>
+                </div>
+            </div>
+        </nav>
 
-                @if (!string.IsNullOrEmpty(_validationError))
-                {
-                    <MudAlert Severity="Severity.Error" Dense="true" Class="mb-4" Style="max-width: 500px;">
-                        @_validationError
-                    </MudAlert>
-                }
-
-                <!-- Three Entry Methods -->
-                <MudStack Spacing="4" Style="width: 100%; max-width: 500px;">
-
-                    <!-- QR Code Scanning -->
-                    <MudButton Variant="Variant.Outlined"
-                               Color="Color.Primary"
-                               Size="Size.Large"
-                               FullWidth="true"
-                               StartIcon="@Icons.Material.Filled.QrCodeScanner"
-                               OnClick="@StartQRScan"
-                               Disabled="@_isProcessing"
-                               Class="entry-method-button">
-                        <div class="entry-method-content">
-                            <MudText Typo="Typo.subtitle1" Class="font-weight-medium">Scan QR Code</MudText>
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">Use your camera to scan</MudText>
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-container">
+                <div class="hero-content">
+                    <h1 class="hero-title">Adaplio: Your Partner in Physical Therapy</h1>
+                    <p class="hero-subtitle">Connect with your therapist, track your progress, and achieve your goals with our easy-to-use app.</p>
+                    <div class="hero-buttons">
+                        <button class="primary-btn" @onclick="StartJourney">Get Started Free</button>
+                        <button class="secondary-btn" @onclick="LearnMore">Learn More</button>
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <div class="illustration-container">
+                        <!-- PT Exercise Illustration -->
+                        <div class="exercise-scene">
+                            <div class="person-exercising">
+                                <div class="person-body"></div>
+                                <div class="person-head"></div>
+                                <div class="weights">
+                                    <div class="weight left-weight"></div>
+                                    <div class="weight right-weight"></div>
+                                    <div class="barbell"></div>
+                                </div>
+                            </div>
+                            <div class="exercise-table"></div>
+                            <div class="accessories">
+                                <div class="water-bottle"></div>
+                                <div class="exercise-ball"></div>
+                                <div class="mat"></div>
+                            </div>
+                            <div class="background-circle"></div>
                         </div>
-                    </MudButton>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-                    <!-- Manual Code Entry -->
-                    <MudButton Variant="@(_showCodeEntry ? Variant.Filled : Variant.Outlined)"
-                               Color="Color.Primary"
-                               Size="Size.Large"
-                               FullWidth="true"
-                               StartIcon="@Icons.Material.Filled.Password"
-                               OnClick="@ToggleCodeEntry"
-                               Disabled="@_isProcessing"
-                               Class="entry-method-button">
-                        <div class="entry-method-content">
-                            <MudText Typo="Typo.subtitle1" Class="font-weight-medium">Enter Code</MudText>
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">Type your PT code manually</MudText>
+        <!-- How Adaplio Works Section -->
+        <section class="how-it-works">
+            <div class="container">
+                <h2 class="section-title">How Adaplio Works</h2>
+                <p class="section-subtitle">Adaplio simplifies your physical therapy journey, connecting you with your therapist and providing tools for effective at-home exercises and progress tracking.</p>
+
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon connect">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#FF6B35" stroke-width="2">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
                         </div>
-                    </MudButton>
+                        <h3 class="feature-title">Connect with Your Therapist</h3>
+                        <p class="feature-description">Find and connect with your physical therapist through the app.</p>
+                    </div>
 
-                    <!-- SMS Link -->
-                    <MudButton Variant="@(_showSMSEntry ? Variant.Filled : Variant.Outlined)"
-                               Color="Color.Primary"
-                               Size="Size.Large"
-                               FullWidth="true"
-                               StartIcon="@Icons.Material.Filled.Sms"
-                               OnClick="@ToggleSMSEntry"
-                               Disabled="@_isProcessing"
-                               Class="entry-method-button">
-                        <div class="entry-method-content">
-                            <MudText Typo="Typo.subtitle1" Class="font-weight-medium">Text Me the Link</MudText>
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">Receive invite via SMS</MudText>
+                    <div class="feature-card">
+                        <div class="feature-icon plans">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#FF6B35" stroke-width="2">
+                                <path d="M9 12l2 2 4-4"></path>
+                                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                                <path d="M3 5v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"></path>
+                            </svg>
                         </div>
-                    </MudButton>
+                        <h3 class="feature-title">Personalized Exercise Plans</h3>
+                        <p class="feature-description">Receive customized exercise plans tailored to your specific needs and goals.</p>
+                    </div>
 
-                </MudStack>
+                    <div class="feature-card">
+                        <div class="feature-icon progress">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#FF6B35" stroke-width="2">
+                                <polyline points="22,12 18,12 15,21 9,3 6,12 2,12"></polyline>
+                            </svg>
+                        </div>
+                        <h3 class="feature-title">Track Your Progress</h3>
+                        <p class="feature-description">Monitor your progress, celebrate milestones, and stay motivated on your path to recovery.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-                <!-- Code Entry Form (Expandable) -->
-                @if (_showCodeEntry)
-                {
-                    <MudCollapse Expanded="_showCodeEntry">
-                        <MudPaper Class="pa-4" Style="width: 100%; max-width: 500px;" Elevation="1">
-                            <EditForm Model="@_codeModel" OnValidSubmit="@HandleCodeSubmit">
-                                <DataAnnotationsValidator />
-                                <MudStack Spacing="3">
-                                    <MudTextField @bind-Value="_codeModel.Code"
-                                                  @ref="_codeInputRef"
-                                                  For="@(() => _codeModel.Code)"
-                                                  Label="PT Code"
-                                                  Placeholder="Enter your code"
-                                                  Variant="Variant.Outlined"
-                                                  Immediate="true"
-                                                  InputType="InputType.Text"
-                                                  InputMode="InputMode.text"
-                                                  Disabled="@_isProcessing"
-                                                  HelperText="Ask your therapist if you don't have a code" />
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-container">
+                <div class="footer-content">
+                    <span class="footer-text">© 2025 Adaplio. All rights reserved.</span>
+                    <div class="footer-links">
+                        <a href="#privacy" class="footer-link">Privacy Policy</a>
+                        <a href="#terms" class="footer-link">Terms of Service</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
 
-                                    <MudButton ButtonType="ButtonType.Submit"
-                                               Variant="Variant.Filled"
-                                               Color="Color.Primary"
-                                               Size="Size.Medium"
-                                               FullWidth="true"
-                                               Disabled="@(_isProcessing || string.IsNullOrWhiteSpace(_codeModel.Code))">
+        <!-- Quick Start Modal Overlay (when Get Started is clicked) -->
+        @if (_showQuickStart)
+        {
+            <div class="modal-overlay" @onclick="CloseQuickStart">
+                <div class="modal-content" @onclick:stopPropagation="true">
+                    <div class="modal-header">
+                        <h3>Get Started with Adaplio</h3>
+                        <button class="close-btn" @onclick="CloseQuickStart">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Choose how you'd like to connect with your therapist:</p>
+
+                        @if (!string.IsNullOrEmpty(_validationError))
+                        {
+                            <div class="error-message">@_validationError</div>
+                        }
+
+                        <div class="quick-start-options">
+                            <button class="option-btn" @onclick="StartCodeEntry" disabled="@_isProcessing">
+                                <div class="option-icon">🔑</div>
+                                <div class="option-content">
+                                    <div class="option-title">Enter Code</div>
+                                    <div class="option-description">Type your PT code manually</div>
+                                </div>
+                            </button>
+
+                            <button class="option-btn" @onclick="StartSMSEntry" disabled="@_isProcessing">
+                                <div class="option-icon">📱</div>
+                                <div class="option-content">
+                                    <div class="option-title">Text Me the Link</div>
+                                    <div class="option-description">Receive invite via SMS</div>
+                                </div>
+                            </button>
+
+                            <button class="option-btn" @onclick="StartQRScan" disabled="@_isProcessing">
+                                <div class="option-icon">📷</div>
+                                <div class="option-content">
+                                    <div class="option-title">Scan QR Code</div>
+                                    <div class="option-description">Use your camera to scan</div>
+                                </div>
+                            </button>
+                        </div>
+
+                        <!-- Code Entry Form -->
+                        @if (_showCodeEntry)
+                        {
+                            <div class="entry-form">
+                                <EditForm Model="@_codeModel" OnValidSubmit="@HandleCodeSubmit">
+                                    <DataAnnotationsValidator />
+                                    <div class="form-group">
+                                        <input type="text"
+                                               @bind="_codeModel.Code"
+                                               @ref="_codeInputRef"
+                                               class="form-input"
+                                               placeholder="Enter your PT code"
+                                               disabled="@_isProcessing" />
+                                        <ValidationMessage For="@(() => _codeModel.Code)" class="validation-error" />
+                                    </div>
+                                    <button type="submit"
+                                            class="submit-btn"
+                                            disabled="@(_isProcessing || string.IsNullOrWhiteSpace(_codeModel.Code))">
                                         @if (_isProcessing)
                                         {
-                                            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                                            <span class="loading-spinner small"></span>
                                             <text>Validating...</text>
                                         }
                                         else
                                         {
                                             <text>Continue</text>
                                         }
-                                    </MudButton>
-                                </MudStack>
-                            </EditForm>
-                        </MudPaper>
-                    </MudCollapse>
-                }
+                                    </button>
+                                </EditForm>
+                            </div>
+                        }
 
-                <!-- SMS Entry Form (Expandable) -->
-                @if (_showSMSEntry)
-                {
-                    <MudCollapse Expanded="_showSMSEntry">
-                        <MudPaper Class="pa-4" Style="width: 100%; max-width: 500px;" Elevation="1">
-                            <EditForm Model="@_smsModel" OnValidSubmit="@HandleSMSSubmit">
-                                <DataAnnotationsValidator />
-                                <MudStack Spacing="3">
-                                    <MudTextField @bind-Value="_smsModel.PhoneNumber"
-                                                  For="@(() => _smsModel.PhoneNumber)"
-                                                  Label="Phone Number"
-                                                  Placeholder="+1 (555) 123-4567"
-                                                  Variant="Variant.Outlined"
-                                                  InputType="InputType.Telephone"
-                                                  Disabled="@_isProcessing"
-                                                  HelperText="We'll send you a secure link to get started" />
-
-                                    <MudTextField @bind-Value="_smsModel.InviteCode"
-                                                  For="@(() => _smsModel.InviteCode)"
-                                                  Label="PT Code (Optional)"
-                                                  Placeholder="Enter code if you have one"
-                                                  Variant="Variant.Outlined"
-                                                  Disabled="@_isProcessing"
-                                                  HelperText="Leave blank if you don't have a code yet" />
-
-                                    <MudButton ButtonType="ButtonType.Submit"
-                                               Variant="Variant.Filled"
-                                               Color="Color.Primary"
-                                               Size="Size.Medium"
-                                               FullWidth="true"
-                                               Disabled="@(_isProcessing || string.IsNullOrWhiteSpace(_smsModel.PhoneNumber))">
+                        <!-- SMS Entry Form -->
+                        @if (_showSMSEntry)
+                        {
+                            <div class="entry-form">
+                                <EditForm Model="@_smsModel" OnValidSubmit="@HandleSMSSubmit">
+                                    <DataAnnotationsValidator />
+                                    <div class="form-group">
+                                        <input type="tel"
+                                               @bind="_smsModel.PhoneNumber"
+                                               class="form-input"
+                                               placeholder="+1 (555) 123-4567"
+                                               disabled="@_isProcessing" />
+                                        <ValidationMessage For="@(() => _smsModel.PhoneNumber)" class="validation-error" />
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="text"
+                                               @bind="_smsModel.InviteCode"
+                                               class="form-input"
+                                               placeholder="PT Code (Optional)"
+                                               disabled="@_isProcessing" />
+                                    </div>
+                                    <button type="submit"
+                                            class="submit-btn"
+                                            disabled="@(_isProcessing || string.IsNullOrWhiteSpace(_smsModel.PhoneNumber))">
                                         @if (_isProcessing)
                                         {
-                                            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                                            <span class="loading-spinner small"></span>
                                             <text>Sending...</text>
                                         }
                                         else
                                         {
                                             <text>Send Link</text>
                                         }
-                                    </MudButton>
-                                </MudStack>
-                            </EditForm>
-                        </MudPaper>
-                    </MudCollapse>
-                }
-
-                <!-- Minimal Feature Icons -->
-                <div class="feature-icons mt-8">
-                    <MudStack Row Justify="Justify.Center" Spacing="6">
-                        <MudTooltip Text="Smart Plans">
-                            <MudIcon Icon="@Icons.Material.Filled.Assignment" Color="Color.Primary" />
-                        </MudTooltip>
-                        <MudTooltip Text="Progress Tracking">
-                            <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Color="Color.Success" />
-                        </MudTooltip>
-                        <MudTooltip Text="Motivational Rewards">
-                            <MudIcon Icon="@Icons.Material.Filled.EmojiEvents" Color="Color.Warning" />
-                        </MudTooltip>
-                    </MudStack>
+                                    </button>
+                                </EditForm>
+                            </div>
+                        }
+                    </div>
                 </div>
-            </MudStack>
-        </MudContainer>
+            </div>
+        }
     </div>
 }
 
 <style>
+/* Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 .landing-page {
-    background: var(--mud-palette-background);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #F9F7F4; /* Cream background */
     min-height: 100vh;
+    color: #1F2937; /* Navy */
 }
 
-.hero-section {
-    max-width: 500px;
+/* Loading State */
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: #F9F7F4;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #E5E7EB;
+    border-top: 3px solid #FF6B35;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+}
+
+.loading-text {
+    font-size: 16px;
+    color: #6B7280;
+}
+
+@@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Navigation */
+.nav-header {
+    background: #F9F7F4;
+    padding: 16px 0;
+    position: relative;
+    z-index: 10;
+}
+
+.nav-container {
+    max-width: 1200px;
     margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
-.hero-icon {
-    font-size: 4rem !important;
+.nav-brand {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    font-size: 20px;
+    color: #1F2937;
+}
+
+.logo-icon {
+    font-size: 24px;
+    margin-right: 8px;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+}
+
+.nav-link {
+    color: #6B7280;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.nav-link:hover {
+    color: #1F2937;
+}
+
+.get-started-btn {
+    background: #FF6B35;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.get-started-btn:hover {
+    background: #E55A2E;
+    transform: translateY(-1px);
+}
+
+/* Hero Section */
+.hero-section {
+    padding: 80px 0 120px 0;
+    background: #F9F7F4;
+}
+
+.hero-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+}
+
+.hero-content {
+    max-width: 500px;
 }
 
 .hero-title {
-    font-weight: var(--font-weight-bold) !important;
-    color: var(--mud-palette-primary);
+    font-size: 48px;
+    font-weight: 700;
+    line-height: 1.1;
+    color: #1F2937;
+    margin-bottom: 24px;
 }
 
 .hero-subtitle {
-    max-width: 400px;
+    font-size: 18px;
+    color: #6B7280;
+    line-height: 1.6;
+    margin-bottom: 32px;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 16px;
+}
+
+.primary-btn {
+    background: #FF6B35;
+    color: white;
+    border: none;
+    padding: 16px 32px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.primary-btn:hover {
+    background: #E55A2E;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(255, 107, 53, 0.3);
+}
+
+.secondary-btn {
+    background: transparent;
+    color: #6B7280;
+    border: 1px solid #E5E7EB;
+    padding: 16px 32px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.secondary-btn:hover {
+    background: white;
+    border-color: #D1D5DB;
+    color: #1F2937;
+}
+
+/* Hero Illustration */
+.hero-image {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.illustration-container {
+    width: 400px;
+    height: 400px;
+    position: relative;
+}
+
+.exercise-scene {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.background-circle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 300px;
+    height: 300px;
+    background: linear-gradient(135deg, #FFF7ED, #FED7AA);
+    border-radius: 50%;
+    z-index: 1;
+}
+
+.person-exercising {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 3;
+}
+
+.person-body {
+    width: 60px;
+    height: 80px;
+    background: #3B82F6;
+    border-radius: 30px 30px 20px 20px;
+    position: relative;
     margin: 0 auto;
 }
 
-.code-entry-form {
-    border-radius: var(--radius-xl) !important;
-    border: 1px solid var(--mud-palette-primary-lighten);
+.person-head {
+    width: 40px;
+    height: 40px;
+    background: #FBBF24;
+    border-radius: 50%;
+    position: absolute;
+    top: -35px;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
-.code-input {
-    font-size: 1.1rem;
+.weights {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.barbell {
+    width: 100px;
+    height: 8px;
+    background: #6B7280;
+    border-radius: 4px;
+    margin: 16px 0;
+}
+
+.weight {
+    width: 20px;
+    height: 20px;
+    background: #1F2937;
+    border-radius: 50%;
+    position: absolute;
+    top: 12px;
+}
+
+.left-weight {
+    left: -15px;
+}
+
+.right-weight {
+    right: -15px;
+}
+
+.exercise-table {
+    position: absolute;
+    bottom: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 60px;
+    background: #8B5CF6;
+    border-radius: 8px;
+    z-index: 2;
+}
+
+.exercise-table::before {
+    content: '';
+    position: absolute;
+    bottom: -30px;
+    left: 10px;
+    width: 8px;
+    height: 30px;
+    background: #8B5CF6;
+}
+
+.exercise-table::after {
+    content: '';
+    position: absolute;
+    bottom: -30px;
+    right: 10px;
+    width: 8px;
+    height: 30px;
+    background: #8B5CF6;
+}
+
+.accessories {
+    position: absolute;
+    bottom: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 40px;
+    z-index: 2;
+}
+
+.water-bottle {
+    position: absolute;
+    right: 20px;
+    bottom: 0;
+    width: 12px;
+    height: 30px;
+    background: #06B6D4;
+    border-radius: 6px;
+}
+
+.exercise-ball {
+    position: absolute;
+    left: 20px;
+    bottom: 0;
+    width: 25px;
+    height: 25px;
+    background: #EF4444;
+    border-radius: 50%;
+}
+
+.mat {
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 8px;
+    background: #10B981;
+    border-radius: 4px;
+}
+
+/* How It Works Section */
+.how-it-works {
+    padding: 120px 0;
+    background: white;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+.section-title {
+    font-size: 32px;
+    font-weight: 700;
     text-align: center;
-    letter-spacing: 0.2em;
+    color: #1F2937;
+    margin-bottom: 16px;
 }
 
-.start-button {
-    border-radius: var(--radius-lg) !important;
-    min-height: 48px !important;
-    font-weight: var(--font-weight-semibold) !important;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+.section-subtitle {
+    font-size: 18px;
+    color: #6B7280;
+    text-align: center;
+    line-height: 1.6;
+    max-width: 600px;
+    margin: 0 auto 64px auto;
 }
 
-.qr-section {
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 40px;
+    margin-top: 64px;
+}
+
+.feature-card {
+    text-align: center;
+    padding: 32px 24px;
+    background: #F9FAFB;
+    border-radius: 16px;
+    transition: transform 0.2s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-4px);
+}
+
+.feature-icon {
+    width: 64px;
+    height: 64px;
+    background: rgba(255, 107, 53, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px auto;
+}
+
+.feature-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1F2937;
+    margin-bottom: 12px;
+}
+
+.feature-description {
+    font-size: 16px;
+    color: #6B7280;
+    line-height: 1.5;
+}
+
+/* Footer */
+.footer {
+    padding: 32px 0;
+    background: #F9F7F4;
+    border-top: 1px solid #E5E7EB;
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.footer-text {
+    color: #6B7280;
+    font-size: 14px;
+}
+
+.footer-links {
+    display: flex;
+    gap: 24px;
+}
+
+.footer-link {
+    color: #6B7280;
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.2s ease;
+}
+
+.footer-link:hover {
+    color: #FF6B35;
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 24px;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 500px;
     width: 100%;
-    max-width: 300px;
-    opacity: 0.7;
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
-.qr-button {
-    border-radius: var(--radius-lg) !important;
-    font-weight: var(--font-weight-medium) !important;
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
 }
 
-.feature-icons {
-    opacity: 0.6;
+.modal-header h3 {
+    font-size: 24px;
+    font-weight: 600;
+    color: #1F2937;
 }
 
-.feature-icons .mud-icon {
-    font-size: 1.5rem !important;
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #6B7280;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
 }
 
-.entry-method-button {
-    border-radius: var(--radius-lg) !important;
-    padding: 16px 20px !important;
-    text-align: left !important;
-    justify-content: flex-start !important;
-    height: auto !important;
-    min-height: 64px !important;
+.close-btn:hover {
+    background: #F3F4F6;
 }
 
-.entry-method-content {
+.modal-body p {
+    color: #6B7280;
+    margin-bottom: 24px;
+    line-height: 1.5;
+}
+
+.error-message {
+    background: #FEF2F2;
+    color: #DC2626;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+    font-size: 14px;
+}
+
+.quick-start-options {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.option-btn {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    background: #F9FAFB;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+}
+
+.option-btn:hover {
+    background: #F3F4F6;
+    border-color: #D1D5DB;
+}
+
+.option-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.option-icon {
+    font-size: 24px;
+    margin-right: 16px;
+    min-width: 40px;
+}
+
+.option-content {
     flex: 1;
 }
 
-/* Mobile optimizations */
-@@media (max-width: 600px) {
+.option-title {
+    font-weight: 600;
+    color: #1F2937;
+    margin-bottom: 4px;
+}
+
+.option-description {
+    font-size: 14px;
+    color: #6B7280;
+}
+
+.entry-form {
+    background: #F9FAFB;
+    padding: 24px;
+    border-radius: 12px;
+    margin-top: 16px;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 16px;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.2s ease;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #FF6B35;
+    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.form-input:disabled {
+    background: #F3F4F6;
+    color: #9CA3AF;
+}
+
+.submit-btn {
+    width: 100%;
+    background: #FF6B35;
+    color: white;
+    border: none;
+    padding: 16px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.submit-btn:hover:not(:disabled) {
+    background: #E55A2E;
+}
+
+.submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.loading-spinner.small {
+    width: 16px;
+    height: 16px;
+    border-width: 2px;
+}
+
+.validation-error {
+    color: #DC2626;
+    font-size: 14px;
+    margin-top: 8px;
+}
+
+/* Responsive Design */
+@@media (max-width: 1024px) {
+    .hero-container {
+        grid-template-columns: 1fr;
+        gap: 40px;
+        text-align: center;
+    }
+
+    .hero-content {
+        max-width: none;
+    }
+
+    .illustration-container {
+        width: 300px;
+        height: 300px;
+    }
+}
+
+@@media (max-width: 768px) {
+    .nav-container {
+        padding: 0 16px;
+    }
+
+    .nav-links {
+        gap: 16px;
+    }
+
+    .nav-link {
+        display: none;
+    }
+
+    .hero-section {
+        padding: 40px 0 80px 0;
+    }
+
+    .hero-container {
+        padding: 0 16px;
+    }
+
     .hero-title {
-        font-size: 2rem !important;
+        font-size: 36px;
     }
 
-    .code-entry-form {
-        margin: 0 16px;
+    .hero-buttons {
+        flex-direction: column;
+        align-items: center;
     }
 
-    .code-input {
-        font-size: 1rem;
+    .primary-btn,
+    .secondary-btn {
+        width: 100%;
+        max-width: 300px;
+    }
+
+    .container {
+        padding: 0 16px;
+    }
+
+    .section-title {
+        font-size: 28px;
+    }
+
+    .features-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .footer-content {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+    }
+
+    .modal-content {
+        padding: 24px;
+        margin: 16px;
+    }
+}
+
+@@media (max-width: 480px) {
+    .hero-title {
+        font-size: 28px;
+    }
+
+    .hero-subtitle {
+        font-size: 16px;
+    }
+
+    .illustration-container {
+        width: 250px;
+        height: 250px;
+    }
+
+    .modal-content {
+        padding: 20px;
     }
 }
 </style>
@@ -305,11 +1003,12 @@ else if (!AuthState.IsAuthenticated)
     private bool _isInitialized = false;
     private readonly CodeEntryModel _codeModel = new();
     private readonly SMSEntryModel _smsModel = new();
-    private MudTextField<string> _codeInputRef = default!;
+    private ElementReference _codeInputRef;
     private bool _isProcessing = false;
     private string? _validationError;
 
-    // Entry method states
+    // Modal and entry states
+    private bool _showQuickStart = false;
     private bool _showCodeEntry = false;
     private bool _showSMSEntry = false;
 
@@ -326,23 +1025,6 @@ else if (!AuthState.IsAuthenticated)
 
         // Redirect based on role if authenticated
         await RedirectBasedOnRole();
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender && !AuthState.IsAuthenticated)
-        {
-            // Auto-focus the code input
-            try
-            {
-                await Task.Delay(100); // Small delay to ensure DOM is ready
-                await _codeInputRef.FocusAsync();
-            }
-            catch
-            {
-                // Ignore focus errors
-            }
-        }
     }
 
     private async void HandleAuthStateChanged()
@@ -451,18 +1133,79 @@ else if (!AuthState.IsAuthenticated)
         }
     }
 
-    private void ToggleCodeEntry()
+    private void StartJourney()
     {
-        _showCodeEntry = !_showCodeEntry;
+        _showQuickStart = true;
+        _showCodeEntry = false;
         _showSMSEntry = false;
         _validationError = null;
     }
 
-    private void ToggleSMSEntry()
+    private void LearnMore()
     {
-        _showSMSEntry = !_showSMSEntry;
+        // Scroll to how it works section
+        _ = JSRuntime.InvokeVoidAsync("scrollToElement", "how-it-works");
+    }
+
+    private void CloseQuickStart()
+    {
+        _showQuickStart = false;
+        _showCodeEntry = false;
+        _showSMSEntry = false;
+        _validationError = null;
+    }
+
+    private void StartCodeEntry()
+    {
+        _showCodeEntry = true;
+        _showSMSEntry = false;
+        _validationError = null;
+    }
+
+    private void StartSMSEntry()
+    {
+        _showSMSEntry = true;
         _showCodeEntry = false;
         _validationError = null;
+    }
+
+    private async Task StartQRScan()
+    {
+        _isProcessing = true;
+        _validationError = null;
+
+        try
+        {
+            // Track analytics for QR scan method
+            await TrackEntryMethod("qr");
+
+            // Request camera permission and start QR scanning
+            var hasPermission = await JSRuntime.InvokeAsync<bool>("navigator.permissions.query", new { name = "camera" });
+
+            if (hasPermission)
+            {
+                // TODO: Implement actual QR scanning with camera
+                // For now, show placeholder message
+                Snackbar.Add("QR scanner opening... (Camera functionality coming soon)", Severity.Info);
+
+                // Simulate QR scan result for testing
+                // In real implementation, this would be the URL from QR code
+                // var scannedUrl = await JSRuntime.InvokeAsync<string>("scanQRCode");
+                // await ProcessQRResult(scannedUrl);
+            }
+            else
+            {
+                _validationError = "Camera permission required for QR scanning. Please allow camera access or use another method.";
+            }
+        }
+        catch (Exception)
+        {
+            _validationError = "Camera access not available. Please try another method.";
+        }
+        finally
+        {
+            _isProcessing = false;
+        }
     }
 
     private async Task HandleCodeSubmit()
@@ -552,69 +1295,6 @@ else if (!AuthState.IsAuthenticated)
         finally
         {
             _isProcessing = false;
-        }
-    }
-
-    private async Task StartQRScan()
-    {
-        _isProcessing = true;
-        _validationError = null;
-
-        try
-        {
-            // Track analytics for QR scan method
-            await TrackEntryMethod("qr");
-
-            // Request camera permission and start QR scanning
-            var hasPermission = await JSRuntime.InvokeAsync<bool>("navigator.permissions.query", new { name = "camera" });
-
-            if (hasPermission)
-            {
-                // TODO: Implement actual QR scanning with camera
-                // For now, show placeholder message
-                Snackbar.Add("QR scanner opening... (Camera functionality coming soon)", Severity.Info);
-
-                // Simulate QR scan result for testing
-                // In real implementation, this would be the URL from QR code
-                // var scannedUrl = await JSRuntime.InvokeAsync<string>("scanQRCode");
-                // await ProcessQRResult(scannedUrl);
-            }
-            else
-            {
-                _validationError = "Camera permission required for QR scanning. Please allow camera access or use another method.";
-            }
-        }
-        catch (Exception)
-        {
-            _validationError = "Camera access not available. Please try another method.";
-        }
-        finally
-        {
-            _isProcessing = false;
-        }
-    }
-
-    private async Task ProcessQRResult(string scannedUrl)
-    {
-        try
-        {
-            // Extract token from scanned URL
-            var uri = new Uri(scannedUrl);
-            var query = ParseQueryString(uri.Query);
-
-            if (query.TryGetValue("invite", out var token))
-            {
-                // Process as invite link
-                Navigation.NavigateTo($"/?invite={Uri.EscapeDataString(token)}");
-            }
-            else
-            {
-                _validationError = "Invalid QR code. Please scan the QR code provided by your therapist.";
-            }
-        }
-        catch (Exception)
-        {
-            _validationError = "Unable to process QR code. Please try again.";
         }
     }
 
