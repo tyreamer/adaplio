@@ -309,7 +309,7 @@ app.MapProfileEndpoints();
 // Map controller routes
 app.MapControllers();
 
-app.MapGet("/health", () => Results.Ok(new { ok = true }));
+app.MapMethods("/health", new[] { "GET", "HEAD", "OPTIONS" }, () => Results.Ok(new { ok = true }));
 
 app.MapGet("/health/db", async () =>
 {

@@ -21,9 +21,7 @@ public static class InviteEndpoints
             .RequireAuthorization()
             .WithName("CreateInviteToken");
 
-        // Validate invite token (public)
-        inviteGroup.MapGet("/validate/{token}", ValidateInviteToken)
-            .WithName("ValidateInviteToken");
+        // NOTE: Validate invite token moved to InvitesController to avoid route duplication
     }
 
     private static async Task<IResult> SendSMSInvite(
@@ -169,39 +167,7 @@ public static class InviteEndpoints
         }
     }
 
-    private static async Task<IResult> ValidateInviteToken(
-        string token,
-        AppDbContext context)
-    {
-        try
-        {
-            var inviteToken = await context.InviteTokens
-                .Include(it => it.GrantCode)
-                    .ThenInclude(gc => gc.TrainerProfile)
-                .FirstOrDefaultAsync(it => it.Token == token &&
-                                         it.ExpiresAt > DateTimeOffset.UtcNow &&
-                                         it.UsedAt == null);
-
-            if (inviteToken == null)
-            {
-                return Results.NotFound(new { error = "Invalid or expired invite token" });
-            }
-
-            var response = new ValidateInviteTokenResponse(
-                IsValid: true,
-                TrainerName: inviteToken.GrantCode?.TrainerProfile?.FullName ?? "Unknown Trainer",
-                ClinicName: inviteToken.GrantCode?.TrainerProfile?.PracticeName ?? "Unknown Clinic",
-                GrantCode: inviteToken.GrantCode?.Code ?? "",
-                ExpiresAt: inviteToken.ExpiresAt
-            );
-
-            return Results.Ok(response);
-        }
-        catch (Exception)
-        {
-            return Results.Problem("Failed to validate invite token");
-        }
-    }
+    // NOTE: ValidateInviteToken method removed - functionality moved to InvitesController
 }
 
 // DTOs
@@ -221,10 +187,4 @@ public record CreateInviteTokenResponse(
     DateTimeOffset ExpiresAt
 );
 
-public record ValidateInviteTokenResponse(
-    bool IsValid,
-    string TrainerName,
-    string ClinicName,
-    string GrantCode,
-    DateTimeOffset ExpiresAt
-);
+// NOTE: ValidateInviteTokenResponse removed - using DTO from InvitesController
