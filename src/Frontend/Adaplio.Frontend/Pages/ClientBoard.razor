@@ -2,207 +2,736 @@
 @page "/weekly-board"
 @using System.Net.Http.Json
 @using System.Text.Json
+@using System.Linq
 @inject HttpClient HttpClient
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
 
 <PageTitle>Weekly Board - Adaplio</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="my-8">
-    @if (!string.IsNullOrEmpty(errorMessage))
-    {
-        <MudAlert Severity="Severity.Error" Class="mb-4">
-            @errorMessage
-        </MudAlert>
-    }
-
-    <div class="d-flex justify-space-between align-center mb-6">
-        <MudText Typo="Typo.h4">
-            <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Class="mr-2" />
-            My Weekly Board
-        </MudText>
-        <div class="d-flex align-center gap-3">
-            <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft"
-                           OnClick="PreviousWeek"
-                           Title="Previous Week" />
-            <MudText Typo="Typo.h6" Class="mx-2">
-                @currentWeekStart.ToString("MMM dd") - @currentWeekStart.AddDays(6).ToString("MMM dd, yyyy")
-            </MudText>
-            <MudIconButton Icon="@Icons.Material.Filled.ChevronRight"
-                           OnClick="NextWeek"
-                           Title="Next Week" />
+<div class="weekly-board-page">
+    <!-- Header -->
+    <div class="board-header">
+        <div class="header-content">
+            <div class="brand-logo">
+                <span class="logo-icon">🧡</span>
+                <span class="brand-name">Adaplio</span>
+            </div>
+            <div class="header-actions">
+                <div class="notification-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                        <circle cx="18" cy="8" r="3" fill="#FF6B35"/>
+                    </svg>
+                </div>
+                <div class="profile-avatar">
+                    <div class="avatar-circle">
+                        <span>A</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    @if (isLoading)
-    {
-        <div class="board-loading">
-            <MudProgressCircular Indeterminate="true" Size="Size.Large" Color="Color.Primary" />
-            <MudText Typo="Typo.h6" Class="mt-4">Loading your weekly board...</MudText>
-        </div>
-    }
-    else if (board != null)
-    {
-        <!-- 7-Column Weekly Grid -->
-        <div class="weekly-board-grid">
-            @foreach (var day in board.Days)
-            {
-                <div class="day-column @GetDayColumnClass(day.Date)">
-                    <div class="day-header">
-                        <MudText Typo="Typo.h6" Class="day-name">@day.DayName</MudText>
-                        <MudText Typo="Typo.body2" Class="day-date">@day.Date.ToString("MMM dd")</MudText>
-                        @if (day.Exercises.Any())
-                        {
-                            <div class="day-progress">
-                                @{
-                                    var dayTotal = day.Exercises.Count();
-                                    var dayCompleted = day.Exercises.Count(e => e.Status == "done");
-                                    var dayProgress = dayTotal > 0 ? (decimal)dayCompleted / dayTotal * 100 : 0;
-                                }
-                                <MudProgressLinear Value="@((int)dayProgress)"
-                                                   Color="Color.Success"
-                                                   Class="progress-bar"
-                                                   Size="Size.Small" />
-                                <MudText Typo="Typo.caption" Class="progress-text">
-                                    @dayCompleted/@dayTotal completed
-                                </MudText>
-                            </div>
-                        }
-                    </div>
-
-                    <div class="exercises-container">
-                        @if (day.Exercises.Any())
-                        {
-                            @foreach (var exercise in day.Exercises)
-                            {
-                                <div class="exercise-card @GetExerciseStatusClass(exercise.Status)">
-                                    <div class="exercise-header">
-                                        <MudText Typo="Typo.body1" Class="exercise-name">
-                                            @exercise.ExerciseName
-                                        </MudText>
-                                        <div class="exercise-status">
-                                            @if (exercise.Status == "planned")
-                                            {
-                                                <MudIcon Icon="@Icons.Material.Outlined.Schedule" Size="Size.Small" />
-                                            }
-                                            else if (exercise.Status == "done")
-                                            {
-                                                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" Color="Color.Success" />
-                                            }
-                                            else if (exercise.Status == "partial")
-                                            {
-                                                <MudIcon Icon="@Icons.Material.Outlined.MoreHoriz" Size="Size.Small" Color="Color.Warning" />
-                                            }
-                                            else if (exercise.Status == "skipped")
-                                            {
-                                                <MudIcon Icon="@Icons.Material.Outlined.Close" Size="Size.Small" Color="Color.Secondary" />
-                                            }
-                                        </div>
-                                    </div>
-
-                                    @if (exercise.TargetSets.HasValue || exercise.TargetReps.HasValue)
-                                    {
-                                        <MudText Typo="Typo.caption" Class="exercise-targets">
-                                            @if (exercise.TargetSets.HasValue)
-                                            {
-                                                <text>@exercise.TargetSets sets</text>
-                                            }
-                                            @if (exercise.TargetSets.HasValue && exercise.TargetReps.HasValue)
-                                            {
-                                                <text> × </text>
-                                            }
-                                            @if (exercise.TargetReps.HasValue)
-                                            {
-                                                <text>@exercise.TargetReps reps</text>
-                                            }
-                                            @if (exercise.HoldSeconds.HasValue)
-                                            {
-                                                <text> × @exercise.HoldSeconds sec</text>
-                                            }
-                                        </MudText>
-                                    }
-
-                                    @if (exercise.Status == "planned")
-                                    {
-                                        <MudButton Size="Size.Small"
-                                                   Variant="Variant.Filled"
-                                                   Color="Color.Success"
-                                                   OnClick="@(() => QuickLogComplete(exercise.ExerciseInstanceId))"
-                                                   FullWidth="true"
-                                                   Class="complete-button">
-                                            <MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" Class="mr-1" />
-                                            Complete
-                                        </MudButton>
-                                    }
-
-                                    @if (!string.IsNullOrEmpty(exercise.Notes))
-                                    {
-                                        <MudText Typo="Typo.caption" Class="exercise-notes">
-                                            @exercise.Notes
-                                        </MudText>
-                                    }
-                                </div>
-                            }
-                        }
-                        else
-                        {
-                            <div class="empty-day">
-                                <MudIcon Icon="@Icons.Material.Outlined.FreeBreakfast" Size="Size.Medium" Color="Color.Secondary" />
-                                <MudText Typo="Typo.body2" Class="mt-2">Rest day</MudText>
-                            </div>
-                        }
-                    </div>
+    <!-- Main Content -->
+    <div class="board-container">
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="error-alert">
+                <div class="alert-content">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="12"/>
+                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                    <span>@errorMessage</span>
                 </div>
+            </div>
+        }
+
+        <!-- Week Navigation -->
+        <div class="week-navigation">
+            <button class="nav-btn" @onclick="PreviousWeek">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15,18 9,12 15,6"/>
+                </svg>
+            </button>
+
+            <h1 class="week-title">
+                @currentWeekStart.ToString("MMMM dd") - @currentWeekStart.AddDays(6).ToString("MMMM dd")
+            </h1>
+
+            <button class="nav-btn" @onclick="NextWeek">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9,18 15,12 9,6"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Calendar Header -->
+        <div class="calendar-header">
+            @{
+                var dayNames = new[] { "SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT" };
+                for (int i = 0; i < 7; i++)
+                {
+                    var currentDate = currentWeekStart.AddDays(i);
+                    var isToday = currentDate == DateOnly.FromDateTime(DateTime.Today);
+                    var dayName = dayNames[i];
+
+                    <div class="calendar-day @(isToday ? "is-today" : "")">
+                        <div class="day-name">@dayName</div>
+                        <div class="day-number">@currentDate.Day</div>
+                        @if (GetDayExercises(currentDate).Any())
+                        {
+                            <div class="day-indicator"></div>
+                        }
+                    </div>
+                }
             }
         </div>
 
-        @if (board.Days.SelectMany(d => d.Exercises).Any())
+        @if (isLoading)
         {
-            <MudCard Class="mt-6">
-                <MudCardContent>
-                    <MudText Typo="Typo.h6" Class="mb-3">Weekly Summary</MudText>
+            <div class="loading-state">
+                <div class="loading-spinner"></div>
+                <p>Loading your weekly board...</p>
+            </div>
+        }
+        else if (board != null && GetAllExercises().Any())
+        {
+            <!-- Exercise Routines -->
+            <div class="routines-section">
+                @{
+                    var exerciseGroups = GetAllExercises()
+                        .GroupBy(e => e.ExerciseName)
+                        .Select(g => new RoutineGroup
+                        {
+                            Name = g.Key,
+                            Exercises = g.ToList()
+                        })
+                        .ToList();
+                }
+
+                @foreach (var routine in exerciseGroups)
+                {
+                    <div class="routine-card @GetRoutineStatusClass(routine.Exercises)">
+                        <div class="routine-header">
+                            <div class="routine-info">
+                                <div class="routine-icon @GetRoutineStatusClass(routine.Exercises)">
+                                    @if (IsRoutineCompleted(routine.Exercises))
+                                    {
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                            <polyline points="20,6 9,17 4,12"/>
+                                        </svg>
+                                    }
+                                    else if (IsRoutineInProgress(routine.Exercises))
+                                    {
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                            <polygon points="5,3 19,12 5,21"/>
+                                        </svg>
+                                    }
+                                    else
+                                    {
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2">
+                                            <rect x="6" y="4" width="4" height="16"/>
+                                            <rect x="14" y="4" width="4" height="16"/>
+                                        </svg>
+                                    }
+                                </div>
+                                <div class="routine-details">
+                                    <h3 class="routine-name">@routine.Name</h3>
+                                    <p class="routine-status">@GetRoutineStatusText(routine.Exercises)</p>
+                                </div>
+                            </div>
+                            <div class="routine-action">
+                                @if (IsRoutineCompleted(routine.Exercises))
+                                {
+                                    <span class="status-badge completed">Done</span>
+                                }
+                                else if (IsRoutineInProgress(routine.Exercises))
+                                {
+                                    <button class="start-btn" @onclick="@(() => StartRoutine(routine.Exercises.First()))">Start</button>
+                                }
+                                else
+                                {
+                                    <span class="status-badge locked">Locked</span>
+                                }
+                            </div>
+                        </div>
+
+                        @if (IsRoutineInProgress(routine.Exercises) || IsRoutineCompleted(routine.Exercises))
+                        {
+                            <div class="routine-progress">
+                                @{
+                                    var totalSets = routine.Exercises.Sum(e => e.TargetSets ?? 0);
+                                    var completedSets = routine.Exercises.Sum(e => e.CompletedSets ?? 0);
+                                    var progressPercent = totalSets > 0 ? (decimal)completedSets / totalSets * 100 : 0;
+                                }
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: @(progressPercent)%"></div>
+                                </div>
+                                <span class="progress-text">@completedSets of @totalSets exercises</span>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Weekly Summary -->
+            <div class="summary-section">
+                <h2 class="summary-title">Weekly Summary</h2>
+                <div class="summary-content">
                     @{
-                        var totalExercises = board.Days.SelectMany(d => d.Exercises).Count();
-                        var completedExercises = board.Days.SelectMany(d => d.Exercises).Count(e => e.Status == "done");
+                        var totalExercises = GetAllExercises().Count();
+                        var completedExercises = GetAllExercises().Count(e => e.Status == "done");
                         var percentage = totalExercises > 0 ? (decimal)completedExercises / totalExercises * 100 : 0;
                     }
-                    <MudGrid>
-                        <MudItem xs="4">
-                            <MudText Typo="Typo.body1">Total Exercises: @totalExercises</MudText>
-                        </MudItem>
-                        <MudItem xs="4">
-                            <MudText Typo="Typo.body1">Completed: @completedExercises</MudText>
-                        </MudItem>
-                        <MudItem xs="4">
-                            <MudText Typo="Typo.body1">Progress: @percentage.ToString("F1")%</MudText>
-                        </MudItem>
-                    </MudGrid>
-                    <MudProgressLinear Value="@((int)percentage)" Class="mt-2" />
-                </MudCardContent>
-            </MudCard>
+                    <div class="summary-stat">
+                        <span class="stat-label">Missing Difficulty</span>
+                        <div class="stat-indicators">
+                            <span class="stat-dot orange"></span>
+                            <span class="stat-dot orange"></span>
+                            <span class="stat-dot gray"></span>
+                        </div>
+                    </div>
+                    <div class="summary-stat">
+                        <span class="stat-label">local fire department local fire department</span>
+                        <div class="stat-indicators">
+                            <span class="stat-dot orange"></span>
+                            <span class="stat-dot gray"></span>
+                            <span class="stat-dot gray"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         }
-    }
-    else
-    {
-        <MudCard>
-            <MudCardContent Class="text-center py-8">
-                <MudIcon Icon="@Icons.Material.Filled.Assignment" Size="Size.Large" Color="Color.Secondary" />
-                <MudText Typo="Typo.h6" Class="mt-4">No active plans</MudText>
-                <MudText Typo="Typo.body2" Color="Color.Secondary">
+        else
+        {
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.5">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                </div>
+                <h3 class="empty-title">No active plans</h3>
+                <p class="empty-description">
                     You don't have any active exercise plans yet. Check your proposals!
-                </MudText>
-                <MudButton Variant="Variant.Filled"
-                           Color="Color.Primary"
-                           Href="/proposals"
-                           Class="mt-4"
-                           StartIcon="@Icons.Material.Filled.Inbox">
+                </p>
+                <button class="empty-action-btn" @onclick="@(() => NavigationManager.NavigateTo("/proposals"))">
                     View Proposals
-                </MudButton>
-            </MudCardContent>
-        </MudCard>
-    }
-</MudContainer>
+                </button>
+            </div>
+        }
+    </div>
+</div>
 
+<style>
+.weekly-board-page {
+    min-height: 100vh;
+    background: #F9F7F4; /* Cream background */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Header */
+.board-header {
+    background: white;
+    border-bottom: 1px solid #E5E7EB;
+    padding: 16px 24px;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.brand-logo {
+    display: flex;
+    align-items: center;
+}
+
+.logo-icon {
+    font-size: 24px;
+    margin-right: 8px;
+}
+
+.brand-name {
+    font-size: 24px;
+    font-weight: 600;
+    color: #1F2937; /* Navy */
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.notification-btn {
+    position: relative;
+    padding: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    border-radius: 8px;
+}
+
+.notification-btn:hover {
+    background: #F3F4F6;
+}
+
+.profile-avatar {
+    cursor: pointer;
+}
+
+.avatar-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #FF6B35;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+/* Main Content */
+.board-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 24px;
+}
+
+/* Error Alert */
+.error-alert {
+    margin-bottom: 24px;
+    padding: 16px;
+    background: #FEF2F2;
+    border: 1px solid #FECACA;
+    border-radius: 8px;
+}
+
+.alert-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #EF4444;
+    font-size: 14px;
+}
+
+/* Week Navigation */
+.week-navigation {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.nav-btn {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #6B7280;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.nav-btn:hover {
+    background: #F9FAFB;
+    color: #374151;
+    transform: scale(1.05);
+}
+
+.week-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1F2937;
+    margin: 0;
+    min-width: 200px;
+    text-align: center;
+}
+
+/* Calendar Header */
+.calendar-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin-bottom: 32px;
+}
+
+.calendar-day {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 8px;
+    border-radius: 12px;
+    transition: background-color 0.2s ease;
+    position: relative;
+}
+
+.calendar-day.is-today {
+    background: #FF6B35;
+    color: white;
+}
+
+.day-name {
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 4px;
+    color: inherit;
+    opacity: 0.7;
+}
+
+.day-number {
+    font-size: 18px;
+    font-weight: 600;
+    color: inherit;
+}
+
+.day-indicator {
+    position: absolute;
+    bottom: 4px;
+    width: 6px;
+    height: 6px;
+    background: #FF6B35;
+    border-radius: 50%;
+}
+
+.calendar-day.is-today .day-indicator {
+    background: white;
+}
+
+/* Loading State */
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #E5E7EB;
+    border-radius: 50%;
+    border-top-color: #FF6B35;
+    animation: spin 1s ease-in-out infinite;
+    margin-bottom: 16px;
+}
+
+@@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-state p {
+    color: #6B7280;
+    font-size: 16px;
+    margin: 0;
+}
+
+/* Routines Section */
+.routines-section {
+    margin-bottom: 48px;
+}
+
+.routine-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #E5E7EB;
+    transition: all 0.2s ease;
+}
+
+.routine-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.routine-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.routine-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.routine-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.routine-icon.completed {
+    background: #10B981;
+}
+
+.routine-icon.in-progress {
+    background: #FF6B35;
+}
+
+.routine-icon.locked {
+    background: #F3F4F6;
+    border: 1px solid #E5E7EB;
+}
+
+.routine-details h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1F2937;
+    margin: 0 0 4px 0;
+}
+
+.routine-details p {
+    font-size: 14px;
+    color: #6B7280;
+    margin: 0;
+}
+
+.routine-action {
+    flex-shrink: 0;
+}
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-badge.completed {
+    background: #D1FAE5;
+    color: #065F46;
+}
+
+.status-badge.locked {
+    background: #F3F4F6;
+    color: #9CA3AF;
+}
+
+.start-btn {
+    padding: 8px 24px;
+    background: #FF6B35;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.start-btn:hover {
+    background: #E55A2E;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+/* Routine Progress */
+.routine-progress {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 4px;
+    background: #F3F4F6;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-right: 12px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #10B981;
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    font-size: 12px;
+    color: #6B7280;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* Summary Section */
+.summary-section {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.summary-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1F2937;
+    margin: 0 0 20px 0;
+}
+
+.summary-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.summary-stat {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.stat-label {
+    font-size: 14px;
+    color: #6B7280;
+    flex: 1;
+}
+
+.stat-indicators {
+    display: flex;
+    gap: 4px;
+}
+
+.stat-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.stat-dot.orange {
+    background: #FF6B35;
+}
+
+.stat-dot.gray {
+    background: #E5E7EB;
+}
+
+/* Empty State */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 80px 20px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.empty-icon {
+    margin-bottom: 24px;
+    opacity: 0.5;
+}
+
+.empty-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1F2937;
+    margin: 0 0 8px 0;
+}
+
+.empty-description {
+    font-size: 16px;
+    color: #6B7280;
+    margin: 0 0 24px 0;
+    max-width: 400px;
+    line-height: 1.5;
+}
+
+.empty-action-btn {
+    padding: 12px 24px;
+    background: #FF6B35;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.empty-action-btn:hover {
+    background: #E55A2E;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+/* Responsive Design */
+@@media (max-width: 768px) {
+    .board-container {
+        padding: 20px 16px;
+    }
+
+    .calendar-header {
+        gap: 4px;
+    }
+
+    .calendar-day {
+        padding: 8px 4px;
+    }
+
+    .week-navigation {
+        gap: 16px;
+    }
+
+    .week-title {
+        font-size: 18px;
+        min-width: 160px;
+    }
+
+    .routine-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .routine-info {
+        width: 100%;
+    }
+
+    .routine-action {
+        width: 100%;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .summary-stat {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+}
+</style>
 
 @code {
     private DateOnly currentWeekStart = GetCurrentWeekStart();
@@ -278,22 +807,22 @@
         await LoadBoard();
     }
 
-    private async Task QuickLogComplete(int exerciseInstanceId)
+    private async Task StartRoutine(ExerciseCardResponse exercise)
     {
         try
         {
-            var request = new { ExerciseInstanceId = exerciseInstanceId, Completed = true };
+            var request = new { ExerciseInstanceId = exercise.ExerciseInstanceId, Completed = true };
             var response = await HttpClient.PostAsJsonAsync("/api/client/board/quick-log", request);
 
             if (response.IsSuccessStatusCode)
             {
-                Snackbar.Add("Exercise marked as completed!", Severity.Success);
+                Snackbar.Add("Exercise started!", Severity.Success);
                 await LoadBoard(); // Refresh the board
             }
             else
             {
                 var error = await response.Content.ReadAsStringAsync();
-                Snackbar.Add($"Failed to log progress: {error}", Severity.Error);
+                Snackbar.Add($"Failed to start exercise: {error}", Severity.Error);
             }
         }
         catch (Exception ex)
@@ -310,21 +839,54 @@
         return today.AddDays(-daysToSubtract);
     }
 
-    private string GetDayColumnClass(DateOnly date)
+    private List<ExerciseCardResponse> GetDayExercises(DateOnly date)
     {
-        var today = DateOnly.FromDateTime(DateTime.Today);
-        return date == today ? "is-today" : "";
+        if (board?.Days == null) return new List<ExerciseCardResponse>();
+
+        var day = board.Days.FirstOrDefault(d => d.Date == date);
+        return day?.Exercises?.ToList() ?? new List<ExerciseCardResponse>();
     }
 
-    private string GetExerciseStatusClass(string status)
+    private List<ExerciseCardResponse> GetAllExercises()
     {
-        return status switch
+        if (board?.Days == null) return new List<ExerciseCardResponse>();
+
+        return board.Days.SelectMany(d => d.Exercises).ToList();
+    }
+
+    private bool IsRoutineCompleted(List<ExerciseCardResponse> exercises)
+    {
+        return exercises.Any() && exercises.All(e => e.Status == "done");
+    }
+
+    private bool IsRoutineInProgress(List<ExerciseCardResponse> exercises)
+    {
+        return exercises.Any() && exercises.Any(e => e.Status == "partial" || e.Status == "done") && !IsRoutineCompleted(exercises);
+    }
+
+    private string GetRoutineStatusClass(List<ExerciseCardResponse> exercises)
+    {
+        if (IsRoutineCompleted(exercises)) return "completed";
+        if (IsRoutineInProgress(exercises)) return "in-progress";
+        return "locked";
+    }
+
+    private string GetRoutineStatusText(List<ExerciseCardResponse> exercises)
+    {
+        if (IsRoutineCompleted(exercises)) return "Completed";
+        if (IsRoutineInProgress(exercises))
         {
-            "done" => "is-completed",
-            "partial" => "is-partial",
-            "skipped" => "is-skipped",
-            _ => "is-planned"
-        };
+            var completed = exercises.Count(e => e.Status == "done");
+            var total = exercises.Count;
+            return $"{completed} of {total} exercises";
+        }
+        return "Locked";
+    }
+
+    public class RoutineGroup
+    {
+        public string Name { get; set; } = "";
+        public List<ExerciseCardResponse> Exercises { get; set; } = new();
     }
 
     public class BoardResponse

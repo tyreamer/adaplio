@@ -5,85 +5,340 @@
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
 
-<PageTitle>Client Login - Adaplio</PageTitle>
+<PageTitle>Client Sign In - Adaplio</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.Small" Class="mt-16">
-    <MudPaper Class="pa-8">
-        <div class="d-flex flex-column align-center mb-6">
-            <MudIcon Icon="@Icons.Material.Filled.FitnessCenter" Size="Size.Large" Color="Color.Primary" />
-            <MudText Typo="Typo.h4" Class="mt-2">Welcome to Adaplio</MudText>
-            <MudText Typo="Typo.body1" Color="Color.Secondary">
-                Sign in with your email to access your therapy plans
-            </MudText>
+<div class="login-page">
+    <!-- Header -->
+    <div class="login-header">
+        <div class="brand-logo">
+            <span class="logo-icon">🧡</span>
+            <span class="brand-name">Adaplio</span>
         </div>
+    </div>
 
-        <EditForm Model="@_model" OnValidSubmit="@SendMagicLink">
-            <DataAnnotationsValidator />
+    <!-- Login Form -->
+    <div class="login-container">
+        <div class="login-form">
+            <div class="form-header">
+                <h1 class="form-title">Client Sign In</h1>
+                <p class="form-subtitle">Enter your email and we'll send you a link to sign in.</p>
+            </div>
 
-            <MudStack Spacing="4">
-                <MudTextField @bind-Value="_model.Email"
-                              For="@(() => _model.Email)"
-                              Label="Email Address"
-                              Variant="Variant.Outlined"
-                              InputType="InputType.Email"
-                              Disabled="@_isLoading" />
+            <EditForm Model="@_model" OnValidSubmit="@SendMagicLink" class="form-content">
+                <DataAnnotationsValidator />
 
-                <MudButton ButtonType="ButtonType.Submit"
-                           Variant="Variant.Filled"
-                           Color="Color.Primary"
-                           Size="Size.Large"
-                           FullWidth="true"
-                           Disabled="@_isLoading">
+                <div class="form-field">
+                    <input type="email"
+                           @bind="_model.Email"
+                           class="field-input @(_validationErrors.ContainsKey("Email") ? "error" : "")"
+                           disabled="@_isLoading"
+                           placeholder="your@email.com" />
+                    @if (_validationErrors.ContainsKey("Email"))
+                    {
+                        <div class="field-error">@_validationErrors["Email"]</div>
+                    }
+                </div>
+
+                <button type="submit"
+                        class="submit-btn @(_isLoading ? "loading" : "")"
+                        disabled="@_isLoading">
                     @if (_isLoading)
                     {
-                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
-                        <text>Sending login code...</text>
+                        <span class="loading-spinner"></span>
+                        <text>Sending link...</text>
                     }
                     else
                     {
-                        <MudIcon Icon="@Icons.Material.Filled.Email" Class="mr-2" />
-                        <text>Send Login Code</text>
+                        <text>Send Magic Link</text>
                     }
-                </MudButton>
-            </MudStack>
-        </EditForm>
+                </button>
+            </EditForm>
 
-        @if (_linkSent)
-        {
-            <MudAlert Severity="Severity.Success" Class="mt-4">
-                <MudText>Check your email for a 6-digit login code. The code expires in 15 minutes.</MudText>
-                <MudButton Variant="Variant.Text"
-                           Color="Color.Primary"
-                           StartIcon="@Icons.Material.Filled.ArrowForward"
-                           OnClick="@(() => Navigation.NavigateTo("/auth/verify"))"
-                           Class="mt-2">
-                    Enter Code
-                </MudButton>
-            </MudAlert>
-        }
+            @if (_linkSent)
+            {
+                <div class="success-message">
+                    <div class="success-content">
+                        <p>Magic link sent! Check your email and click the link to sign in.</p>
+                        <button class="enter-code-btn" @onclick="@(() => Navigation.NavigateTo("/auth/verify"))">
+                            Enter Code Instead
+                        </button>
+                    </div>
+                </div>
+            }
 
-        <MudDivider Class="my-6" />
-
-        <div class="text-center">
-            <MudText Typo="Typo.body2" Color="Color.Secondary">
-                Are you a physical therapist?
-            </MudText>
-            <MudButton Variant="Variant.Text"
-                       Color="Color.Primary"
-                       Href="/auth/trainer/login">
-                Sign in as Trainer
-            </MudButton>
+            <div class="form-footer">
+                <span class="footer-text">Need help?</span>
+                <a href="#" class="footer-link">Contact Support</a>
+            </div>
         </div>
-    </MudPaper>
-</MudContainer>
+    </div>
+</div>
+
+<style>
+.login-page {
+    min-height: 100vh;
+    background: #F9F7F4; /* Cream background */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Header */
+.login-header {
+    padding: 20px 24px;
+    background: #F9F7F4;
+}
+
+.brand-logo {
+    display: flex;
+    align-items: center;
+}
+
+.logo-icon {
+    font-size: 24px;
+    margin-right: 8px;
+}
+
+.brand-name {
+    font-size: 24px;
+    font-weight: 600;
+    color: #1F2937; /* Navy */
+}
+
+/* Main Container */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 80px);
+    padding: 40px 24px;
+}
+
+.login-form {
+    width: 100%;
+    max-width: 400px;
+    background: white;
+    border-radius: 16px;
+    padding: 40px 32px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+
+/* Form Header */
+.form-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.form-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1F2937; /* Navy */
+    line-height: 1.2;
+    margin: 0 0 12px 0;
+}
+
+.form-subtitle {
+    font-size: 16px;
+    color: #6B7280; /* Gray */
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* Form Content */
+.form-content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.field-input {
+    padding: 16px 20px;
+    border: 2px solid #E5E7EB;
+    border-radius: 12px;
+    font-size: 16px;
+    background: white;
+    color: #1F2937;
+    transition: border-color 0.2s ease;
+    outline: none;
+    text-align: center;
+}
+
+.field-input::placeholder {
+    color: #9CA3AF;
+    text-align: center;
+}
+
+.field-input:focus {
+    border-color: #FF6B35; /* Orange focus */
+    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.field-input.error {
+    border-color: #EF4444; /* Red error */
+}
+
+.field-input:disabled {
+    background-color: #F3F4F6;
+    color: #9CA3AF;
+    cursor: not-allowed;
+}
+
+.field-error {
+    font-size: 14px;
+    color: #EF4444; /* Red */
+    margin-top: 8px;
+    text-align: center;
+}
+
+/* Submit Button */
+.submit-btn {
+    padding: 16px 24px;
+    background: #FF6B35; /* Orange */
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.submit-btn:hover:not(:disabled) {
+    background: #E55A2E;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+.submit-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Success Message */
+.success-message {
+    margin-top: 24px;
+    padding: 20px;
+    background: #F0F9FF;
+    border: 1px solid #0EA5E9;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.success-content p {
+    font-size: 14px;
+    color: #0369A1;
+    margin: 0 0 16px 0;
+    line-height: 1.5;
+}
+
+.enter-code-btn {
+    padding: 8px 16px;
+    background: transparent;
+    color: #0369A1;
+    border: 1px solid #0EA5E9;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.enter-code-btn:hover {
+    background: #0EA5E9;
+    color: white;
+}
+
+/* Form Footer */
+.form-footer {
+    margin-top: 32px;
+    text-align: center;
+    padding-top: 24px;
+    border-top: 1px solid #E5E7EB;
+}
+
+.footer-text {
+    font-size: 14px;
+    color: #6B7280;
+}
+
+.footer-link {
+    font-size: 14px;
+    color: #FF6B35; /* Orange */
+    text-decoration: none;
+    font-weight: 500;
+    margin-left: 4px;
+}
+
+.footer-link:hover {
+    text-decoration: underline;
+}
+
+/* Responsive Design */
+@@media (max-width: 640px) {
+    .login-container {
+        padding: 20px 16px;
+        min-height: calc(100vh - 60px);
+    }
+
+    .login-form {
+        padding: 32px 24px;
+    }
+
+    .form-title {
+        font-size: 24px;
+    }
+
+    .field-input {
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+}
+</style>
 
 @code {
     private readonly LoginModel _model = new();
     private bool _isLoading = false;
     private bool _linkSent = false;
+    private readonly Dictionary<string, string> _validationErrors = new();
 
     private async Task SendMagicLink()
     {
+        _validationErrors.Clear();
+
+        // Validate email
+        if (string.IsNullOrWhiteSpace(_model.Email))
+            _validationErrors["Email"] = "Email is required";
+        else if (!IsValidEmail(_model.Email))
+            _validationErrors["Email"] = "Please enter a valid email address";
+
+        if (_validationErrors.Any())
+        {
+            StateHasChanged();
+            return;
+        }
+
         _isLoading = true;
         try
         {
@@ -92,12 +347,12 @@
             if (response.IsSuccessStatusCode)
             {
                 _linkSent = true;
-                Snackbar.Add("Login code sent! Check your email.", Severity.Success);
+                Snackbar.Add("Magic link sent! Check your email.", Severity.Success);
             }
             else
             {
                 var error = await response.Content.ReadAsStringAsync();
-                Snackbar.Add("Failed to send login code. Please try again.", Severity.Error);
+                Snackbar.Add("Failed to send magic link. Please try again.", Severity.Error);
             }
         }
         catch (Exception ex)
@@ -110,10 +365,21 @@
         }
     }
 
+    private static bool IsValidEmail(string email)
+    {
+        try
+        {
+            var addr = new System.Net.Mail.MailAddress(email);
+            return addr.Address == email;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     public class LoginModel
     {
-        [Required(ErrorMessage = "Email is required")]
-        [EmailAddress(ErrorMessage = "Please enter a valid email address")]
         public string Email { get; set; } = "";
     }
 }

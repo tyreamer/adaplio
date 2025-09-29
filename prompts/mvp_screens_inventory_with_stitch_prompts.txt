@@ -1,0 +1,540 @@
+ADAPLIO MVP SCREENS INVENTORY WITH STITCH AI PROMPTS
+===================================================
+
+This document contains a comprehensive inventory of all MVP screens for the Adaplio physical therapy app, structured for Google's Stitch AI designer. Each screen includes both JSON data and specific Stitch prompts for visual generation.
+
+==========================================
+1. LANDING/WELCOME PAGE
+==========================================
+
+JSON:
+{
+  "screen_name": "landing_welcome",
+  "purpose": "Marketing landing page for unauthenticated users showcasing app benefits",
+  "key_components": [
+    "hero_section",
+    "feature_showcase_grid",
+    "testimonials_section",
+    "cta_buttons",
+    "navigation_header"
+  ],
+  "states": [
+    "static_content"
+  ],
+  "actions": [
+    "navigate_to_trainer_registration",
+    "navigate_to_client_login",
+    "scroll_to_features",
+    "view_testimonials"
+  ]
+}
+
+STITCH PROMPT:
+"Create a modern, clean landing page for a physical therapy app called Adaplio. Design a hero section with a compelling headline about connecting patients with their physical therapists. Include a grid showcasing key features like exercise tracking, progress monitoring, and gamification. Add a testimonials section with patient success stories. Use a calming blue and white color scheme with accessibility-friendly typography. Include prominent call-to-action buttons for 'Find My Therapist' and 'I'm a Physical Therapist'. Make it mobile-responsive with clean, medical-professional aesthetics."
+
+==========================================
+2. HOME PAGE (CLIENT ONBOARDING)
+==========================================
+
+JSON:
+{
+  "screen_name": "home_onboarding",
+  "purpose": "Entry point with multiple client onboarding methods including QR scan, manual code, and SMS invite",
+  "key_components": [
+    "qr_scanner_interface",
+    "manual_code_entry_form",
+    "sms_invite_form",
+    "app_header",
+    "onboarding_instructions"
+  ],
+  "states": [
+    "default",
+    "camera_loading",
+    "scanning_qr",
+    "processing_code",
+    "validation_error",
+    "sms_sending",
+    "sms_sent_confirmation"
+  ],
+  "actions": [
+    "scan_qr_code",
+    "enter_pt_code_manually",
+    "request_sms_invite",
+    "validate_invite_token",
+    "camera_permission_request"
+  ]
+}
+
+STITCH PROMPT:
+"Design a welcoming onboarding screen for a physical therapy app. Create three main interaction options: a large QR code scanner viewport with camera overlay, a simple text input field for manual code entry, and a phone number input for SMS invites. Use encouraging copy like 'Connect with your Physical Therapist' and 'Get started on your recovery journey'. Include clear instructions for each option. Design loading states, error messages, and success confirmations. Use a friendly, medical-professional design with blue accents and plenty of white space. Make it mobile-first with large touch targets."
+
+==========================================
+3. TRAINER LOGIN
+==========================================
+
+JSON:
+{
+  "screen_name": "trainer_login",
+  "purpose": "Standard email/password authentication for physical therapists",
+  "key_components": [
+    "email_input_field",
+    "password_input_field",
+    "login_button",
+    "register_link",
+    "form_validation_messages",
+    "loading_spinner"
+  ],
+  "states": [
+    "default",
+    "loading",
+    "authentication_error",
+    "validation_error"
+  ],
+  "actions": [
+    "submit_credentials",
+    "navigate_to_registration",
+    "toggle_password_visibility",
+    "clear_form_errors"
+  ]
+}
+
+STITCH PROMPT:
+"Create a professional login form for physical therapists. Design a clean, centered form with email and password fields, proper labels, and a prominent 'Sign In' button. Include form validation styling for errors, a loading state with spinner, and a link to registration. Add the Adaplio logo at the top. Use a trustworthy, medical-professional design with blue primary colors and subtle gradients. Include proper spacing, typography hierarchy, and mobile responsiveness. Design error states with helpful messaging and success states with smooth transitions."
+
+==========================================
+4. TRAINER REGISTRATION
+==========================================
+
+JSON:
+{
+  "screen_name": "trainer_registration",
+  "purpose": "Create new physical therapist accounts with professional details",
+  "key_components": [
+    "email_input",
+    "password_input",
+    "confirm_password_input",
+    "full_name_input",
+    "practice_name_input",
+    "registration_button",
+    "validation_messages",
+    "login_redirect_link"
+  ],
+  "states": [
+    "default",
+    "loading",
+    "validation_errors",
+    "existing_account_detected",
+    "registration_success"
+  ],
+  "actions": [
+    "create_account",
+    "validate_passwords_match",
+    "check_email_availability",
+    "redirect_to_login",
+    "clear_validation_errors"
+  ]
+}
+
+STITCH PROMPT:
+"Design a professional registration form for physical therapists joining the platform. Create a multi-field form with email, password, confirm password, full name, and practice name fields. Include real-time validation feedback, password strength indicators, and clear error messaging. Use a step-by-step or grouped layout for better UX. Include professional medical imagery or icons. Design success states with welcome messaging and smooth transitions to login. Use trustworthy colors (blues, whites) with excellent typography and mobile responsiveness."
+
+==========================================
+5. CLIENT LOGIN (MAGIC LINK)
+==========================================
+
+JSON:
+{
+  "screen_name": "client_login",
+  "purpose": "Passwordless magic link authentication for patients/clients",
+  "key_components": [
+    "email_input_field",
+    "magic_link_button",
+    "instructions_text",
+    "loading_animation",
+    "sent_confirmation_message",
+    "verify_redirect_link"
+  ],
+  "states": [
+    "default",
+    "sending_magic_link",
+    "link_sent_confirmation",
+    "email_validation_error"
+  ],
+  "actions": [
+    "send_magic_link_email",
+    "navigate_to_verification",
+    "resend_magic_link",
+    "validate_email_format"
+  ]
+}
+
+STITCH PROMPT:
+"Create a simple, patient-friendly login screen using magic link authentication. Design a single email input field with clear instructions like 'Enter your email to receive a secure login link'. Include a prominent 'Send Login Link' button and friendly copy explaining the process. Design loading states with smooth animations and a confirmation screen showing 'Check your email for the login link'. Use calming colors, large fonts for accessibility, and reassuring imagery. Make it feel safe and trustworthy for patients of all ages."
+
+==========================================
+6. CODE VERIFICATION
+==========================================
+
+JSON:
+{
+  "screen_name": "code_verification",
+  "purpose": "Verify 6-digit codes from magic link emails with optional role selection",
+  "key_components": [
+    "six_digit_code_input",
+    "verify_button",
+    "role_selection_dialog",
+    "resend_code_link",
+    "error_messages",
+    "success_animation"
+  ],
+  "states": [
+    "default",
+    "verifying_code",
+    "role_selection_required",
+    "verification_error",
+    "verification_success"
+  ],
+  "actions": [
+    "verify_6_digit_code",
+    "select_user_role",
+    "resend_verification_code",
+    "redirect_to_dashboard",
+    "auto_fill_from_url"
+  ]
+}
+
+STITCH PROMPT:
+"Design a verification screen with a large, easy-to-use 6-digit code input. Create individual digit boxes that auto-advance as users type. Include clear instructions like 'Enter the 6-digit code from your email'. Add a resend option, loading states, and error handling. If role selection is needed, design a modal with 'Patient' and 'Physical Therapist' options. Use large, accessible fonts and high contrast. Include success animations and smooth transitions. Design for both mobile and desktop with touch-friendly interactions."
+
+==========================================
+7. CLIENT HOME DASHBOARD
+==========================================
+
+JSON:
+{
+  "screen_name": "client_dashboard",
+  "purpose": "Main client interface with weekly board overview and gamification elements",
+  "key_components": [
+    "weekly_overview_header",
+    "xp_progress_bar",
+    "streak_counter",
+    "todays_missions_list",
+    "pending_proposals_sidebar",
+    "badges_rewards_section",
+    "connected_trainers_list",
+    "quick_log_buttons"
+  ],
+  "states": [
+    "loading_dashboard",
+    "no_active_plan",
+    "active_plan_with_missions",
+    "all_missions_complete",
+    "trainer_notification_pending"
+  ],
+  "actions": [
+    "start_exercise_mission",
+    "mark_mission_complete",
+    "accept_decline_proposal",
+    "notify_trainer_ready",
+    "view_full_weekly_board",
+    "manage_trainer_connections",
+    "view_badge_details"
+  ]
+}
+
+STITCH PROMPT:
+"Create an engaging patient dashboard for a physical therapy app. Design a header showing current week, XP progress bar, and streak counter with flame icons. Below, show today's exercises as cards with completion checkboxes and difficulty indicators. Include a sidebar for pending proposals from therapists. Add a gamification section with earned badges and rewards. Use motivational colors (greens for progress, blues for trust) with celebration animations. Design empty states with encouraging messages. Make it feel like a fitness app but with medical professionalism."
+
+==========================================
+8. TRAINER HOME DASHBOARD
+==========================================
+
+JSON:
+{
+  "screen_name": "trainer_dashboard",
+  "purpose": "Modern client overview dashboard for physical therapists with filtering and statistics",
+  "key_components": [
+    "client_cards_grid",
+    "filter_tabs",
+    "invite_client_button",
+    "summary_statistics_banner",
+    "notification_panel",
+    "search_filter_controls",
+    "client_gamification_data"
+  ],
+  "states": [
+    "loading_clients",
+    "empty_client_list",
+    "filtered_client_view",
+    "client_detail_expanded",
+    "creating_invitation"
+  ],
+  "actions": [
+    "view_client_details",
+    "send_exercise_proposals",
+    "create_client_invitation",
+    "filter_clients_by_status",
+    "search_clients",
+    "manage_client_permissions",
+    "view_client_progress"
+  ]
+}
+
+STITCH PROMPT:
+"Design a professional dashboard for physical therapists managing multiple patients. Create a grid of patient cards showing names (or aliases), progress percentages, last activity, and gamification data (level, badges). Include filter tabs for 'All Patients', 'Active', 'Needs Attention'. Add a prominent 'Invite New Patient' button and summary statistics at the top. Use professional medical colors with data visualization elements. Design card hover states and expansion views. Include search functionality and sorting options. Make it feel like a modern SaaS dashboard with medical professionalism."
+
+==========================================
+9. WEEKLY BOARD
+==========================================
+
+JSON:
+{
+  "screen_name": "weekly_board",
+  "purpose": "7-day exercise calendar view with detailed mission tracking",
+  "key_components": [
+    "week_navigation_controls",
+    "seven_day_column_grid",
+    "exercise_cards_with_status",
+    "daily_progress_indicators",
+    "quick_complete_buttons",
+    "weekly_summary_stats",
+    "mission_difficulty_badges"
+  ],
+  "states": [
+    "loading_weekly_data",
+    "no_active_exercise_plan",
+    "populated_weekly_schedule",
+    "mixed_completion_states",
+    "week_fully_completed"
+  ],
+  "actions": [
+    "navigate_previous_next_week",
+    "quick_log_exercise_completion",
+    "view_exercise_details",
+    "open_detailed_logging",
+    "mark_rest_day",
+    "view_weekly_statistics"
+  ]
+}
+
+STITCH PROMPT:
+"Create a weekly calendar view for physical therapy exercises. Design 7 columns for each day of the week with exercise cards in each day. Each card should show exercise name, target sets/reps, completion status (todo/in-progress/done), and difficulty level. Include week navigation arrows, progress bars for each day, and quick completion checkboxes. Use color coding: green for completed, yellow for in-progress, gray for pending. Add weekly summary statistics at the bottom. Design for both mobile (stacked days) and desktop (full week view). Include motivational elements and clear visual hierarchy."
+
+==========================================
+10. PROGRESS TRACKING
+==========================================
+
+JSON:
+{
+  "screen_name": "progress_tracking",
+  "purpose": "Comprehensive progress logging with detailed exercise tracking and visualization",
+  "key_components": [
+    "weekly_progress_ladder",
+    "quick_log_form",
+    "detailed_logging_form",
+    "current_week_statistics",
+    "adherence_summary_cards",
+    "celebration_animations",
+    "pain_difficulty_sliders"
+  ],
+  "states": [
+    "loading_exercises",
+    "logging_in_progress",
+    "celebration_mode",
+    "weekly_summary_view",
+    "detailed_logging_expanded"
+  ],
+  "actions": [
+    "quick_exercise_completion",
+    "detailed_progress_logging",
+    "adjust_sets_reps_completed",
+    "rate_difficulty_pain_levels",
+    "view_progress_statistics",
+    "trigger_completion_celebration",
+    "save_exercise_notes"
+  ]
+}
+
+STITCH PROMPT:
+"Design a comprehensive progress tracking screen for physical therapy. Create a gamified 'progress ladder' showing XP gains for the week with level-up animations. Include quick logging buttons for exercises and a detailed form with fields for sets completed, reps, difficulty rating (1-5 stars), pain level (1-10 scale), and notes. Add celebration animations for milestones. Show weekly statistics with charts and adherence percentages. Use motivational colors and smooth micro-interactions. Design slider controls for pain/difficulty that are accessible and easy to use on mobile."
+
+==========================================
+11. REWARDS & ACHIEVEMENTS
+==========================================
+
+JSON:
+{
+  "screen_name": "rewards_achievements",
+  "purpose": "Gamification dashboard showing badges, levels, and achievement progress",
+  "key_components": [
+    "level_progression_display",
+    "xp_progress_bar",
+    "statistics_cards_grid",
+    "badge_collection_gallery",
+    "weekly_performance_chart",
+    "celebration_animations",
+    "achievement_unlock_notifications"
+  ],
+  "states": [
+    "loading_achievements",
+    "no_achievements_yet",
+    "populated_rewards_view",
+    "new_badge_celebration",
+    "level_up_animation"
+  ],
+  "actions": [
+    "view_badge_details",
+    "trigger_celebration_animations",
+    "navigate_to_progress_logging",
+    "share_achievement",
+    "view_badge_criteria",
+    "scroll_through_badge_gallery"
+  ]
+}
+
+STITCH PROMPT:
+"Create an exciting gamification dashboard for physical therapy patients. Design a large level display with XP progress bar and 'Level 7' prominently shown. Below, create a grid of statistics cards showing XP total, current streak, total badges earned. Design a badge gallery with different rarities (common, rare, epic) using different colors and visual effects. Include celebration animations with confetti and level-up effects. Add a weekly performance chart showing consistency. Use game-like UI elements but maintain medical professionalism. Include motivational copy like 'You're crushing your recovery goals!'"
+
+==========================================
+12. PROFILE/SETTINGS
+==========================================
+
+JSON:
+{
+  "screen_name": "profile_settings",
+  "purpose": "Unified profile and account management with privacy controls",
+  "key_components": [
+    "profile_hero_section",
+    "tabbed_settings_interface",
+    "account_information_form",
+    "privacy_control_toggles",
+    "notification_preferences",
+    "progress_overview_summary",
+    "connected_trainers_management"
+  ],
+  "states": [
+    "loading_profile_data",
+    "authenticated_required",
+    "editing_profile_info",
+    "saving_changes",
+    "tab_content_switching"
+  ],
+  "actions": [
+    "edit_profile_information",
+    "update_privacy_settings",
+    "manage_notification_preferences",
+    "view_data_sharing_controls",
+    "disconnect_from_trainer",
+    "export_progress_data",
+    "delete_account_request"
+  ]
+}
+
+STITCH PROMPT:
+"Design a comprehensive profile and settings screen with a clean tabbed interface. Create a hero section with profile photo, name, and key stats. Include tabs for Account, Privacy, Notifications, Progress, and Connected Therapists. In Privacy tab, add toggles for data sharing preferences with clear explanations. Design forms with proper validation, loading states, and save confirmations. Use professional medical styling with clear typography and intuitive iconography. Include proper spacing and mobile-responsive layout. Add confirmation dialogs for destructive actions like disconnecting from therapists."
+
+==========================================
+13. TRAINER CLIENT MANAGEMENT
+==========================================
+
+JSON:
+{
+  "screen_name": "trainer_client_management",
+  "purpose": "Detailed client management with invitation creation and progress monitoring",
+  "key_components": [
+    "grant_code_creation_section",
+    "active_clients_detailed_list",
+    "client_adherence_charts",
+    "invitation_url_generator",
+    "client_gamification_overview",
+    "activity_timeline",
+    "quick_statistics_cards"
+  ],
+  "states": [
+    "loading_client_data",
+    "creating_invitation_grant",
+    "expanded_client_details",
+    "copying_invitation_url",
+    "filtering_client_activity"
+  ],
+  "actions": [
+    "create_new_invitation_grant",
+    "copy_invitation_url_to_clipboard",
+    "view_detailed_client_progress",
+    "load_client_gamification_data",
+    "filter_clients_by_adherence",
+    "export_client_progress_report",
+    "revoke_client_access"
+  ]
+}
+
+STITCH PROMPT:
+"Create a detailed client management interface for physical therapists. Design a section for creating invitation codes with expiry dates and copy-to-clipboard functionality. Show a detailed list of current patients with adherence percentages, last activity dates, and gamification levels. Include expandable cards for detailed views with progress charts and activity timelines. Add quick statistics cards showing total patients, average adherence, active this week. Use professional dashboard styling with data visualization elements. Include search, filtering, and sorting capabilities. Design clear call-to-action buttons and status indicators."
+
+==========================================
+14. TRAINER PROPOSALS
+==========================================
+
+JSON:
+{
+  "screen_name": "trainer_proposals",
+  "purpose": "Manage exercise proposals and treatment plans for clients",
+  "key_components": [
+    "proposal_cards_grid",
+    "status_filter_tabs",
+    "create_new_proposal_button",
+    "client_selection_dropdown",
+    "proposal_template_library",
+    "send_proposal_actions",
+    "approval_status_indicators"
+  ],
+  "states": [
+    "loading_proposals",
+    "empty_proposals_list",
+    "filtered_by_status",
+    "creating_new_proposal",
+    "editing_existing_proposal",
+    "sending_proposal_to_client"
+  ],
+  "actions": [
+    "create_new_exercise_proposal",
+    "edit_existing_proposal",
+    "send_proposal_to_client",
+    "duplicate_previous_proposal",
+    "filter_by_approval_status",
+    "search_proposals_by_client",
+    "delete_draft_proposal"
+  ]
+}
+
+STITCH PROMPT:
+"Design a proposal management system for physical therapists. Create a grid of proposal cards showing client names, proposal titles, status badges (Draft/Sent/Approved/Rejected), and creation dates. Include filter tabs at the top for different statuses and a prominent 'Create New Proposal' button. Each card should have action buttons for Edit, Send, or Delete. Design status indicators with appropriate colors (gray for draft, blue for sent, green for approved, red for rejected). Include a template library for common exercise plans. Use professional medical styling with clear visual hierarchy and intuitive workflows."
+
+==========================================
+DESIGN SYSTEM GUIDELINES
+==========================================
+
+STITCH DESIGN SYSTEM PROMPT:
+"For all Adaplio screens, use this consistent design system: Primary colors are medical blue (#2563EB) and success green (#10B981). Use clean, accessible typography with proper contrast ratios. Include subtle shadows and rounded corners (8px) for modern feel. All buttons should have hover/active states with smooth transitions. Use consistent spacing (multiples of 8px). Include loading skeleton states for all data-dependent screens. Design for mobile-first responsive layout. Use icons from a medical/health icon set. Include proper form validation styling with inline error messages. Add celebration micro-interactions for positive actions. Maintain professional medical aesthetic while being approachable for patients of all ages."
+
+==========================================
+RESPONSIVE BREAKPOINTS
+==========================================
+
+Mobile: 320px - 768px (single column, stacked elements, bottom navigation)
+Tablet: 768px - 1024px (two-column layouts, side navigation)
+Desktop: 1024px+ (multi-column grids, expanded layouts, side panels)
+
+==========================================
+ACCESSIBILITY REQUIREMENTS
+==========================================
+
+- WCAG 2.1 AA compliance
+- Minimum 4.5:1 color contrast ratios
+- Large touch targets (44px minimum)
+- Screen reader compatible
+- Keyboard navigation support
+- Focus indicators on all interactive elements
+- Alternative text for all images
+- Clear error messaging
+- High contrast mode support

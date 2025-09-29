@@ -1,0 +1,566 @@
+ADAPLIO MVP SCREENS INVENTORY WITH STITCH AI PROMPTS
+===================================================
+UPDATED WITH ACTUAL LANDING PAGE IMPLEMENTATION
+
+This document contains a comprehensive inventory of all MVP screens for the Adaplio physical therapy app, structured for Google's Stitch AI designer. Each screen includes both JSON data and specific Stitch prompts for visual generation.
+
+==========================================
+1. LANDING/WELCOME PAGE ✅ IMPLEMENTED
+==========================================
+
+JSON:
+{
+  "screen_name": "landing_welcome",
+  "purpose": "Marketing landing page showcasing Adaplio as a partner in physical therapy",
+  "key_components": [
+    "top_navigation_header",
+    "hero_section_with_headline",
+    "character_illustration",
+    "get_started_cta_buttons",
+    "how_adaplio_works_section",
+    "three_feature_cards",
+    "footer_with_links"
+  ],
+  "states": [
+    "static_content",
+    "mobile_responsive_layout"
+  ],
+  "actions": [
+    "navigate_to_therapists_section",
+    "navigate_to_clients_section",
+    "click_get_started_free",
+    "click_learn_more",
+    "scroll_to_features"
+  ]
+}
+
+ACTUAL IMPLEMENTATION NOTES:
+- Clean orange and navy color scheme with beige background
+- Professional illustration of person exercising with equipment
+- Two main CTAs: "Get Started Free" (orange) and "Learn More" (outlined)
+- Three feature cards: "Connect with Your Therapist", "Personalized Exercise Plans", "Track Your Progress"
+- Simple, professional header with "For Therapists" and "For Clients" navigation
+- Friendly but professional medical aesthetic
+
+STITCH PROMPT (VALIDATED):
+"Create a modern, clean landing page for a physical therapy app called Adaplio with orange accent colors and navy text. Design a hero section with headline 'Adaplio: Your Partner in Physical Therapy' and friendly illustration of person exercising. Include two CTA buttons 'Get Started Free' (orange) and 'Learn More' (outlined). Add 'How Adaplio Works' section with three feature cards showing connection, personalization, and progress tracking. Use professional medical styling with approachable illustrations and clear typography hierarchy."
+
+==========================================
+2. HOME PAGE (CLIENT ONBOARDING)
+==========================================
+
+JSON:
+{
+  "screen_name": "home_onboarding",
+  "purpose": "Entry point with multiple client onboarding methods including QR scan, manual code, and SMS invite",
+  "key_components": [
+    "qr_scanner_interface",
+    "manual_code_entry_form",
+    "sms_invite_form",
+    "app_header",
+    "onboarding_instructions"
+  ],
+  "states": [
+    "default",
+    "camera_loading",
+    "scanning_qr",
+    "processing_code",
+    "validation_error",
+    "sms_sending",
+    "sms_sent_confirmation"
+  ],
+  "actions": [
+    "scan_qr_code",
+    "enter_pt_code_manually",
+    "request_sms_invite",
+    "validate_invite_token",
+    "camera_permission_request"
+  ]
+}
+
+STITCH PROMPT:
+"Design a welcoming onboarding screen for a physical therapy app using Adaplio's orange and navy color scheme. Create three main interaction options: a large QR code scanner viewport with camera overlay, a simple text input field for manual code entry, and a phone number input for SMS invites. Use encouraging copy like 'Connect with your Physical Therapist' and 'Get started on your recovery journey'. Include clear instructions for each option. Design loading states, error messages, and success confirmations. Use friendly, medical-professional design with orange accents and plenty of white space. Make it mobile-first with large touch targets."
+
+==========================================
+3. TRAINER LOGIN
+==========================================
+
+JSON:
+{
+  "screen_name": "trainer_login",
+  "purpose": "Standard email/password authentication for physical therapists",
+  "key_components": [
+    "email_input_field",
+    "password_input_field",
+    "login_button",
+    "register_link",
+    "form_validation_messages",
+    "loading_spinner"
+  ],
+  "states": [
+    "default",
+    "loading",
+    "authentication_error",
+    "validation_error"
+  ],
+  "actions": [
+    "submit_credentials",
+    "navigate_to_registration",
+    "toggle_password_visibility",
+    "clear_form_errors"
+  ]
+}
+
+STITCH PROMPT:
+"Create a professional login form for physical therapists using Adaplio's orange and navy branding. Design a clean, centered form with email and password fields, proper labels, and a prominent 'Sign In' button in orange. Include form validation styling for errors, a loading state with spinner, and a link to registration. Add the Adaplio logo at the top. Use trustworthy, medical-professional design with navy text and orange primary buttons. Include proper spacing, typography hierarchy, and mobile responsiveness. Design error states with helpful messaging and success states with smooth transitions."
+
+==========================================
+4. TRAINER REGISTRATION
+==========================================
+
+JSON:
+{
+  "screen_name": "trainer_registration",
+  "purpose": "Create new physical therapist accounts with professional details",
+  "key_components": [
+    "email_input",
+    "password_input",
+    "confirm_password_input",
+    "full_name_input",
+    "practice_name_input",
+    "registration_button",
+    "validation_messages",
+    "login_redirect_link"
+  ],
+  "states": [
+    "default",
+    "loading",
+    "validation_errors",
+    "existing_account_detected",
+    "registration_success"
+  ],
+  "actions": [
+    "create_account",
+    "validate_passwords_match",
+    "check_email_availability",
+    "redirect_to_login",
+    "clear_validation_errors"
+  ]
+}
+
+STITCH PROMPT:
+"Design a professional registration form for physical therapists using Adaplio's branding. Create a multi-field form with email, password, confirm password, full name, and practice name fields. Include real-time validation feedback, password strength indicators, and clear error messaging in Adaplio's orange accent color. Use a grouped layout for better UX with navy headings and orange CTAs. Include professional medical imagery consistent with the landing page style. Design success states with welcome messaging and smooth transitions to login. Use orange and navy color scheme with excellent typography and mobile responsiveness."
+
+==========================================
+5. CLIENT LOGIN (MAGIC LINK)
+==========================================
+
+JSON:
+{
+  "screen_name": "client_login",
+  "purpose": "Passwordless magic link authentication for patients/clients",
+  "key_components": [
+    "email_input_field",
+    "magic_link_button",
+    "instructions_text",
+    "loading_animation",
+    "sent_confirmation_message",
+    "verify_redirect_link"
+  ],
+  "states": [
+    "default",
+    "sending_magic_link",
+    "link_sent_confirmation",
+    "email_validation_error"
+  ],
+  "actions": [
+    "send_magic_link_email",
+    "navigate_to_verification",
+    "resend_magic_link",
+    "validate_email_format"
+  ]
+}
+
+STITCH PROMPT:
+"Create a simple, patient-friendly login screen using magic link authentication with Adaplio's color scheme. Design a single email input field with clear instructions like 'Enter your email to receive a secure login link'. Include a prominent orange 'Send Login Link' button and friendly copy explaining the process. Design loading states with smooth animations and a confirmation screen showing 'Check your email for the login link'. Use calming navy text with orange accents, large fonts for accessibility, and reassuring imagery consistent with Adaplio's friendly illustration style. Make it feel safe and trustworthy for patients of all ages."
+
+==========================================
+6. CODE VERIFICATION
+==========================================
+
+JSON:
+{
+  "screen_name": "code_verification",
+  "purpose": "Verify 6-digit codes from magic link emails with optional role selection",
+  "key_components": [
+    "six_digit_code_input",
+    "verify_button",
+    "role_selection_dialog",
+    "resend_code_link",
+    "error_messages",
+    "success_animation"
+  ],
+  "states": [
+    "default",
+    "verifying_code",
+    "role_selection_required",
+    "verification_error",
+    "verification_success"
+  ],
+  "actions": [
+    "verify_6_digit_code",
+    "select_user_role",
+    "resend_verification_code",
+    "redirect_to_dashboard",
+    "auto_fill_from_url"
+  ]
+}
+
+STITCH PROMPT:
+"Design a verification screen with Adaplio's branding featuring a large, easy-to-use 6-digit code input. Create individual digit boxes that auto-advance as users type, styled with orange focus states. Include clear instructions like 'Enter the 6-digit code from your email' in navy text. Add a resend option, loading states, and error handling with orange error states. If role selection is needed, design a modal with 'Patient' and 'Physical Therapist' options using Adaplio's button styling. Use large, accessible fonts with high contrast. Include success animations and smooth transitions matching the friendly but professional aesthetic."
+
+==========================================
+7. CLIENT HOME DASHBOARD
+==========================================
+
+JSON:
+{
+  "screen_name": "client_dashboard",
+  "purpose": "Main client interface with weekly board overview and gamification elements",
+  "key_components": [
+    "weekly_overview_header",
+    "xp_progress_bar",
+    "streak_counter",
+    "todays_missions_list",
+    "pending_proposals_sidebar",
+    "badges_rewards_section",
+    "connected_trainers_list",
+    "quick_log_buttons"
+  ],
+  "states": [
+    "loading_dashboard",
+    "no_active_plan",
+    "active_plan_with_missions",
+    "all_missions_complete",
+    "trainer_notification_pending"
+  ],
+  "actions": [
+    "start_exercise_mission",
+    "mark_mission_complete",
+    "accept_decline_proposal",
+    "notify_trainer_ready",
+    "view_full_weekly_board",
+    "manage_trainer_connections",
+    "view_badge_details"
+  ]
+}
+
+STITCH PROMPT:
+"Create an engaging patient dashboard using Adaplio's orange and navy branding. Design a header showing current week, XP progress bar in orange gradient, and streak counter with flame icons. Below, show today's exercises as cards with orange completion checkboxes and difficulty indicators. Include a sidebar for pending proposals from therapists. Add a gamification section with earned badges using orange accent colors. Use motivational greens for progress states, navy for text, and orange for actions. Design empty states with encouraging messages and friendly illustrations matching the landing page style. Make it feel motivational while maintaining medical professionalism."
+
+==========================================
+8. TRAINER HOME DASHBOARD
+==========================================
+
+JSON:
+{
+  "screen_name": "trainer_dashboard",
+  "purpose": "Modern client overview dashboard for physical therapists with filtering and statistics",
+  "key_components": [
+    "client_cards_grid",
+    "filter_tabs",
+    "invite_client_button",
+    "summary_statistics_banner",
+    "notification_panel",
+    "search_filter_controls",
+    "client_gamification_data"
+  ],
+  "states": [
+    "loading_clients",
+    "empty_client_list",
+    "filtered_client_view",
+    "client_detail_expanded",
+    "creating_invitation"
+  ],
+  "actions": [
+    "view_client_details",
+    "send_exercise_proposals",
+    "create_client_invitation",
+    "filter_clients_by_status",
+    "search_clients",
+    "manage_client_permissions",
+    "view_client_progress"
+  ]
+}
+
+STITCH PROMPT:
+"Design a professional dashboard for physical therapists using Adaplio's branding. Create a grid of patient cards showing names (or aliases), progress percentages, last activity, and gamification data (level, badges) with orange accent elements. Include filter tabs for 'All Patients', 'Active', 'Needs Attention' with orange active states. Add a prominent orange 'Invite New Patient' button and summary statistics at the top with navy text. Use professional medical styling with data visualization elements in orange and navy. Design card hover states and expansion views. Include search functionality and sorting options. Make it feel like a modern SaaS dashboard with Adaplio's medical-friendly aesthetic."
+
+==========================================
+9. WEEKLY BOARD
+==========================================
+
+JSON:
+{
+  "screen_name": "weekly_board",
+  "purpose": "7-day exercise calendar view with detailed mission tracking",
+  "key_components": [
+    "week_navigation_controls",
+    "seven_day_column_grid",
+    "exercise_cards_with_status",
+    "daily_progress_indicators",
+    "quick_complete_buttons",
+    "weekly_summary_stats",
+    "mission_difficulty_badges"
+  ],
+  "states": [
+    "loading_weekly_data",
+    "no_active_exercise_plan",
+    "populated_weekly_schedule",
+    "mixed_completion_states",
+    "week_fully_completed"
+  ],
+  "actions": [
+    "navigate_previous_next_week",
+    "quick_log_exercise_completion",
+    "view_exercise_details",
+    "open_detailed_logging",
+    "mark_rest_day",
+    "view_weekly_statistics"
+  ]
+}
+
+STITCH PROMPT:
+"Create a weekly calendar view for physical therapy exercises using Adaplio's color scheme. Design 7 columns for each day of the week with exercise cards in each day. Each card should show exercise name, target sets/reps, completion status, and difficulty level. Use color coding: green for completed, orange for in-progress, gray for pending. Include week navigation arrows in orange, progress bars for each day, and orange quick completion checkboxes. Add weekly summary statistics at the bottom with navy text and orange accents. Design for both mobile (stacked days) and desktop (full week view). Include motivational elements and clear visual hierarchy consistent with Adaplio's friendly professional style."
+
+==========================================
+10. PROGRESS TRACKING
+==========================================
+
+JSON:
+{
+  "screen_name": "progress_tracking",
+  "purpose": "Comprehensive progress logging with detailed exercise tracking and visualization",
+  "key_components": [
+    "weekly_progress_ladder",
+    "quick_log_form",
+    "detailed_logging_form",
+    "current_week_statistics",
+    "adherence_summary_cards",
+    "celebration_animations",
+    "pain_difficulty_sliders"
+  ],
+  "states": [
+    "loading_exercises",
+    "logging_in_progress",
+    "celebration_mode",
+    "weekly_summary_view",
+    "detailed_logging_expanded"
+  ],
+  "actions": [
+    "quick_exercise_completion",
+    "detailed_progress_logging",
+    "adjust_sets_reps_completed",
+    "rate_difficulty_pain_levels",
+    "view_progress_statistics",
+    "trigger_completion_celebration",
+    "save_exercise_notes"
+  ]
+}
+
+STITCH PROMPT:
+"Design a comprehensive progress tracking screen using Adaplio's branding. Create a gamified 'progress ladder' showing XP gains for the week with orange level-up animations. Include quick logging buttons in orange and a detailed form with fields for sets completed, reps, difficulty rating (1-5 stars in orange), pain level (1-10 scale), and notes. Add celebration animations for milestones using orange and green colors. Show weekly statistics with charts using orange data visualization. Use motivational copy with navy text and orange call-to-action elements. Design slider controls for pain/difficulty that are accessible and easy to use on mobile, with orange active states."
+
+==========================================
+11. REWARDS & ACHIEVEMENTS
+==========================================
+
+JSON:
+{
+  "screen_name": "rewards_achievements",
+  "purpose": "Gamification dashboard showing badges, levels, and achievement progress",
+  "key_components": [
+    "level_progression_display",
+    "xp_progress_bar",
+    "statistics_cards_grid",
+    "badge_collection_gallery",
+    "weekly_performance_chart",
+    "celebration_animations",
+    "achievement_unlock_notifications"
+  ],
+  "states": [
+    "loading_achievements",
+    "no_achievements_yet",
+    "populated_rewards_view",
+    "new_badge_celebration",
+    "level_up_animation"
+  ],
+  "actions": [
+    "view_badge_details",
+    "trigger_celebration_animations",
+    "navigate_to_progress_logging",
+    "share_achievement",
+    "view_badge_criteria",
+    "scroll_through_badge_gallery"
+  ]
+}
+
+STITCH PROMPT:
+"Create an exciting gamification dashboard using Adaplio's orange and navy branding. Design a large level display with orange XP progress bar and 'Level 7' prominently shown in navy. Below, create a grid of statistics cards showing XP total, current streak, total badges earned with orange accent colors. Design a badge gallery with different rarities using orange, gold, and silver color schemes. Include celebration animations with orange confetti and level-up effects. Add a weekly performance chart showing consistency with orange data points. Use game-like UI elements with orange highlights but maintain Adaplio's medical professionalism. Include motivational copy like 'You're crushing your recovery goals!' in navy text with orange emphasis."
+
+==========================================
+12. PROFILE/SETTINGS
+==========================================
+
+JSON:
+{
+  "screen_name": "profile_settings",
+  "purpose": "Unified profile and account management with privacy controls",
+  "key_components": [
+    "profile_hero_section",
+    "tabbed_settings_interface",
+    "account_information_form",
+    "privacy_control_toggles",
+    "notification_preferences",
+    "progress_overview_summary",
+    "connected_trainers_management"
+  ],
+  "states": [
+    "loading_profile_data",
+    "authenticated_required",
+    "editing_profile_info",
+    "saving_changes",
+    "tab_content_switching"
+  ],
+  "actions": [
+    "edit_profile_information",
+    "update_privacy_settings",
+    "manage_notification_preferences",
+    "view_data_sharing_controls",
+    "disconnect_from_trainer",
+    "export_progress_data",
+    "delete_account_request"
+  ]
+}
+
+STITCH PROMPT:
+"Design a comprehensive profile and settings screen with Adaplio's branding and a clean tabbed interface. Create a hero section with profile photo, name, and key stats using orange accent elements. Include tabs for Account, Privacy, Notifications, Progress, and Connected Therapists with orange active states. In Privacy tab, add toggle switches in orange for data sharing preferences with clear explanations. Design forms with proper validation, loading states, and orange save confirmation buttons. Use professional medical styling with navy text, orange CTAs, and clear typography. Include proper spacing and mobile-responsive layout. Add confirmation dialogs for destructive actions using Adaplio's color scheme."
+
+==========================================
+13. TRAINER CLIENT MANAGEMENT
+==========================================
+
+JSON:
+{
+  "screen_name": "trainer_client_management",
+  "purpose": "Detailed client management with invitation creation and progress monitoring",
+  "key_components": [
+    "grant_code_creation_section",
+    "active_clients_detailed_list",
+    "client_adherence_charts",
+    "invitation_url_generator",
+    "client_gamification_overview",
+    "activity_timeline",
+    "quick_statistics_cards"
+  ],
+  "states": [
+    "loading_client_data",
+    "creating_invitation_grant",
+    "expanded_client_details",
+    "copying_invitation_url",
+    "filtering_client_activity"
+  ],
+  "actions": [
+    "create_new_invitation_grant",
+    "copy_invitation_url_to_clipboard",
+    "view_detailed_client_progress",
+    "load_client_gamification_data",
+    "filter_clients_by_adherence",
+    "export_client_progress_report",
+    "revoke_client_access"
+  ]
+}
+
+STITCH PROMPT:
+"Create a detailed client management interface for physical therapists using Adaplio's branding. Design a section for creating invitation codes with orange 'Create Invitation' buttons and copy-to-clipboard functionality. Show a detailed list of current patients with adherence percentages, last activity dates, and gamification levels using orange progress indicators. Include expandable cards for detailed views with charts using orange data visualization and activity timelines. Add quick statistics cards showing total patients, average adherence, active this week with navy text and orange accents. Use professional dashboard styling with clear call-to-action buttons in orange and status indicators. Include search, filtering, and sorting capabilities with Adaplio's consistent design language."
+
+==========================================
+14. TRAINER PROPOSALS
+==========================================
+
+JSON:
+{
+  "screen_name": "trainer_proposals",
+  "purpose": "Manage exercise proposals and treatment plans for clients",
+  "key_components": [
+    "proposal_cards_grid",
+    "status_filter_tabs",
+    "create_new_proposal_button",
+    "client_selection_dropdown",
+    "proposal_template_library",
+    "send_proposal_actions",
+    "approval_status_indicators"
+  ],
+  "states": [
+    "loading_proposals",
+    "empty_proposals_list",
+    "filtered_by_status",
+    "creating_new_proposal",
+    "editing_existing_proposal",
+    "sending_proposal_to_client"
+  ],
+  "actions": [
+    "create_new_exercise_proposal",
+    "edit_existing_proposal",
+    "send_proposal_to_client",
+    "duplicate_previous_proposal",
+    "filter_by_approval_status",
+    "search_proposals_by_client",
+    "delete_draft_proposal"
+  ]
+}
+
+STITCH PROMPT:
+"Design a proposal management system for physical therapists using Adaplio's branding. Create a grid of proposal cards showing client names, proposal titles, status badges, and creation dates. Use color-coded status indicators: gray for draft, orange for sent, green for approved, red for rejected. Include filter tabs at the top with orange active states and a prominent orange 'Create New Proposal' button. Each card should have action buttons for Edit, Send, or Delete using Adaplio's button styling. Design a template library for common exercise plans with navy text and orange selections. Use professional medical styling with clear visual hierarchy, orange CTAs, and intuitive workflows consistent with Adaplio's design system."
+
+==========================================
+UPDATED DESIGN SYSTEM GUIDELINES
+==========================================
+
+STITCH DESIGN SYSTEM PROMPT (BASED ON ACTUAL IMPLEMENTATION):
+"For all Adaplio screens, use this consistent design system based on the implemented landing page: Primary colors are orange (#FF6B35 or similar) for CTAs and accents, navy (#1F2937 or similar) for text and headers. Use clean, accessible typography with proper contrast ratios. Background should be light beige/cream (#F9F7F4) for warmth. Include subtle shadows and rounded corners (8px) for modern feel. All buttons should have hover/active states with smooth transitions. Orange buttons should be solid, secondary buttons outlined. Use consistent spacing (multiples of 8px). Include loading skeleton states for all data-dependent screens. Design for mobile-first responsive layout. Use friendly, professional illustrations similar to the exercise character on landing page. Include proper form validation styling with inline error messages. Add celebration micro-interactions with orange colors for positive actions. Maintain professional medical aesthetic while being approachable and motivational for patients of all ages."
+
+==========================================
+COLOR PALETTE (VALIDATED FROM LANDING PAGE)
+==========================================
+
+Primary Orange: #FF6B35 (CTAs, accents, progress bars)
+Navy Text: #1F2937 (headings, body text)
+Background Cream: #F9F7F4 (page backgrounds)
+Success Green: #10B981 (completed states, positive actions)
+Error Red: #EF4444 (error states, warnings)
+Gray Text: #6B7280 (secondary text, placeholders)
+White: #FFFFFF (cards, form backgrounds)
+
+==========================================
+RESPONSIVE BREAKPOINTS
+==========================================
+
+Mobile: 320px - 768px (single column, stacked elements, bottom navigation)
+Tablet: 768px - 1024px (two-column layouts, side navigation)
+Desktop: 1024px+ (multi-column grids, expanded layouts, side panels)
+
+==========================================
+ACCESSIBILITY REQUIREMENTS
+==========================================
+
+- WCAG 2.1 AA compliance
+- Minimum 4.5:1 color contrast ratios (validated orange/navy combination)
+- Large touch targets (44px minimum)
+- Screen reader compatible
+- Keyboard navigation support
+- Focus indicators on all interactive elements (orange focus rings)
+- Alternative text for all images and illustrations
+- Clear error messaging
+- High contrast mode support
+- Friendly, accessible language appropriate for all ages

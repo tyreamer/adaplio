@@ -1,322 +1,1052 @@
 @page "/trainer/dashboard"
+@page "/clients"
 @using System.Net.Http.Json
 @using System.Text.Json
+@using System.Linq
 @inject HttpClient HttpClient
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
 @inject IJSRuntime JSRuntime
 
-<PageTitle>Trainer Dashboard - Adaplio</PageTitle>
+<PageTitle>Clients - Adaplio</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.Large" Class="my-8">
-    @if (!string.IsNullOrEmpty(errorMessage))
-    {
-        <MudAlert Severity="Severity.Error" Class="mb-4">
-            @errorMessage
-        </MudAlert>
-    }
+<div class="clients-page">
+    <!-- Header with Navigation -->
+    <div class="clients-header">
+        <div class="header-content">
+            <div class="brand-logo">
+                <span class="logo-icon">🧡</span>
+                <span class="brand-name">Adaplio</span>
+            </div>
 
-    <MudGrid>
-        <!-- Create Grant Card -->
-        <MudItem xs="12" md="6">
-            <MudCard>
-                <MudCardHeader>
-                    <CardHeaderContent>
-                        <MudText Typo="Typo.h6">
-                            <MudIcon Icon="@Icons.Material.Filled.PersonAdd" Class="mr-2" />
-                            Invite New Client
-                        </MudText>
-                    </CardHeaderContent>
-                </MudCardHeader>
-                <MudCardContent>
-                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">
-                        Create an invitation link to connect with a new client. The link will expire after 24 hours.
-                    </MudText>
+            <!-- Navigation Tabs -->
+            <div class="nav-tabs">
+                <button class="nav-tab" @onclick="@(() => NavigationManager.NavigateTo("/trainer/dashboard"))">Dashboard</button>
+                <button class="nav-tab active">Clients</button>
+                <button class="nav-tab" @onclick="@(() => NavigationManager.NavigateTo("/trainer/exercises"))">Exercises</button>
+                <button class="nav-tab" @onclick="@(() => NavigationManager.NavigateTo("/trainer/resources"))">Resources</button>
+            </div>
 
-                    @if (!string.IsNullOrEmpty(generatedGrantUrl))
-                    {
-                        <MudAlert Severity="Severity.Success" Class="mb-4">
-                            <MudText Typo="Typo.body2" Class="mb-2">
-                                <strong>Invitation created successfully!</strong>
-                            </MudText>
-                            <MudText Typo="Typo.body2" Class="mb-2">
-                                Grant Code: <strong>@generatedGrantCode</strong>
-                            </MudText>
-                            <MudText Typo="Typo.body2" Class="mb-2">
-                                Expires: @generatedExpiresAt.ToString("MMM dd, yyyy 'at' h:mm tt")
-                            </MudText>
-                        </MudAlert>
+            <div class="header-actions">
+                <div class="notification-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                    </svg>
+                </div>
+                <div class="profile-avatar">
+                    <div class="avatar-circle">
+                        <span>A</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                        <MudTextField @bind-Value="generatedGrantUrl"
-                                      Label="Invitation URL"
-                                      Variant="Variant.Outlined"
-                                      ReadOnly="true"
-                                      Adornment="Adornment.End"
-                                      AdornmentIcon="@Icons.Material.Filled.ContentCopy"
-                                      OnAdornmentClick="CopyToClipboard"
-                                      AdornmentAriaLabel="Copy URL" />
-                    }
-                </MudCardContent>
-                <MudCardActions>
-                    <MudButton Variant="Variant.Filled"
-                               Color="Color.Primary"
-                               OnClick="CreateGrant"
-                               Disabled="@isCreatingGrant"
-                               StartIcon="@Icons.Material.Filled.Add">
+    <!-- Main Content -->
+    <div class="clients-container">
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="error-alert">
+                <div class="alert-content">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="12"/>
+                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                    <span>@errorMessage</span>
+                </div>
+            </div>
+        }
+
+        <div class="page-header">
+            <h1 class="page-title">Clients</h1>
+            <button class="new-client-btn" @onclick="ShowNewClientModal">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                New Client
+            </button>
+        </div>
+
+        <div class="content-layout">
+            <!-- Left Section - Invite New Client -->
+            <div class="invite-section">
+                <div class="invite-card">
+                    <h3 class="invite-title">Invite New Client</h3>
+
+                    <div class="invite-code-section">
+                        <label class="code-label">Invitation Code</label>
+                        <div class="code-display">
+                            <span class="code-text">@(_generatedGrantCode ?? "ADAP-2024-XYZ")</span>
+                            <button class="copy-btn" @onclick="CopyCodeToClipboard" title="Copy code">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="expiry-section">
+                        <label class="expiry-label">Set Expiry</label>
+                        <select class="expiry-select" @bind="_selectedExpiry">
+                            <option value="14">14 days</option>
+                            <option value="7">7 days</option>
+                            <option value="30">30 days</option>
+                        </select>
+                    </div>
+
+                    <button class="generate-btn" @onclick="CreateGrant" disabled="@isCreatingGrant">
                         @if (isCreatingGrant)
                         {
-                            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
-                            <MudText Class="ms-3">Creating...</MudText>
+                            <span class="loading-spinner"></span>
                         }
-                        else
-                        {
-                            <MudText>Create Invitation</MudText>
-                        }
-                    </MudButton>
-                </MudCardActions>
-            </MudCard>
-        </MudItem>
+                        Generate New Code
+                    </button>
+                </div>
+            </div>
 
-        <!-- Active Clients Card -->
-        <MudItem xs="12" md="6">
-            <MudCard>
-                <MudCardHeader>
-                    <CardHeaderContent>
-                        <MudText Typo="Typo.h6">
-                            <MudIcon Icon="@Icons.Material.Filled.Group" Class="mr-2" />
-                            Active Clients (@clients.Count)
-                        </MudText>
-                    </CardHeaderContent>
-                    <CardHeaderActions>
-                        <MudIconButton Icon="@Icons.Material.Filled.Refresh"
-                                       Color="Color.Default"
-                                       OnClick="LoadClients"
-                                       Disabled="@isLoadingClients" />
-                    </CardHeaderActions>
-                </MudCardHeader>
-                <MudCardContent Style="max-height: 400px; overflow-y: auto;">
+            <!-- Right Section - Current Clients -->
+            <div class="clients-section">
+                <div class="clients-card">
+                    <h3 class="clients-title">Current Clients</h3>
+
                     @if (isLoadingClients)
                     {
-                        <div class="d-flex justify-center pa-4">
-                            <MudProgressCircular Indeterminate="true" />
+                        <div class="loading-state">
+                            <div class="loading-spinner"></div>
+                            <p>Loading clients...</p>
                         </div>
                     }
                     else if (!clients.Any())
                     {
-                        <MudText Typo="Typo.body2" Color="Color.Secondary" Align="Align.Center" Class="py-4">
-                            No clients connected yet. Create an invitation to get started!
-                        </MudText>
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.5">
+                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="9" cy="7" r="4"/>
+                                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                </svg>
+                            </div>
+                            <p>No clients yet</p>
+                            <p class="empty-subtitle">Create an invitation code to get started!</p>
+                        </div>
                     }
                     else
                     {
-                        <MudList T="string">
-                            @foreach (var client in clients)
-                            {
-                                <MudListItem T="string">
-                                    <div class="d-flex justify-space-between align-center w-100">
-                                        <div class="flex-grow-1">
-                                            <div class="d-flex justify-space-between align-center">
-                                                <div>
-                                                    <MudText Typo="Typo.subtitle1">@client.ClientAlias</MudText>
-                                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                                        Connected: @client.GrantedAt.ToString("MMM dd, yyyy")
-                                                    </MudText>
-                                                </div>
-                                                <div class="text-right">
-                                                    <MudButton Size="Size.Small"
-                                                               Variant="Variant.Text"
-                                                               Color="Color.Primary"
-                                                               OnClick="@(() => ViewClientDetails(client.ClientAlias))"
-                                                               StartIcon="@Icons.Material.Filled.Analytics">
-                                                        View Details
-                                                    </MudButton>
+                        <div class="clients-table">
+                            <!-- Table Header -->
+                            <div class="table-header">
+                                <div class="header-cell client-col">CLIENT</div>
+                                <div class="header-cell adherence-col">ADHERENCE</div>
+                                <div class="header-cell activity-col">LAST ACTIVITY</div>
+                                <div class="header-cell level-col">LEVEL</div>
+                            </div>
+
+                            <!-- Table Body -->
+                            <div class="table-body">
+                                @foreach (var client in clients)
+                                {
+                                    <div class="table-row" @onclick="@(() => ViewClientDetails(client.ClientAlias))">
+                                        <!-- Client Info -->
+                                        <div class="table-cell client-col">
+                                            <div class="client-info">
+                                                <div class="client-name">@client.ClientAlias</div>
+                                                <div class="client-meta">
+                                                    Connected @client.GrantedAt.ToString("MMM dd, yyyy")
                                                 </div>
                                             </div>
+                                        </div>
 
-                                            <!-- Gamification Summary (if available) -->
+                                        <!-- Adherence -->
+                                        <div class="table-cell adherence-col">
+                                            <div class="adherence-display">
+                                                <div class="progress-circle @GetAdherenceClass(client.AdherencePct)">
+                                                    <div class="progress-bar" style="--progress: @(client.AdherencePct)%">
+                                                        <span class="progress-text">@client.AdherencePct.ToString("F0")%</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Last Activity -->
+                                        <div class="table-cell activity-col">
+                                            <div class="activity-display">
+                                                @if (client.LastActivity.HasValue)
+                                                {
+                                                    var daysAgo = (DateTimeOffset.Now - client.LastActivity.Value).Days;
+                                                    if (daysAgo == 0)
+                                                    {
+                                                        <span class="activity-text today">Today</span>
+                                                    }
+                                                    else if (daysAgo == 1)
+                                                    {
+                                                        <span class="activity-text recent">1 day ago</span>
+                                                    }
+                                                    else if (daysAgo <= 7)
+                                                    {
+                                                        <span class="activity-text recent">@daysAgo days ago</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="activity-text old">@daysAgo days ago</span>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <span class="activity-text none">No activity</span>
+                                                }
+                                            </div>
+                                        </div>
+
+                                        <!-- Level -->
+                                        <div class="table-cell level-col">
                                             @if (client.GamificationData != null)
                                             {
-                                                <div class="gamification-summary mt-2">
-                                                    <MudGrid AlignItems="AlignItems.Center" Spacing="2">
-                                                        <MudItem xs="3">
-                                                            <div class="text-center">
-                                                                <MudText Typo="Typo.caption" Color="Color.Secondary">Level</MudText>
-                                                                <MudText Typo="Typo.body2" Color="Color.Primary">
-                                                                    <MudIcon Icon="@Icons.Material.Filled.Stars" Size="Size.Small" />
-                                                                    @client.GamificationData.Level
-                                                                </MudText>
-                                                            </div>
-                                                        </MudItem>
-                                                        <MudItem xs="3">
-                                                            <div class="text-center">
-                                                                <MudText Typo="Typo.caption" Color="Color.Secondary">XP</MudText>
-                                                                <MudText Typo="Typo.body2" Color="Color.Info">@client.GamificationData.XpTotal</MudText>
-                                                            </div>
-                                                        </MudItem>
-                                                        <MudItem xs="3">
-                                                            <div class="text-center">
-                                                                <MudText Typo="Typo.caption" Color="Color.Secondary">Streak</MudText>
-                                                                <MudText Typo="Typo.body2" Color="Color.Warning">
-                                                                    <MudIcon Icon="@Icons.Material.Filled.LocalFireDepartment" Size="Size.Small" />
-                                                                    @client.GamificationData.CurrentStreakDays
-                                                                </MudText>
-                                                            </div>
-                                                        </MudItem>
-                                                        <MudItem xs="3">
-                                                            <div class="text-center">
-                                                                <MudText Typo="Typo.caption" Color="Color.Secondary">Badges</MudText>
-                                                                <MudText Typo="Typo.body2" Color="Color.Success">
-                                                                    <MudIcon Icon="@Icons.Material.Filled.EmojiEvents" Size="Size.Small" />
-                                                                    @client.GamificationData.TotalBadges
-                                                                </MudText>
-                                                            </div>
-                                                        </MudItem>
-                                                    </MudGrid>
-
-                                                    @if (client.GamificationData.RecentBadges.Any())
-                                                    {
-                                                        <div class="recent-badges mt-2">
-                                                            <MudText Typo="Typo.caption" Color="Color.Secondary">Recent Badges:</MudText>
-                                                            <div class="d-flex gap-1 mt-1">
-                                                                @foreach (var badge in client.GamificationData.RecentBadges.Take(3))
-                                                                {
-                                                                    <MudTooltip Text="@($"{badge.Name}: {badge.Description}")">
-                                                                        <div class="badge-mini" style="color: @badge.Color">
-                                                                            @badge.Icon
-                                                                        </div>
-                                                                    </MudTooltip>
-                                                                }
-                                                            </div>
-                                                        </div>
-                                                    }
+                                                <div class="level-badge level-@client.GamificationData.Level">
+                                                    Level @client.GamificationData.Level
                                                 </div>
                                             }
                                             else
                                             {
-                                                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-2">
-                                                    Gamification data not available
-                                                </MudText>
+                                                <div class="level-badge level-1">
+                                                    Level 1
+                                                </div>
                                             }
-
-                                            <!-- Adherence & Scopes -->
-                                            <div class="mt-2">
-                                                <MudText Typo="Typo.body2">
-                                                    Adherence: @client.AdherencePct.ToString("F1")%
-                                                </MudText>
-                                                @if (client.LastActivity.HasValue)
-                                                {
-                                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                                        Last active: @client.LastActivity.Value.ToString("MMM dd")
-                                                    </MudText>
-                                                }
-                                                else
-                                                {
-                                                    <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                                        No activity yet
-                                                    </MudText>
-                                                }
-                                            </div>
-
-                                            <MudChipSet T="string" Class="mt-1">
-                                                @foreach (var scope in client.Scopes)
-                                                {
-                                                    <MudChip T="string" Color="Color.Primary" Size="Size.Small">@scope</MudChip>
-                                                }
-                                            </MudChipSet>
                                         </div>
                                     </div>
-                                </MudListItem>
-                                @if (client != clients.Last())
-                                {
-                                    <MudDivider />
                                 }
-                            }
-                        </MudList>
+                            </div>
+                        </div>
                     }
-                </MudCardContent>
-            </MudCard>
-        </MudItem>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-        <!-- Quick Stats -->
-        <MudItem xs="12">
-            <MudGrid>
-                <MudItem xs="12" sm="3">
-                    <MudCard>
-                        <MudCardContent Class="text-center">
-                            <MudIcon Icon="@Icons.Material.Filled.Group" Size="Size.Large" Color="Color.Primary" />
-                            <MudText Typo="Typo.h4">@clients.Count</MudText>
-                            <MudText Typo="Typo.body2" Color="Color.Secondary">Total Clients</MudText>
-                        </MudCardContent>
-                    </MudCard>
-                </MudItem>
-                <MudItem xs="12" sm="3">
-                    <MudCard>
-                        <MudCardContent Class="text-center">
-                            <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="Size.Large" Color="Color.Success" />
-                            <MudText Typo="Typo.h4">
-                                @(clients.Any() ? clients.Average(c => c.AdherencePct).ToString("F1") : "0.0")%
-                            </MudText>
-                            <MudText Typo="Typo.body2" Color="Color.Secondary">Avg Adherence</MudText>
-                        </MudCardContent>
-                    </MudCard>
-                </MudItem>
-                <MudItem xs="12" sm="3">
-                    <MudCard>
-                        <MudCardContent Class="text-center">
-                            <MudIcon Icon="@Icons.Material.Filled.Schedule" Size="Size.Large" Color="Color.Info" />
-                            <MudText Typo="Typo.h4">
-                                @clients.Count(c => c.LastActivity.HasValue && c.LastActivity.Value > DateTimeOffset.Now.AddDays(-7))
-                            </MudText>
-                            <MudText Typo="Typo.body2" Color="Color.Secondary">Active This Week</MudText>
-                        </MudCardContent>
-                    </MudCard>
-                </MudItem>
-                <MudItem xs="12" sm="3">
-                    <MudCard>
-                        <MudCardContent Class="text-center">
-                            <MudIcon Icon="@Icons.Material.Filled.Assignment" Size="Size.Large" Color="Color.Warning" />
-                            <MudText Typo="Typo.h4">0</MudText>
-                            <MudText Typo="Typo.body2" Color="Color.Secondary">Active Plans</MudText>
-                        </MudCardContent>
-                    </MudCard>
-                </MudItem>
-            </MudGrid>
-        </MudItem>
-    </MudGrid>
-</MudContainer>
+@if (_showNewClientModal)
+{
+    <div class="modal-overlay" @onclick="HideNewClientModal">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h3>Add New Client</h3>
+                <button class="modal-close" @onclick="HideNewClientModal">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Generate an invitation code for your new client to join Adaplio.</p>
+
+                @if (!string.IsNullOrEmpty(_generatedGrantCode))
+                {
+                    <div class="success-section">
+                        <div class="success-icon">✅</div>
+                        <div class="success-content">
+                            <p><strong>Code Generated Successfully!</strong></p>
+                            <div class="generated-code">@_generatedGrantCode</div>
+                            <p class="expiry-info">Expires: @generatedExpiresAt.ToString("MMM dd, yyyy 'at' h:mm tt")</p>
+                        </div>
+                    </div>
+                }
+
+                <div class="modal-actions">
+                    <button class="secondary-btn" @onclick="HideNewClientModal">Close</button>
+                    <button class="primary-btn" @onclick="CreateGrant" disabled="@isCreatingGrant">
+                        @if (isCreatingGrant)
+                        {
+                            <span class="loading-spinner"></span>
+                        }
+                        Generate Code
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
 <style>
-.gamification-summary {
-    background: var(--mud-palette-background-grey);
+.clients-page {
+    min-height: 100vh;
+    background: #F9F7F4; /* Cream background */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Header */
+.clients-header {
+    background: white;
+    border-bottom: 1px solid #E5E7EB;
+    padding: 16px 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.brand-logo {
+    display: flex;
+    align-items: center;
+}
+
+.logo-icon {
+    font-size: 24px;
+    margin-right: 8px;
+}
+
+.brand-name {
+    font-size: 24px;
+    font-weight: 600;
+    color: #1F2937; /* Navy */
+}
+
+.nav-tabs {
+    display: flex;
+    gap: 32px;
+}
+
+.nav-tab {
+    background: none;
+    border: none;
+    color: #6B7280;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 8px 0;
+    transition: color 0.2s ease;
+    position: relative;
+}
+
+.nav-tab:hover {
+    color: #374151;
+}
+
+.nav-tab.active {
+    color: #FF6B35;
+}
+
+.nav-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -16px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #FF6B35;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.notification-btn {
+    padding: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
     border-radius: 8px;
-    padding: 12px;
-    border-left: 4px solid var(--mud-palette-primary);
 }
 
-.badge-mini {
-    display: inline-block;
-    font-size: 1.2em;
-    width: 24px;
-    height: 24px;
-    line-height: 24px;
-    text-align: center;
+.notification-btn:hover {
+    background: #F3F4F6;
+}
+
+.profile-avatar {
+    cursor: pointer;
+}
+
+.avatar-circle {
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
-    background: var(--mud-palette-background-default);
-    box-shadow: var(--elevation-1);
-    transition: transform 0.2s ease;
+    background: #FF6B35;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 16px;
 }
 
-.badge-mini:hover {
-    transform: scale(1.2);
+/* Main Content */
+.clients-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 32px 24px;
 }
 
-.recent-badges {
-    padding-top: 8px;
-    border-top: 1px solid var(--mud-palette-divider);
+/* Error Alert */
+.error-alert {
+    margin-bottom: 24px;
+    padding: 16px;
+    background: #FEF2F2;
+    border: 1px solid #FECACA;
+    border-radius: 8px;
 }
 
-.gap-1 {
-    gap: 4px;
+.alert-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #EF4444;
+    font-size: 14px;
+}
+
+/* Page Header */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+}
+
+.page-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #1F2937;
+    margin: 0;
+}
+
+.new-client-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: #FF6B35;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.new-client-btn:hover {
+    background: #E55A2E;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+/* Content Layout */
+.content-layout {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 32px;
+    align-items: start;
+}
+
+/* Invite Section */
+.invite-section {
+    position: sticky;
+    top: 120px;
+}
+
+.invite-card {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #E5E7EB;
+}
+
+.invite-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1F2937;
+    margin: 0 0 20px 0;
+}
+
+.invite-code-section {
+    margin-bottom: 20px;
+}
+
+.code-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: #6B7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+}
+
+.code-display {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    background: #F9FAFB;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+}
+
+.code-text {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1F2937;
+}
+
+.copy-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.copy-btn:hover {
+    background: #E5E7EB;
+}
+
+.expiry-section {
+    margin-bottom: 20px;
+}
+
+.expiry-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: #6B7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+}
+
+.expiry-select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #E5E7EB;
+    border-radius: 6px;
+    background: white;
+    font-size: 14px;
+    color: #1F2937;
+    cursor: pointer;
+}
+
+.expiry-select:focus {
+    outline: none;
+    border-color: #FF6B35;
+    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.generate-btn {
+    width: 100%;
+    padding: 12px 16px;
+    background: #FF6B35;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.generate-btn:hover:not(:disabled) {
+    background: #E55A2E;
+}
+
+.generate-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Clients Section */
+.clients-card {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #E5E7EB;
+}
+
+.clients-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1F2937;
+    margin: 0 0 24px 0;
+}
+
+/* Loading State */
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #E5E7EB;
+    border-radius: 50%;
+    border-top-color: #FF6B35;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-state p {
+    color: #6B7280;
+    font-size: 14px;
+    margin: 16px 0 0 0;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6B7280;
+}
+
+.empty-icon {
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.empty-state p {
+    font-size: 16px;
+    margin: 0 0 4px 0;
+}
+
+.empty-subtitle {
+    font-size: 14px;
+    color: #9CA3AF;
+}
+
+/* Clients Table */
+.clients-table {
+    width: 100%;
+}
+
+.table-header {
+    display: grid;
+    grid-template-columns: 2fr 120px 140px 100px;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid #E5E7EB;
+}
+
+.header-cell {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6B7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.table-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.table-row {
+    display: grid;
+    grid-template-columns: 2fr 120px 140px 100px;
+    gap: 16px;
+    padding: 16px 0;
+    border-bottom: 1px solid #F3F4F6;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.table-row:hover {
+    background: #F9FAFB;
+}
+
+.table-row:last-child {
+    border-bottom: none;
+}
+
+.table-cell {
+    display: flex;
+    align-items: center;
+}
+
+/* Client Info */
+.client-info {
+    min-width: 0;
+}
+
+.client-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1F2937;
+    margin-bottom: 2px;
+}
+
+.client-meta {
+    font-size: 13px;
+    color: #6B7280;
+}
+
+/* Adherence Display */
+.adherence-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.progress-circle {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, #FF6B35 0%, #FF6B35 var(--progress), #F3F4F6 var(--progress), #F3F4F6 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.progress-circle::before {
+    content: '';
+    position: absolute;
+    width: 36px;
+    height: 36px;
+    background: white;
+    border-radius: 50%;
+}
+
+.progress-text {
+    position: relative;
+    font-size: 11px;
+    font-weight: 600;
+    color: #1F2937;
+    z-index: 1;
+}
+
+.progress-circle.high {
+    background: conic-gradient(from 0deg, #10B981 0%, #10B981 var(--progress), #F3F4F6 var(--progress), #F3F4F6 100%);
+}
+
+.progress-circle.medium {
+    background: conic-gradient(from 0deg, #F59E0B 0%, #F59E0B var(--progress), #F3F4F6 var(--progress), #F3F4F6 100%);
+}
+
+.progress-circle.low {
+    background: conic-gradient(from 0deg, #EF4444 0%, #EF4444 var(--progress), #F3F4F6 var(--progress), #F3F4F6 100%);
+}
+
+/* Activity Display */
+.activity-text {
+    font-size: 14px;
+}
+
+.activity-text.today {
+    color: #10B981;
+    font-weight: 500;
+}
+
+.activity-text.recent {
+    color: #6B7280;
+}
+
+.activity-text.old {
+    color: #9CA3AF;
+}
+
+.activity-text.none {
+    color: #D1D5DB;
+    font-style: italic;
+}
+
+/* Level Badge */
+.level-badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.level-badge.level-1 {
+    background: #FEF3C7;
+    color: #92400E;
+}
+
+.level-badge.level-2 {
+    background: #DBEAFE;
+    color: #1E40AF;
+}
+
+.level-badge.level-3 {
+    background: #D1FAE5;
+    color: #065F46;
+}
+
+.level-badge.level-4 {
+    background: #E0E7FF;
+    color: #3730A3;
+}
+
+.level-badge.level-5 {
+    background: #FCE7F3;
+    color: #BE185D;
+}
+
+/* Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 500px;
+    margin: 20px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 24px 0;
+}
+
+.modal-header h3 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1F2937;
+    margin: 0;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #6B7280;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.modal-close:hover {
+    background: #F3F4F6;
+    color: #374151;
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+.modal-body p {
+    color: #6B7280;
+    line-height: 1.5;
+    margin: 0 0 24px 0;
+}
+
+.success-section {
+    display: flex;
+    gap: 12px;
+    padding: 16px;
+    background: #F0F9FF;
+    border: 1px solid #0EA5E9;
+    border-radius: 8px;
+    margin-bottom: 24px;
+}
+
+.success-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.success-content p {
+    margin: 0 0 8px 0;
+    color: #0369A1;
+}
+
+.generated-code {
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 8px 12px;
+    background: white;
+    border: 1px solid #0EA5E9;
+    border-radius: 6px;
+    color: #0369A1;
+    margin-bottom: 8px;
+}
+
+.expiry-info {
+    font-size: 13px;
+    color: #0369A1;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.secondary-btn {
+    padding: 10px 16px;
+    background: white;
+    color: #6B7280;
+    border: 1px solid #D1D5DB;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.secondary-btn:hover {
+    background: #F9FAFB;
+    border-color: #9CA3AF;
+}
+
+.primary-btn {
+    padding: 10px 16px;
+    background: #FF6B35;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.primary-btn:hover:not(:disabled) {
+    background: #E55A2E;
+}
+
+.primary-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Responsive Design */
+@@media (max-width: 1200px) {
+    .content-layout {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .invite-section {
+        position: static;
+        order: 2;
+    }
+
+    .clients-section {
+        order: 1;
+    }
+}
+
+@@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        gap: 16px;
+        align-items: stretch;
+    }
+
+    .nav-tabs {
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    .clients-container {
+        padding: 20px 16px;
+    }
+
+    .page-header {
+        flex-direction: column;
+        gap: 16px;
+        align-items: stretch;
+    }
+
+    .new-client-btn {
+        justify-content: center;
+    }
+
+    .table-header,
+    .table-row {
+        grid-template-columns: 1fr 80px 100px 80px;
+        gap: 8px;
+    }
+
+    .client-name {
+        font-size: 14px;
+    }
+
+    .client-meta {
+        font-size: 12px;
+    }
+
+    .progress-circle {
+        width: 40px;
+        height: 40px;
+    }
+
+    .progress-circle::before {
+        width: 28px;
+        height: 28px;
+    }
+
+    .progress-text {
+        font-size: 10px;
+    }
+}
+
+@@media (max-width: 640px) {
+    .nav-tabs {
+        display: none;
+    }
+
+    .header-actions {
+        margin-left: auto;
+    }
+
+    .table-header,
+    .table-row {
+        grid-template-columns: 1fr 60px;
+        gap: 12px;
+    }
+
+    .adherence-col,
+    .activity-col {
+        display: none;
+    }
 }
 </style>
 
@@ -325,10 +1055,12 @@
     private bool isLoadingClients = false;
     private bool isCreatingGrant = false;
     private string errorMessage = "";
+    private bool _showNewClientModal = false;
+    private int _selectedExpiry = 14;
 
-    private string generatedGrantCode = "";
+    private string _generatedGrantCode = "ADAP-2024-XYZ";
     private string generatedGrantUrl = "";
-    private DateTimeOffset generatedExpiresAt;
+    private DateTimeOffset generatedExpiresAt = DateTimeOffset.Now.AddDays(14);
 
     protected override async Task OnInitializedAsync()
     {
@@ -418,27 +1150,25 @@
     {
         isCreatingGrant = true;
         errorMessage = "";
-        generatedGrantCode = "";
-        generatedGrantUrl = "";
 
         try
         {
-            var response = await HttpClient.PostAsJsonAsync("/api/trainer/grants", new { });
+            var response = await HttpClient.PostAsJsonAsync("/api/trainer/grants", new { ExpiryDays = _selectedExpiry });
 
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadFromJsonAsync<GrantResponse>();
                 if (result != null)
                 {
-                    generatedGrantCode = result.GrantCode;
+                    _generatedGrantCode = result.GrantCode;
                     generatedGrantUrl = result.Url;
                     generatedExpiresAt = result.ExpiresAt;
-                    Snackbar.Add("Invitation created successfully!", Severity.Success);
+                    Snackbar.Add("Invitation code generated successfully!", Severity.Success);
                 }
             }
             else
             {
-                errorMessage = "Failed to create invitation. Please try again.";
+                errorMessage = "Failed to create invitation code. Please try again.";
             }
         }
         catch (Exception)
@@ -451,17 +1181,27 @@
         }
     }
 
-    private async Task CopyToClipboard()
+    private async Task CopyCodeToClipboard()
     {
         try
         {
-            await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", generatedGrantUrl);
-            Snackbar.Add("URL copied to clipboard!", Severity.Success);
+            await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", _generatedGrantCode ?? "ADAP-2024-XYZ");
+            Snackbar.Add("Code copied to clipboard!", Severity.Success);
         }
         catch
         {
-            Snackbar.Add("Failed to copy URL. Please copy manually.", Severity.Warning);
+            Snackbar.Add("Failed to copy code. Please copy manually.", Severity.Warning);
         }
+    }
+
+    private void ShowNewClientModal()
+    {
+        _showNewClientModal = true;
+    }
+
+    private void HideNewClientModal()
+    {
+        _showNewClientModal = false;
     }
 
     private async Task ViewClientDetails(string clientAlias)
@@ -507,6 +1247,13 @@
         {
             Snackbar.Add("Network error loading client details", Severity.Error);
         }
+    }
+
+    private string GetAdherenceClass(decimal adherence)
+    {
+        if (adherence >= 80) return "high";
+        if (adherence >= 60) return "medium";
+        return "low";
     }
 
     public class ClientInfo

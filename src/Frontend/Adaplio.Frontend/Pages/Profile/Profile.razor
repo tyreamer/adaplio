@@ -1,81 +1,762 @@
 @page "/profile"
 @page "/settings"
 @using Adaplio.Frontend.Services
-@using Adaplio.Frontend.Components.Profile
+@using System.Net.Http.Json
+@using System.Linq
 @inject AuthStateService AuthState
 @inject NavigationManager Navigation
+@inject HttpClient HttpClient
+@inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
 
-<PageTitle>Profile | Adaplio</PageTitle>
+<PageTitle>Profile - Adaplio</PageTitle>
 
-@if (!AuthState.IsAuthenticated)
-{
-    <MudContainer MaxWidth="MaxWidth.Small" Class="mt-8">
-        <MudPaper Class="pa-8 text-center">
-            <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Large" Color="Color.Primary" />
-            <MudText Typo="Typo.h5" Class="mt-4 mb-2">Authentication Required</MudText>
-            <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-4">
-                Please sign in to access your profile settings.
-            </MudText>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/auth/client/login">
-                Sign In
-            </MudButton>
-        </MudPaper>
-    </MudContainer>
-}
-else
-{
-    <div class="profile-page">
-        <!-- Profile Hero Section -->
-        <ProfileHero />
+<div class="profile-page">
+    <!-- Header -->
+    <div class="profile-header">
+        <div class="header-content">
+            <div class="brand-logo">
+                <span class="logo-icon">🧡</span>
+                <span class="brand-name">Adaplio</span>
+            </div>
 
-        <!-- Profile Content -->
-        <div class="profile-content">
-            <ProfileTabs />
+            <!-- Navigation Tabs -->
+            <div class="nav-tabs">
+                <button class="nav-tab" @onclick="@(() => Navigation.NavigateTo("/home"))">Overview</button>
+                <button class="nav-tab" @onclick="@(() => Navigation.NavigateTo("/exercises"))">Exercises</button>
+                <button class="nav-tab" @onclick="@(() => Navigation.NavigateTo("/progress"))">Progress</button>
+                <button class="nav-tab" @onclick="@(() => Navigation.NavigateTo("/messages"))">Messages</button>
+            </div>
+
+            <div class="header-actions">
+                <div class="notification-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                    </svg>
+                </div>
+                <div class="profile-avatar-small">
+                    <div class="avatar-circle-small">
+                        <span>S</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-}
+
+    <!-- Main Content -->
+    <div class="profile-container">
+        @if (!AuthState.IsAuthenticated)
+        {
+            <div class="auth-required">
+                <div class="auth-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="1.5">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                        <circle cx="12" cy="16" r="1"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                </div>
+                <h2>Authentication Required</h2>
+                <p>Please sign in to access your profile settings.</p>
+                <button class="sign-in-btn" @onclick="@(() => Navigation.NavigateTo("/auth/client/login"))">
+                    Sign In
+                </button>
+            </div>
+        }
+        else if (_isLoading)
+        {
+            <div class="loading-state">
+                <div class="loading-spinner"></div>
+                <p>Loading your profile...</p>
+            </div>
+        }
+        else
+        {
+            <!-- Profile Title -->
+            <div class="page-title-section">
+                <h1 class="page-title">Profile</h1>
+            </div>
+
+            <!-- Profile Content -->
+            <div class="profile-content">
+                <!-- Profile Header Section -->
+                <div class="profile-info-header">
+                    <div class="avatar-section">
+                        <div class="avatar-container">
+                            @if (!string.IsNullOrEmpty(_profileData.AvatarUrl))
+                            {
+                                <img src="@_profileData.AvatarUrl" alt="Profile" class="profile-avatar" />
+                            }
+                            else
+                            {
+                                <div class="profile-avatar avatar-placeholder">
+                                    <span class="avatar-initials">@GetInitials()</span>
+                                </div>
+                            }
+                            <div class="avatar-edit-btn" @onclick="ShowAvatarUpload">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="user-info">
+                        <h2 class="user-name">@_profileData.FullName</h2>
+                        <span class="user-role">@(_profileData.UserType == "client" ? "Client" : "Trainer")</span>
+                    </div>
+                </div>
+
+                <!-- Personal Information Section -->
+                <div class="form-section">
+                    <h3 class="section-title">Personal Information</h3>
+
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label class="field-label">Nickname</label>
+                            <input type="text"
+                                   class="field-input"
+                                   @bind="_profileData.Nickname"
+                                   placeholder="Enter your nickname" />
+                        </div>
+
+                        <div class="form-field">
+                            <label class="field-label">Email</label>
+                            <input type="email"
+                                   class="field-input"
+                                   @bind="_profileData.Email"
+                                   placeholder="your@email.com" />
+                        </div>
+                    </div>
+
+                    <div class="form-field">
+                        <label class="field-label">Phone Number</label>
+                        <input type="tel"
+                               class="field-input"
+                               @bind="_profileData.PhoneNumber"
+                               placeholder="+1 (555) 123-4567" />
+                    </div>
+                </div>
+
+                <!-- Preferences Section -->
+                <div class="form-section">
+                    <h3 class="section-title">Preferences</h3>
+
+                    <div class="form-field">
+                        <label class="field-label">Language</label>
+                        <select class="field-select" @bind="_profileData.Language">
+                            <option value="en">English</option>
+                            <option value="es">Spanish</option>
+                            <option value="fr">French</option>
+                            <option value="de">German</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="form-actions">
+                    <button class="save-btn" @onclick="SaveChanges" disabled="@_isSaving">
+                        @if (_isSaving)
+                        {
+                            <span class="loading-spinner small"></span>
+                        }
+                        Save Changes
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+</div>
 
 <style>
 .profile-page {
-    max-width: 1400px;
+    min-height: 100vh;
+    background: #F9F7F4; /* Cream background */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Header */
+.profile-header {
+    background: white;
+    border-bottom: 1px solid #E5E7EB;
+    padding: 16px 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1200px;
     margin: 0 auto;
-    padding: 32px 24px 64px;
-    background: #F5F5F5;
-    min-height: calc(100vh - 64px);
 }
 
+.brand-logo {
+    display: flex;
+    align-items: center;
+}
+
+.logo-icon {
+    font-size: 24px;
+    margin-right: 8px;
+}
+
+.brand-name {
+    font-size: 24px;
+    font-weight: 600;
+    color: #1F2937; /* Navy */
+}
+
+.nav-tabs {
+    display: flex;
+    gap: 32px;
+}
+
+.nav-tab {
+    background: none;
+    border: none;
+    color: #6B7280;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 8px 0;
+    transition: color 0.2s ease;
+    position: relative;
+}
+
+.nav-tab:hover {
+    color: #374151;
+}
+
+.nav-tab.active {
+    color: #FF6B35;
+}
+
+.nav-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -16px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #FF6B35;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.notification-btn {
+    padding: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    border-radius: 8px;
+}
+
+.notification-btn:hover {
+    background: #F3F4F6;
+}
+
+.profile-avatar-small {
+    cursor: pointer;
+}
+
+.avatar-circle-small {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #FF6B35;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+/* Main Content */
+.profile-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px 24px;
+}
+
+/* Authentication Required */
+.auth-required {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 80px 20px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.auth-icon {
+    margin-bottom: 24px;
+    opacity: 0.5;
+}
+
+.auth-required h2 {
+    font-size: 24px;
+    font-weight: 600;
+    color: #1F2937;
+    margin: 0 0 8px 0;
+}
+
+.auth-required p {
+    font-size: 16px;
+    color: #6B7280;
+    margin: 0 0 24px 0;
+}
+
+.sign-in-btn {
+    padding: 12px 24px;
+    background: #FF6B35;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sign-in-btn:hover {
+    background: #E55A2E;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+/* Loading State */
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    text-align: center;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #E5E7EB;
+    border-radius: 50%;
+    border-top-color: #FF6B35;
+    animation: spin 1s ease-in-out infinite;
+    margin-bottom: 16px;
+}
+
+.loading-spinner.small {
+    width: 20px;
+    height: 20px;
+    border-width: 2px;
+    margin-bottom: 0;
+    margin-right: 8px;
+}
+
+@@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-state p {
+    color: #6B7280;
+    font-size: 16px;
+    margin: 0;
+}
+
+/* Page Title */
+.page-title-section {
+    margin-bottom: 40px;
+}
+
+.page-title {
+    font-size: 36px;
+    font-weight: 700;
+    color: #1F2937;
+    margin: 0;
+}
+
+/* Profile Content */
 .profile-content {
-    margin-top: 0;
+    background: white;
+    border-radius: 16px;
+    padding: 40px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #E5E7EB;
 }
 
-@@media (min-width: 900px) {
-    .profile-page {
-        padding: 40px 32px 80px;
+/* Profile Info Header */
+.profile-info-header {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 40px;
+    padding-bottom: 40px;
+    border-bottom: 1px solid #E5E7EB;
+}
+
+.avatar-section {
+    position: relative;
+}
+
+.avatar-container {
+    position: relative;
+    display: inline-block;
+}
+
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.avatar-placeholder {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: #FF6B35;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 4px solid white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.avatar-initials {
+    font-size: 36px;
+    font-weight: 600;
+    color: white;
+}
+
+.avatar-edit-btn {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #FF6B35;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease;
+}
+
+.avatar-edit-btn:hover {
+    background: #E55A2E;
+    transform: scale(1.1);
+}
+
+.user-info {
+    flex: 1;
+}
+
+.user-name {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1F2937;
+    margin: 0 0 8px 0;
+}
+
+.user-role {
+    display: inline-block;
+    padding: 4px 12px;
+    background: rgba(255, 107, 53, 0.1);
+    color: #FF6B35;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+/* Form Sections */
+.form-section {
+    margin-bottom: 40px;
+}
+
+.form-section:last-of-type {
+    margin-bottom: 0;
+}
+
+.section-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1F2937;
+    margin: 0 0 24px 0;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.field-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 8px;
+}
+
+.field-input,
+.field-select {
+    padding: 12px 16px;
+    border: 1px solid #D1D5DB;
+    border-radius: 8px;
+    font-size: 16px;
+    background: white;
+    color: #1F2937;
+    transition: border-color 0.2s ease;
+    outline: none;
+}
+
+.field-input:focus,
+.field-select:focus {
+    border-color: #FF6B35;
+    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.field-input::placeholder {
+    color: #9CA3AF;
+}
+
+.field-select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 40px;
+}
+
+/* Form Actions */
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 32px;
+    border-top: 1px solid #E5E7EB;
+    margin-top: 40px;
+}
+
+.save-btn {
+    padding: 12px 32px;
+    background: #FF6B35;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.save-btn:hover:not(:disabled) {
+    background: #E55A2E;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+.save-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Responsive Design */
+@@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        gap: 16px;
+        align-items: stretch;
+    }
+
+    .nav-tabs {
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    .profile-container {
+        padding: 20px 16px;
+    }
+
+    .profile-content {
+        padding: 24px;
+    }
+
+    .page-title {
+        font-size: 28px;
+    }
+
+    .profile-info-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 16px;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .profile-avatar,
+    .avatar-placeholder {
+        width: 100px;
+        height: 100px;
+    }
+
+    .avatar-initials {
+        font-size: 28px;
+    }
+
+    .user-name {
+        font-size: 24px;
     }
 }
 
-@@media (min-width: 1200px) {
-    .profile-page {
-        padding: 48px 40px 96px;
+@@media (max-width: 640px) {
+    .nav-tabs {
+        display: none;
+    }
+
+    .header-actions {
+        margin-left: auto;
     }
 }
 </style>
 
-
 @code {
+    private bool _isLoading = true;
+    private bool _isSaving = false;
+    private ProfileData _profileData = new();
+
     protected override async Task OnInitializedAsync()
     {
-        // Ensure auth state is loaded
-        if (!AuthState.IsInitialized)
-        {
-            await AuthState.InitializeAsync();
-        }
-
-        // Redirect if not authenticated
         if (!AuthState.IsAuthenticated)
         {
-            Navigation.NavigateTo("/auth/client/login");
             return;
         }
+
+        await LoadProfile();
+    }
+
+    private async Task LoadProfile()
+    {
+        _isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            // Simulate API call to load profile data
+            await Task.Delay(1000);
+
+            // Mock data - replace with actual API call
+            _profileData = new ProfileData
+            {
+                FullName = "Sarah Miller",
+                Nickname = "Sarah",
+                Email = "sarah.m@example.com",
+                PhoneNumber = "+1 (555) 123-4567",
+                UserType = "client",
+                Language = "en",
+                AvatarUrl = "" // Empty for placeholder
+            };
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Failed to load profile data", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task SaveChanges()
+    {
+        _isSaving = true;
+
+        try
+        {
+            // Validate required fields
+            if (string.IsNullOrWhiteSpace(_profileData.FullName))
+            {
+                Snackbar.Add("Full name is required", Severity.Error);
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(_profileData.Email))
+            {
+                Snackbar.Add("Email is required", Severity.Error);
+                return;
+            }
+
+            // Simulate API call to save profile
+            await Task.Delay(1500);
+
+            Snackbar.Add("Profile updated successfully!", Severity.Success);
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Failed to update profile. Please try again.", Severity.Error);
+        }
+        finally
+        {
+            _isSaving = false;
+            StateHasChanged();
+        }
+    }
+
+    private void ShowAvatarUpload()
+    {
+        // Implement avatar upload functionality
+        Snackbar.Add("Avatar upload coming soon!", Severity.Info);
+    }
+
+    private string GetInitials()
+    {
+        if (string.IsNullOrWhiteSpace(_profileData.FullName))
+            return "U";
+
+        var parts = _profileData.FullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2)
+            return $"{parts[0][0]}{parts[1][0]}".ToUpper();
+
+        return parts[0][0].ToString().ToUpper();
+    }
+
+    public class ProfileData
+    {
+        public string FullName { get; set; } = "";
+        public string Nickname { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string PhoneNumber { get; set; } = "";
+        public string UserType { get; set; } = "";
+        public string Language { get; set; } = "en";
+        public string AvatarUrl { get; set; } = "";
     }
 }

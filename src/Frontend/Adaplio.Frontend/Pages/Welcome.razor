@@ -1,223 +1,134 @@
 @page "/welcome"
 @using Adaplio.Frontend.Theme
 @inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
 
-<PageTitle>Welcome to Adaplio - Adherence that sticks</PageTitle>
+<PageTitle>Adaplio - Your Partner in Physical Therapy</PageTitle>
 
 <div class="welcome-page">
+    <!-- Header Navigation -->
+    <header class="top-nav">
+        <div class="nav-content">
+            <div class="brand-logo">
+                <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                    <div class="logo-icon">🧡</div>
+                    <MudText Typo="Typo.h6" Class="brand-name">Adaplio</MudText>
+                </MudStack>
+            </div>
+            <nav class="nav-links">
+                <MudButton Variant="Variant.Text"
+                           Class="nav-link"
+                           Href="/auth/trainer/login">
+                    For Therapists
+                </MudButton>
+                <MudButton Variant="Variant.Text"
+                           Class="nav-link"
+                           Href="/auth/client/login">
+                    For Clients
+                </MudButton>
+                <MudButton Variant="Variant.Filled"
+                           Class="get-started-btn"
+                           Href="/">
+                    Get Started
+                </MudButton>
+            </nav>
+        </div>
+    </header>
+
     <!-- Hero Section -->
     <section class="hero-section">
         <div class="hero-content">
             <div class="hero-text">
                 <h1 class="hero-title">
-                    Adherence that <span class="gradient-text">sticks</span>
+                    Adaplio: Your Partner in Physical Therapy
                 </h1>
                 <p class="hero-subtitle">
-                    Transform fitness plans into lasting habits with personalized tracking,
-                    real-time progress insights, and reward-driven motivation.
+                    Connect with your therapist, track your progress, and
+                    achieve your goals with our easy-to-use app.
                 </p>
                 <div class="hero-actions">
                     <MudButton Variant="Variant.Filled"
-                               Color="Color.Primary"
-                               Size="Size.Large"
-                               Class="hero-cta primary-cta btn-scale"
-                               StartIcon="@Icons.Material.Filled.PersonAdd"
-                               Href="/auth/trainer/register">
-                        Start as Trainer
+                               Class="primary-cta"
+                               Href="/">
+                        Get Started Free
                     </MudButton>
                     <MudButton Variant="Variant.Outlined"
-                               Color="Color.Primary"
-                               Size="Size.Large"
-                               Class="hero-cta secondary-cta btn-scale"
-                               StartIcon="@Icons.Material.Filled.Login"
-                               Href="/auth/client/login">
-                        I'm a Client
+                               Class="secondary-cta"
+                               Href="#features">
+                        Learn More
                     </MudButton>
-                </div>
-                <div class="trust-signals">
-                    <MudStack Row AlignItems="AlignItems.Center" Spacing="6" Justify="Justify.Center">
-                        <div class="stat-chip">
-                            <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="Size.Small" Color="Color.Success" />
-                            <span>+35% adherence</span>
-                        </div>
-                        <div class="stat-chip">
-                            <MudIcon Icon="@Icons.Material.Filled.Group" Size="Size.Small" Color="Color.Primary" />
-                            <span>1,000+ users</span>
-                        </div>
-                        <div class="stat-chip">
-                            <MudIcon Icon="@Icons.Material.Filled.Star" Size="Size.Small" Color="Color.Warning" />
-                            <span>4.8 rating</span>
-                        </div>
-                    </MudStack>
                 </div>
             </div>
 
             <div class="hero-visual">
-                <!-- Product Showcase Cards -->
-                <div class="product-showcase">
-                    <div class="showcase-card card-hover elevation-3" style="--delay: 0.1s">
-                        <div class="card-header">
-                            <MudIcon Icon="@Icons.Material.Filled.CalendarToday" Color="Color.Primary" Size="Size.Medium" />
-                            <MudText Typo="Typo.h6" Class="card-title">Weekly Board</MudText>
+                <div class="illustration-container">
+                    <div class="exercise-illustration">
+                        <!-- Character exercising -->
+                        <div class="character">
+                            <div class="character-body"></div>
+                            <div class="character-head"></div>
+                            <div class="character-arms"></div>
                         </div>
-                        <div class="card-content">
-                            <div class="demo-week-grid">
-                                <div class="demo-day completed">M</div>
-                                <div class="demo-day completed">T</div>
-                                <div class="demo-day completed">W</div>
-                                <div class="demo-day partial">T</div>
-                                <div class="demo-day">F</div>
-                                <div class="demo-day">S</div>
-                                <div class="demo-day">S</div>
-                            </div>
-                            <MudProgressLinear Value="60" Color="Color.Success" Size="Size.Medium" Class="mt-3" />
+                        <!-- Exercise equipment -->
+                        <div class="exercise-bench"></div>
+                        <div class="weight-plates">
+                            <div class="weight-plate red"></div>
+                            <div class="weight-plate blue"></div>
                         </div>
-                    </div>
-
-                    <div class="showcase-card card-hover elevation-3" style="--delay: 0.2s">
-                        <div class="card-header">
-                            <MudIcon Icon="@Icons.Material.Filled.Analytics" Color="Color.Success" Size="Size.Medium" />
-                            <MudText Typo="Typo.h6" Class="card-title">Adherence</MudText>
-                        </div>
-                        <div class="card-content">
-                            <div class="demo-chart">
-                                <div class="chart-bars">
-                                    <div class="chart-bar" style="height: 40%"></div>
-                                    <div class="chart-bar" style="height: 65%"></div>
-                                    <div class="chart-bar" style="height: 80%"></div>
-                                    <div class="chart-bar" style="height: 75%"></div>
-                                    <div class="chart-bar" style="height: 90%"></div>
-                                </div>
-                                <MudText Typo="Typo.h4" Color="Color.Success" Class="chart-value">78%</MudText>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="showcase-card card-hover elevation-3" style="--delay: 0.3s">
-                        <div class="card-header">
-                            <MudIcon Icon="@Icons.Material.Filled.EmojiEvents" Color="Color.Warning" Size="Size.Medium" />
-                            <MudText Typo="Typo.h6" Class="card-title">Rewards</MudText>
-                        </div>
-                        <div class="card-content">
-                            <div class="demo-badges">
-                                <div class="demo-badge earned">🔥</div>
-                                <div class="demo-badge earned">💪</div>
-                                <div class="demo-badge earned">⚡</div>
-                                <div class="demo-badge locked">🏆</div>
-                            </div>
-                            <MudText Typo="Typo.body2" Class="mt-2 text-success">3 badges earned this week!</MudText>
-                        </div>
+                        <div class="water-bottle"></div>
+                        <!-- Background circle -->
+                        <div class="background-circle"></div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Social Proof Section -->
-    <section class="social-proof-section">
+    <!-- How Adaplio Works Section -->
+    <section class="features-section" id="features">
         <div class="section-content">
-            <MudText Typo="Typo.h4" Align="Align.Center" Class="section-title">
-                Trusted by fitness professionals
-            </MudText>
-            <div class="testimonial-carousel">
-                <div class="testimonial-card elevation-2">
-                    <MudText Typo="Typo.body1" Class="testimonial-quote">
-                        "My clients' adherence improved by 40% within the first month.
-                        The visual progress tracking keeps everyone motivated."
-                    </MudText>
-                    <div class="testimonial-author">
-                        <div class="author-avatar">
-                            <MudAvatar Size="Size.Medium" Color="Color.Primary">JD</MudAvatar>
-                        </div>
-                        <div class="author-info">
-                            <MudText Typo="Typo.subtitle2" Class="author-name">Jessica Davis</MudText>
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">Certified Personal Trainer</MudText>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="testimonial-card elevation-2">
-                    <MudText Typo="Typo.body1" Class="testimonial-quote">
-                        "Finally, a platform that makes tracking fun! The reward system
-                        keeps me coming back every day."
-                    </MudText>
-                    <div class="testimonial-author">
-                        <div class="author-avatar">
-                            <MudAvatar Size="Size.Medium" Color="Color.Secondary">MR</MudAvatar>
-                        </div>
-                        <div class="author-info">
-                            <MudText Typo="Typo.subtitle2" Class="author-name">Mike Rodriguez</MudText>
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">Adaplio Client</MudText>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="testimonial-card elevation-2">
-                    <MudText Typo="Typo.body1" Class="testimonial-quote">
-                        "The insights dashboard helps me adjust programs in real-time.
-                        It's like having a co-trainer for data analysis."
-                    </MudText>
-                    <div class="testimonial-author">
-                        <div class="author-avatar">
-                            <MudAvatar Size="Size.Medium" Color="Color.Tertiary">AL</MudAvatar>
-                        </div>
-                        <div class="author-info">
-                            <MudText Typo="Typo.subtitle2" Class="author-name">Alex Liu</MudText>
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">Fitness Studio Owner</MudText>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Partner Logos -->
-            <div class="partner-logos">
-                <MudText Typo="Typo.caption" Align="Align.Center" Color="Color.Secondary" Class="mb-4">
-                    As featured in
+            <div class="features-header">
+                <MudText Typo="Typo.h4" Align="Align.Center" Class="features-title">
+                    How Adaplio Works
                 </MudText>
-                <div class="logo-grid">
-                    <div class="logo-placeholder">TechFit</div>
-                    <div class="logo-placeholder">FitnessPro</div>
-                    <div class="logo-placeholder">HealthTech</div>
-                    <div class="logo-placeholder">WellnessNews</div>
-                </div>
+                <MudText Typo="Typo.body1" Align="Align.Center" Class="features-subtitle">
+                    Adaplio simplifies your physical therapy journey, connecting you with your therapist
+                    and providing tools for effective at-home exercises and progress tracking.
+                </MudText>
             </div>
-        </div>
-    </section>
 
-    <!-- Features Section -->
-    <section class="features-section">
-        <div class="section-content">
             <div class="features-grid">
                 <div class="feature-card">
-                    <div class="feature-icon">
-                        <MudIcon Icon="@Icons.Material.Filled.Assignment" Size="Size.Large" Color="Color.Primary" />
+                    <div class="feature-icon people">
+                        <MudIcon Icon="@Icons.Material.Outlined.People" Size="Size.Large" />
                     </div>
-                    <MudText Typo="Typo.h5" Class="feature-title">Smart Templates</MudText>
-                    <MudText Typo="Typo.body1" Color="Color.Secondary" Class="feature-description">
-                        Create reusable workout templates with drag-and-drop simplicity.
-                        Customize for each client's needs and goals.
+                    <MudText Typo="Typo.h5" Class="feature-title">Connect with Your Therapist</MudText>
+                    <MudText Typo="Typo.body1" Class="feature-description">
+                        Find and connect with your physical
+                        therapist through the app.
                     </MudText>
                 </div>
 
                 <div class="feature-card">
-                    <div class="feature-icon">
-                        <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="Size.Large" Color="Color.Success" />
+                    <div class="feature-icon heart">
+                        <MudIcon Icon="@Icons.Material.Outlined.FavoriteBorder" Size="Size.Large" />
                     </div>
-                    <MudText Typo="Typo.h5" Class="feature-title">Real-time Insights</MudText>
-                    <MudText Typo="Typo.body1" Color="Color.Secondary" Class="feature-description">
-                        Track progress with detailed analytics. Identify patterns,
-                        celebrate wins, and adjust plans based on data.
+                    <MudText Typo="Typo.h5" Class="feature-title">Personalized Exercise Plans</MudText>
+                    <MudText Typo="Typo.body1" Class="feature-description">
+                        Receive customized exercise plans
+                        tailored to your specific needs and goals.
                     </MudText>
                 </div>
 
                 <div class="feature-card">
-                    <div class="feature-icon">
-                        <MudIcon Icon="@Icons.Material.Filled.EmojiEvents" Size="Size.Large" Color="Color.Warning" />
+                    <div class="feature-icon chart">
+                        <MudIcon Icon="@Icons.Material.Outlined.TrendingUp" Size="Size.Large" />
                     </div>
-                    <MudText Typo="Typo.h5" Class="feature-title">Gamified Experience</MudText>
-                    <MudText Typo="Typo.body1" Color="Color.Secondary" Class="feature-description">
-                        Unlock badges, streaks, and rewards that make fitness feel like a game.
-                        Motivation that actually works.
+                    <MudText Typo="Typo.h5" Class="feature-title">Track Your Progress</MudText>
+                    <MudText Typo="Typo.body1" Class="feature-description">
+                        Monitor your progress, celebrate
+                        milestones, and stay motivated on your
+                        path to recovery.
                     </MudText>
                 </div>
             </div>
@@ -227,388 +138,508 @@
     <!-- Footer -->
     <footer class="welcome-footer">
         <div class="footer-content">
-            <div class="footer-brand">
-                <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
-                    <div class="brand-icon">
-                        <MudIcon Icon="@Icons.Material.Filled.FitnessCenter" Color="Color.Primary" Size="Size.Medium" />
-                    </div>
-                    <MudText Typo="Typo.h6" Class="brand-text">Adaplio</MudText>
-                </MudStack>
-                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
-                    Privacy-first fitness tracking that puts your data in your control.
+            <div class="footer-left">
+                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                    © @DateTime.Now.Year Adaplio. All rights reserved.
                 </MudText>
             </div>
-
-            <div class="footer-links">
-                <MudStack Spacing="4">
-                    <MudLink Href="/privacy" Color="Color.Secondary">Privacy Policy</MudLink>
-                    <MudLink Href="/terms" Color="Color.Secondary">Terms of Service</MudLink>
-                    <MudLink Href="/contact" Color="Color.Secondary">Contact</MudLink>
-                    <MudLink Href="/help" Color="Color.Secondary">Help</MudLink>
-                </MudStack>
+            <div class="footer-right">
+                <MudLink Href="/privacy" Class="footer-link">Privacy Policy</MudLink>
+                <MudLink Href="/terms" Class="footer-link">Terms of Service</MudLink>
             </div>
         </div>
-
-        <MudDivider Class="my-6" />
-
-        <MudText Typo="Typo.caption" Align="Align.Center" Color="Color.Secondary">
-            © @DateTime.Now.Year Adaplio. Made with ❤️ for fitness professionals.
-        </MudText>
     </footer>
 </div>
 
 <style>
 .welcome-page {
     min-height: 100vh;
-    background: var(--color-background);
+    background: #F9F7F4; /* Cream background */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-.hero-section {
-    padding: var(--space-xxxxl) 0 var(--space-xxxl) 0;
-    min-height: 80vh;
+/* Top Navigation */
+.top-nav {
+    background: #F9F7F4;
+    padding: 16px 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.nav-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.brand-logo {
     display: flex;
     align-items: center;
+}
+
+.logo-icon {
+    font-size: 24px;
+    margin-right: 8px;
+}
+
+.brand-name {
+    font-size: 24px !important;
+    font-weight: 600 !important;
+    color: #1F2937 !important; /* Navy */
+    margin: 0 !important;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nav-link {
+    color: #6B7280 !important; /* Gray text */
+    font-weight: 500 !important;
+    text-transform: none !important;
+    padding: 8px 16px !important;
+}
+
+.nav-link:hover {
+    color: #1F2937 !important; /* Navy on hover */
+}
+
+.get-started-btn {
+    background: #FF6B35 !important; /* Orange */
+    color: white !important;
+    border-radius: 24px !important;
+    padding: 12px 24px !important;
+    font-weight: 600 !important;
+    text-transform: none !important;
+    box-shadow: 0 2px 8px rgba(255, 107, 53, 0.2) !important;
+}
+
+.get-started-btn:hover {
+    background: #E55A2E !important;
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3) !important;
+}
+
+/* Hero Section */
+.hero-section {
+    padding: 80px 0;
+    background: #F9F7F4;
 }
 
 .hero-content {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: var(--space-xxxxl);
+    gap: 80px;
     align-items: center;
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 var(--space-lg);
+    padding: 0 24px;
 }
 
 .hero-text {
-    max-width: 500px;
+    max-width: 520px;
 }
 
 .hero-title {
-    font-size: 3.5rem;
-    font-weight: var(--font-weight-bold);
+    font-size: 48px;
+    font-weight: 800;
     line-height: 1.1;
-    margin-bottom: var(--space-lg);
-    color: var(--color-surface-on);
-}
-
-.gradient-text {
-    color: var(--color-primary);
+    margin-bottom: 24px;
+    color: #1F2937; /* Navy */
 }
 
 .hero-subtitle {
-    font-size: 1.25rem;
+    font-size: 18px;
     line-height: 1.6;
-    color: var(--color-neutral-700);
-    margin-bottom: var(--space-xxxl);
+    color: #6B7280; /* Gray */
+    margin-bottom: 40px;
 }
 
 .hero-actions {
     display: flex;
-    gap: var(--space-lg);
-    margin-bottom: var(--space-xxxl);
-}
-
-.hero-cta {
-    border-radius: var(--radius-lg) !important;
-    font-weight: var(--font-weight-medium) !important;
-    text-transform: none !important;
-    padding: var(--space-md) var(--space-xxl) !important;
-    min-height: 56px !important;
-    font-size: 1.1rem !important;
+    gap: 16px;
+    margin-bottom: 40px;
 }
 
 .primary-cta {
-    box-shadow: var(--elevation-3);
+    background: #FF6B35 !important; /* Orange */
+    color: white !important;
+    border-radius: 12px !important;
+    padding: 16px 32px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    text-transform: none !important;
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.25) !important;
+    border: none !important;
 }
 
 .primary-cta:hover {
-    box-shadow: var(--elevation-4);
+    background: #E55A2E !important;
+    box-shadow: 0 6px 16px rgba(255, 107, 53, 0.35) !important;
 }
 
 .secondary-cta {
-    background: var(--color-surface) !important;
-    border: 2px solid var(--color-primary) !important;
+    background: transparent !important;
+    color: #FF6B35 !important; /* Orange text */
+    border: 2px solid #FF6B35 !important; /* Orange border */
+    border-radius: 12px !important;
+    padding: 14px 30px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    text-transform: none !important;
 }
 
-.trust-signals {
-    margin-top: var(--space-xl);
+.secondary-cta:hover {
+    background: rgba(255, 107, 53, 0.05) !important;
 }
 
-.stat-chip {
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
-    padding: var(--space-sm) var(--space-lg);
-    background: var(--color-surface);
-    border-radius: var(--radius-round);
-    box-shadow: var(--elevation-1);
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-medium);
-    color: var(--color-surface-on);
-}
-
+/* Hero Visual - Exercise Illustration */
 .hero-visual {
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-.product-showcase {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--space-lg);
-    max-width: 400px;
+.illustration-container {
+    width: 500px;
+    height: 400px;
+    position: relative;
 }
 
-.showcase-card {
-    background: var(--color-surface);
-    border-radius: var(--radius-xl);
-    padding: var(--space-xxl);
-    box-shadow: var(--elevation-3);
-    opacity: 0;
-    transform: translateY(20px);
-    animation: fadeInUp var(--duration-gentle) var(--easing-decelerate) forwards;
-    animation-delay: var(--delay);
+.exercise-illustration {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background: white;
+    border-radius: 24px;
+    padding: 40px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
 }
 
-
-.card-header {
-    display: flex;
-    align-items: center;
-    gap: var(--space-md);
-    margin-bottom: var(--space-lg);
+.background-circle {
+    position: absolute;
+    top: -50px;
+    right: -50px;
+    width: 300px;
+    height: 300px;
+    background: #FED7AA; /* Light orange */
+    border-radius: 50%;
+    z-index: 1;
 }
 
-.card-title {
-    font-weight: var(--font-weight-semibold) !important;
-    color: var(--color-surface-on);
+.character {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 3;
 }
 
-.demo-week-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: var(--space-sm);
-    margin-bottom: var(--space-md);
+.character-head {
+    width: 40px;
+    height: 40px;
+    background: #FBBF73; /* Skin tone */
+    border-radius: 50%;
+    position: absolute;
+    top: -50px;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
-.demo-day {
-    width: 32px;
-    height: 32px;
-    border-radius: var(--radius-md);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-medium);
-    background: var(--color-neutral-100);
-    color: var(--color-neutral-500);
+.character-head::after {
+    content: '';
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 45px;
+    height: 25px;
+    background: #8B4513; /* Hair */
+    border-radius: 25px 25px 0 0;
 }
 
-.demo-day.completed {
-    background: var(--color-success);
-    color: var(--color-success-on);
+.character-body {
+    width: 60px;
+    height: 80px;
+    background: #4A90A4; /* Teal shirt */
+    border-radius: 8px;
+    position: relative;
 }
 
-.demo-day.partial {
-    background: var(--color-warning);
-    color: var(--color-warning-on);
+.character-arms {
+    position: absolute;
+    top: 10px;
+    left: -20px;
+    right: -20px;
+    height: 20px;
 }
 
-.demo-chart {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-md);
+.character-arms::before,
+.character-arms::after {
+    content: '';
+    position: absolute;
+    width: 40px;
+    height: 12px;
+    background: #FBBF73; /* Arm color */
+    border-radius: 6px;
+    top: 0;
 }
 
-.chart-bars {
-    display: flex;
-    align-items: end;
-    gap: var(--space-sm);
-    height: 60px;
+.character-arms::before {
+    left: -15px;
+    transform: rotate(-25deg);
 }
 
-.chart-bar {
-    width: 16px;
-    background: var(--color-success);
-    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-    opacity: 0.8;
+.character-arms::after {
+    right: -15px;
+    transform: rotate(25deg);
 }
 
-.chart-value {
-    font-weight: var(--font-weight-bold) !important;
+.exercise-bench {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 20px;
+    background: #94A3B8; /* Bench color */
+    border-radius: 4px;
+    z-index: 2;
 }
 
-.demo-badges {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: var(--space-md);
+.exercise-bench::before {
+    content: '';
+    position: absolute;
+    bottom: -15px;
+    left: 10px;
+    right: 10px;
+    height: 15px;
+    background: #64748B;
+    border-radius: 2px;
 }
 
-.demo-badge {
-    width: 48px;
-    height: 48px;
-    border-radius: var(--radius-lg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    background: var(--color-surface);
-    box-shadow: var(--elevation-2);
+.weight-plates {
+    position: absolute;
+    bottom: 20px;
+    z-index: 2;
 }
 
-.demo-badge.earned {
-    background: var(--color-warning);
+.weight-plate {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    position: absolute;
+    bottom: 0;
 }
 
-.demo-badge.locked {
-    background: var(--color-neutral-100);
-    opacity: 0.5;
-    filter: grayscale(1);
+.weight-plate.red {
+    background: #EF4444;
+    left: 60px;
 }
 
-.social-proof-section {
-    padding: var(--space-xxxxl) 0;
-    background: var(--color-surface);
+.weight-plate.blue {
+    background: #3B82F6;
+    left: 100px;
+}
+
+.water-bottle {
+    position: absolute;
+    top: 60px;
+    right: 40px;
+    width: 12px;
+    height: 30px;
+    background: #60A5FA; /* Blue bottle */
+    border-radius: 6px;
+    z-index: 2;
+}
+
+.water-bottle::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 8px;
+    height: 6px;
+    background: #3B82F6;
+    border-radius: 2px;
+}
+
+/* Features Section */
+.features-section {
+    padding: 80px 0;
+    background: white;
 }
 
 .section-content {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 var(--space-lg);
+    padding: 0 24px;
 }
 
-.section-title {
-    margin-bottom: var(--space-xxxl);
-    font-weight: var(--font-weight-semibold) !important;
-    color: var(--color-surface-on);
-}
-
-.testimonial-carousel {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: var(--space-xxl);
-    margin-bottom: var(--space-xxxxl);
-}
-
-.testimonial-card {
-    background: var(--color-background);
-    border-radius: var(--radius-xl);
-    padding: var(--space-xxxl);
-    box-shadow: var(--elevation-2);
-}
-
-.testimonial-quote {
-    margin-bottom: var(--space-xxl);
-    font-style: italic;
-    line-height: 1.6;
-    color: var(--color-surface-on);
-}
-
-.testimonial-author {
-    display: flex;
-    align-items: center;
-    gap: var(--space-md);
-}
-
-.author-name {
-    font-weight: var(--font-weight-semibold) !important;
-    color: var(--color-surface-on);
-}
-
-.partner-logos {
+.features-header {
     text-align: center;
+    margin-bottom: 64px;
 }
 
-.logo-grid {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: var(--space-xxxl);
-    flex-wrap: wrap;
+.features-title {
+    font-size: 36px !important;
+    font-weight: 700 !important;
+    color: #1F2937 !important; /* Navy */
+    margin-bottom: 16px !important;
 }
 
-.logo-placeholder {
-    padding: var(--space-lg) var(--space-xxl);
-    background: var(--color-neutral-100);
-    border-radius: var(--radius-md);
-    font-weight: var(--font-weight-medium);
-    color: var(--color-neutral-500);
-    opacity: 0.7;
-}
-
-.features-section {
-    padding: var(--space-xxxxl) 0;
-    background: var(--color-background);
+.features-subtitle {
+    font-size: 16px !important;
+    line-height: 1.6 !important;
+    color: #6B7280 !important; /* Gray */
+    max-width: 640px;
+    margin: 0 auto;
 }
 
 .features-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: var(--space-xxxl);
+    grid-template-columns: repeat(3, 1fr);
+    gap: 48px;
 }
 
 .feature-card {
     text-align: center;
-    max-width: 400px;
-    margin: 0 auto;
+    padding: 32px 24px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
 }
 
 .feature-icon {
     width: 80px;
     height: 80px;
-    border-radius: var(--radius-xl);
-    background: var(--color-surface);
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto var(--space-lg) auto;
-    box-shadow: var(--elevation-2);
+    margin: 0 auto 24px auto;
+}
+
+.feature-icon.people {
+    background: rgba(255, 107, 53, 0.1); /* Light orange */
+    color: #FF6B35 !important; /* Orange */
+}
+
+.feature-icon.heart {
+    background: rgba(255, 107, 53, 0.1); /* Light orange */
+    color: #FF6B35 !important; /* Orange */
+}
+
+.feature-icon.chart {
+    background: rgba(255, 107, 53, 0.1); /* Light orange */
+    color: #FF6B35 !important; /* Orange */
 }
 
 .feature-title {
-    margin-bottom: var(--space-lg);
-    font-weight: var(--font-weight-semibold) !important;
-    color: var(--color-surface-on);
+    font-size: 20px !important;
+    font-weight: 600 !important;
+    color: #1F2937 !important; /* Navy */
+    margin-bottom: 16px !important;
 }
 
 .feature-description {
-    line-height: 1.6;
+    font-size: 16px !important;
+    line-height: 1.6 !important;
+    color: #6B7280 !important; /* Gray */
 }
 
+/* Footer */
 .welcome-footer {
-    padding: var(--space-xxxxl) 0 var(--space-xxl) 0;
-    background: var(--color-surface);
-    border-top: 1px solid var(--color-neutral-200);
+    padding: 32px 0;
+    background: #F9F7F4; /* Cream background */
+    border-top: 1px solid #E5E7EB;
 }
 
 .footer-content {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 var(--space-lg);
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: var(--space-xxxl);
-    align-items: start;
-}
-
-.brand-icon {
-    width: 32px;
-    height: 32px;
+    padding: 0 24px;
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    justify-content: center;
-    background: var(--color-primary);
-    border-radius: var(--radius-md);
-    color: white !important;
 }
 
-.brand-text {
-    font-weight: var(--font-weight-semibold) !important;
-    color: var(--color-primary);
+.footer-left {
+    color: #6B7280;
 }
 
+.footer-right {
+    display: flex;
+    gap: 24px;
+}
+
+.footer-link {
+    color: #6B7280 !important;
+    text-decoration: none !important;
+    font-size: 14px !important;
+}
+
+.footer-link:hover {
+    color: #1F2937 !important;
+}
+
+/* Responsive Design */
+@@media (max-width: 768px) {
+    .hero-content {
+        grid-template-columns: 1fr;
+        gap: 40px;
+        text-align: center;
+    }
+
+    .hero-title {
+        font-size: 36px;
+    }
+
+    .features-grid {
+        grid-template-columns: 1fr;
+        gap: 32px;
+    }
+
+    .nav-content {
+        padding: 0 16px;
+    }
+
+    .nav-links {
+        gap: 4px;
+    }
+
+    .nav-link {
+        padding: 6px 12px !important;
+        font-size: 14px !important;
+    }
+
+    .get-started-btn {
+        padding: 10px 20px !important;
+        font-size: 14px !important;
+    }
+
+    .illustration-container {
+        width: 300px;
+        height: 240px;
+    }
+
+    .footer-content {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+    }
+
+    .footer-right {
+        gap: 16px;
+    }
+}
 </style>
 
 @code {
