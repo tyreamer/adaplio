@@ -1,5 +1,5 @@
 {
-  "buildCommand": "dotnet publish src/Frontend/Adaplio.Frontend/Adaplio.Frontend.csproj -c Release",
+  "buildCommand": "chmod +x build.sh && ./build.sh",
   "outputDirectory": "src/Frontend/Adaplio.Frontend/bin/Release/net8.0/publish/wwwroot",
   "rewrites": [
     {

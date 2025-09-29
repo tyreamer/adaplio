@@ -21,10 +21,7 @@ jobs:
       run: dotnet restore src/Frontend/Adaplio.Frontend/Adaplio.Frontend.csproj
 
     - name: Build project
-      run: dotnet publish src/Frontend/Adaplio.Frontend/Adaplio.Frontend.csproj -c Release -o dist --nologo
-
-    - name: Copy Vercel config to output
-      run: cp vercel-static.json dist/wwwroot/vercel.json
+      run: dotnet publish src/Frontend/Adaplio.Frontend/Adaplio.Frontend.csproj -c Release
 
     - name: Deploy to Vercel
       uses: amondnet/vercel-action@v25
@@ -33,4 +30,4 @@ jobs:
         vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
         vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
         vercel-args: '--prod'
-        working-directory: ./dist/wwwroot
+        working-directory: ./src/Frontend/Adaplio.Frontend/bin/Release/net8.0/publish/wwwroot
