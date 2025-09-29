@@ -1,25 +1,5 @@
 {
   "version": 2,
-  "functions": {
-    "api/**/*.js": {
-      "runtime": "nodejs18.x"
-    }
-  },
-  "build": {
-    "env": {
-      "DOTNET_CLI_TELEMETRY_OPTOUT": "1",
-      "DOTNET_SKIP_FIRST_TIME_EXPERIENCE": "1",
-      "ASPNETCORE_ENVIRONMENT": "Production"
-    }
-  },
-  "env": {
-    "API_BASE_URL": "https://adaplio.onrender.com",
-    "ENABLE_ANALYTICS": "true",
-    "ENABLE_ERROR_REPORTING": "true"
-  },
-  "buildCommand": "chmod +x build.sh && ./build.sh",
-  "outputDirectory": "dist/wwwroot",
-  "installCommand": "echo 'No install needed'",
   "rewrites": [
     {
       "source": "/api/(.*)",
