@@ -35,6 +35,32 @@ else
     </div>
 }
 
+<style>
+.profile-page {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 32px 24px 64px;
+    background: #F5F5F5;
+    min-height: calc(100vh - 64px);
+}
+
+.profile-content {
+    margin-top: 0;
+}
+
+@@media (min-width: 900px) {
+    .profile-page {
+        padding: 40px 32px 80px;
+    }
+}
+
+@@media (min-width: 1200px) {
+    .profile-page {
+        padding: 48px 40px 96px;
+    }
+}
+</style>
+
 
 @code {
     protected override async Task OnInitializedAsync()

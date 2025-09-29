@@ -180,10 +180,10 @@ public static class DesignTokens
         public const int XS = 4;
         public const int SM = 8;
         public const int MD = 12;
-        public const int LG = 16;   // Primary radius for modern cards
-        public const int XL = 20;
-        public const int XXL = 24;
-        public const int XXXL = 32;
+        public const int LG = 20;   // Primary radius for modern cards (2025 standard)
+        public const int XL = 24;
+        public const int XXL = 32;
+        public const int XXXL = 40;
         public const int Round = 9999; // Pill shape
     }
 

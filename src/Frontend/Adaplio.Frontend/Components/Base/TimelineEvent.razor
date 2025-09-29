@@ -1,0 +1,81 @@
+@using Microsoft.AspNetCore.Components
+
+<div class="timeline-event @EventType.ToLower() @(IsFirst ? "first" : "") @(IsLast ? "last" : "")">
+    <div class="timeline-marker">
+        <div class="timeline-icon">
+            <MudIcon Icon="@GetEventIcon()" Size="Size.Small" />
+        </div>
+        @if (!IsLast)
+        {
+            <div class="timeline-line"></div>
+        }
+    </div>
+
+    <div class="timeline-content">
+        <div class="event-header">
+            <div class="event-info">
+                <h4 class="event-title">@Title</h4>
+                @if (!string.IsNullOrEmpty(Subtitle))
+                {
+                    <p class="event-subtitle">@Subtitle</p>
+                }
+            </div>
+            <div class="event-meta">
+                <span class="event-time">@TimeAgo</span>
+                @if (!string.IsNullOrEmpty(Badge))
+                {
+                    <div class="event-badge @EventType.ToLower()">@Badge</div>
+                }
+            </div>
+        </div>
+
+        @if (Content != null)
+        {
+            <div class="event-body">
+                @Content
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(Description))
+        {
+            <p class="event-description">@Description</p>
+        }
+
+        @if (Actions != null)
+        {
+            <div class="event-actions">
+                @Actions
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string? Subtitle { get; set; }
+    [Parameter] public string? Description { get; set; }
+    [Parameter] public string? Badge { get; set; }
+    [Parameter] public string EventType { get; set; } = "default"; // completed, missed, pending, info, warning, error
+    [Parameter] public string? TimeAgo { get; set; }
+    [Parameter] public bool IsFirst { get; set; } = false;
+    [Parameter] public bool IsLast { get; set; } = false;
+    [Parameter] public RenderFragment? Content { get; set; }
+    [Parameter] public RenderFragment? Actions { get; set; }
+
+    private string GetEventIcon()
+    {
+        return EventType.ToLower() switch
+        {
+            "completed" => Icons.Material.Filled.CheckCircle,
+            "missed" => Icons.Material.Filled.Cancel,
+            "pending" => Icons.Material.Filled.Schedule,
+            "info" => Icons.Material.Filled.Info,
+            "warning" => Icons.Material.Filled.Warning,
+            "error" => Icons.Material.Filled.Error,
+            "exercise" => Icons.Material.Filled.FitnessCenter,
+            "message" => Icons.Material.Filled.Message,
+            "achievement" => Icons.Material.Filled.EmojiEvents,
+            _ => Icons.Material.Filled.Circle
+        };
+    }
+}

@@ -1,0 +1,107 @@
+@using Microsoft.AspNetCore.Components
+
+<div class="client-card @(IsInteractive ? "interactive" : "")" @onclick="OnClick">
+    <div class="client-main">
+        <!-- Avatar and Info -->
+        <div class="client-info">
+            <div class="client-avatar">
+                @if (!string.IsNullOrEmpty(AvatarUrl))
+                {
+                    <MudAvatar Image="@AvatarUrl" Size="Size.Large" />
+                }
+                else
+                {
+                    <MudAvatar Size="Size.Large" Color="Color.Primary">
+                        @GetInitials(ClientName)
+                    </MudAvatar>
+                }
+            </div>
+
+            <div class="client-details">
+                <div class="client-header">
+                    <h3 class="client-name">@ClientName</h3>
+                    @if (!string.IsNullOrEmpty(ClientAlias))
+                    {
+                        <span class="client-alias">(@ClientAlias)</span>
+                    }
+                </div>
+
+                @if (!string.IsNullOrEmpty(SharingScope))
+                {
+                    <div class="scope-badge @SharingScope.ToLower()">
+                        @SharingScope
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(LastActivity))
+                {
+                    <p class="last-activity">@LastActivity</p>
+                }
+            </div>
+        </div>
+
+        <!-- Progress Ring -->
+        <div class="progress-section">
+            <div class="progress-ring-container">
+                <svg class="progress-ring" viewBox="0 0 100 100">
+                    <circle class="progress-ring-background" cx="50" cy="50" r="40" />
+                    <circle class="progress-ring-fill" cx="50" cy="50" r="40"
+                            style="stroke-dasharray: @CircumferenceValue; stroke-dashoffset: @StrokeDashOffset" />
+                </svg>
+                <div class="progress-text">
+                    <span class="progress-percentage">@AdherencePercentage%</span>
+                    <span class="progress-label">Adherence</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions Menu -->
+    <div class="client-actions">
+        <MudMenu Icon="@Icons.Material.Filled.MoreVert"
+                 Color="Color.Default"
+                 Size="Size.Small"
+                 Class="action-menu">
+            @if (MenuActions != null)
+            {
+                @MenuActions
+            }
+            else
+            {
+                <MudMenuItem Icon="@Icons.Material.Filled.Visibility">View Progress</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Filled.Edit">Edit Details</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Filled.Message">Send Message</MudMenuItem>
+                <MudDivider />
+                <MudMenuItem Icon="@Icons.Material.Filled.Delete" IconColor="Color.Error">Remove</MudMenuItem>
+            }
+        </MudMenu>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string ClientName { get; set; } = "";
+    [Parameter] public string? ClientAlias { get; set; }
+    [Parameter] public string? AvatarUrl { get; set; }
+    [Parameter] public string? SharingScope { get; set; }
+    [Parameter] public string? LastActivity { get; set; }
+    [Parameter] public int AdherencePercentage { get; set; } = 0;
+    [Parameter] public bool IsInteractive { get; set; } = true;
+    [Parameter] public EventCallback OnClick { get; set; }
+    [Parameter] public RenderFragment? MenuActions { get; set; }
+
+    private double CircumferenceValue => 2 * Math.PI * 40; // radius = 40
+    private double StrokeDashOffset => CircumferenceValue * (1 - AdherencePercentage / 100.0);
+
+    private string GetInitials(string name)
+    {
+        if (string.IsNullOrEmpty(name)) return "?";
+
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2)
+        {
+            return $"{parts[0][0]}{parts[1][0]}".ToUpper();
+        }
+
+        return name.Length >= 2 ? name.Substring(0, 2).ToUpper() : name.ToUpper();
+    }
+}

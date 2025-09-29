@@ -1,0 +1,247 @@
+.client-card {
+    background: #FFFFFF;
+    border-radius: 20px;
+    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.1), 0 1px 2px rgba(16, 24, 40, 0.06);
+    border: 1px solid #EEEEEE;
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    transition: all 200ms cubic-bezier(0.4, 0.0, 0.2, 1);
+    width: 100%;
+}
+
+.client-card.interactive {
+    cursor: pointer;
+}
+
+.client-card.interactive:hover {
+    box-shadow: 0 4px 8px -2px rgba(16, 24, 40, 0.1), 0 2px 4px -2px rgba(16, 24, 40, 0.06);
+    transform: translateY(-1px);
+    border-color: #D0D5DD;
+}
+
+.client-main {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex: 1;
+    min-width: 0;
+}
+
+.client-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+    min-width: 0;
+}
+
+.client-avatar {
+    flex-shrink: 0;
+}
+
+.client-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.client-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.client-name {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1E2837;
+    margin: 0;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.client-alias {
+    font-size: 0.875rem;
+    color: #757575;
+    font-weight: 400;
+}
+
+.scope-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 24px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    margin-bottom: 4px;
+}
+
+.scope-badge.summary {
+    background: rgba(255, 122, 0, 0.1);
+    color: #FF7A00;
+}
+
+.scope-badge.detailed {
+    background: rgba(0, 191, 165, 0.1);
+    color: #00BFA5;
+}
+
+.scope-badge.private {
+    background: rgba(117, 117, 117, 0.1);
+    color: #757575;
+}
+
+.last-activity {
+    font-size: 0.875rem;
+    color: #9E9E9E;
+    margin: 0;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.progress-section {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
+.progress-ring-container {
+    position: relative;
+    width: 80px;
+    height: 80px;
+}
+
+.progress-ring {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.progress-ring-background {
+    fill: none;
+    stroke: #F5F5F5;
+    stroke-width: 6;
+}
+
+.progress-ring-fill {
+    fill: none;
+    stroke: #00BFA5;
+    stroke-width: 6;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 600ms cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.progress-percentage {
+    display: block;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1E2837;
+    line-height: 1;
+}
+
+.progress-label {
+    display: block;
+    font-size: 0.75rem;
+    color: #9E9E9E;
+    line-height: 1;
+    margin-top: 2px;
+}
+
+.client-actions {
+    flex-shrink: 0;
+}
+
+.action-menu {
+    opacity: 0.6;
+    transition: opacity 200ms cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.client-card:hover .action-menu {
+    opacity: 1;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .client-card {
+        padding: 16px;
+        gap: 16px;
+    }
+
+    .client-main {
+        gap: 16px;
+    }
+
+    .client-info {
+        gap: 12px;
+    }
+
+    .client-name {
+        font-size: 1rem;
+    }
+
+    .progress-ring-container {
+        width: 60px;
+        height: 60px;
+    }
+
+    .progress-percentage {
+        font-size: 0.875rem;
+    }
+
+    .progress-label {
+        font-size: 0.625rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .client-card {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+    }
+
+    .client-main {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 16px;
+    }
+
+    .client-info {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 12px;
+    }
+
+    .client-header {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .progress-section {
+        align-self: center;
+    }
+
+    .client-actions {
+        align-self: center;
+    }
+}

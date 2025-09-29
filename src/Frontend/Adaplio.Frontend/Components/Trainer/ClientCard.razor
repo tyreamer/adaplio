@@ -1,151 +1,326 @@
 @using Microsoft.AspNetCore.Components
 @inject IJSRuntime JSRuntime
 
-<div class="client-card">
-    <div class="client-card-header">
+<div class="modern-client-card" @onclick="@(() => OnViewDetails.InvokeAsync(ClientData))">
+    <div class="client-main">
+        <!-- Avatar and Info -->
         <div class="client-info">
-            <div class="client-alias">@ClientData.Alias</div>
-            @if (!string.IsNullOrWhiteSpace(ClientData.DisplayName))
-            {
-                <div class="client-display-name">@ClientData.DisplayName</div>
-            }
+            <div class="client-avatar">
+                <MudAvatar Size="Size.Large" Color="Color.Primary">
+                    @GetClientInitials()
+                </MudAvatar>
+            </div>
+
+            <div class="client-details">
+                <div class="client-header">
+                    <h3 class="client-name">@GetClientName()</h3>
+                </div>
+
+                <div class="scope-badge @(ClientData.SharesSummary ? "summary" : "private")">
+                    @(ClientData.SharesSummary ? "Summary" : "Private")
+                </div>
+
+                <p class="last-activity">@GetRelativeTime(ClientData.LastActivity)</p>
+            </div>
         </div>
 
-        <div class="scope-pill @(ClientData.SharesSummary ? "scope-pill--summary" : "scope-pill--private")">
-            @(ClientData.SharesSummary ? "Summary" : "Private")
-        </div>
-    </div>
-
-    <div class="client-card-content">
-        <div class="client-stats">
-            <div class="adherence-section">
-                <div class="adherence-ring">
-                    <svg viewBox="0 0 36 36" class="adherence-circle">
-                        <path class="adherence-bg"
-                              d="M18 2.0845
-                                 a 15.9155 15.9155 0 0 1 0 31.831
-                                 a 15.9155 15.9155 0 0 1 0 -31.831"
-                              fill="none"
-                              stroke="var(--color-neutral-200)"
-                              stroke-width="2"/>
-                        <path class="adherence-progress"
-                              d="M18 2.0845
-                                 a 15.9155 15.9155 0 0 1 0 31.831
-                                 a 15.9155 15.9155 0 0 1 0 -31.831"
-                              fill="none"
-                              stroke="@GetAdherenceColor(ClientData.AdherencePercent)"
-                              stroke-width="2"
-                              stroke-dasharray="@(ClientData.AdherencePercent), 100"
-                              stroke-linecap="round"/>
-                    </svg>
-                    <div class="adherence-info">
-                        <div class="adherence-percentage">@ClientData.AdherencePercent%</div>
-                        <div class="adherence-label">Adherence</div>
-                    </div>
+        <!-- Progress Ring -->
+        <div class="progress-section">
+            <div class="progress-ring-container">
+                <svg class="progress-ring" viewBox="0 0 100 100">
+                    <circle class="progress-ring-background" cx="50" cy="50" r="40" />
+                    <circle class="progress-ring-fill" cx="50" cy="50" r="40"
+                            style="stroke-dasharray: @CircumferenceValue; stroke-dashoffset: @StrokeDashOffset" />
+                </svg>
+                <div class="progress-text">
+                    <span class="progress-percentage">@ClientData.AdherencePercent%</span>
+                    <span class="progress-label">Adherence</span>
                 </div>
             </div>
-
-            <div class="activity-section">
-                <div class="last-activity">@GetRelativeTime(ClientData.LastActivity)</div>
-                <div class="activity-label">Last Activity</div>
-            </div>
         </div>
     </div>
 
-    <div class="client-card-actions">
+    <!-- Actions Menu -->
+    <div class="client-actions" @onclick:stopPropagation="true">
         <MudMenu Icon="@Icons.Material.Filled.MoreVert"
-                 AnchorOrigin="Origin.BottomRight"
-                 TransformOrigin="Origin.TopRight"
-                 Class="three-dot-menu">
-            <MudMenuItem OnClick="@(() => OnViewDetails.InvokeAsync(ClientData))"
+                 Color="Color.Default"
+                 Size="Size.Small"
+                 Class="action-menu">
+            <MudMenuItem Icon="@Icons.Material.Filled.Visibility"
+                        OnClick="@(() => OnViewDetails.InvokeAsync(ClientData))"
                         Disabled="@(!ClientData.SharesSummary)">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <MudIcon Icon="@Icons.Material.Filled.Visibility" Size="Size.Small" />
-                    View Details
-                </div>
+                View Progress
             </MudMenuItem>
-            <MudMenuItem OnClick="@(() => OnSendProposal.InvokeAsync(ClientData))">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <MudIcon Icon="@Icons.Material.Filled.Send" Size="Size.Small" />
-                    Send Proposal
-                </div>
+            <MudMenuItem Icon="@Icons.Material.Filled.Send"
+                        OnClick="@(() => OnSendProposal.InvokeAsync(ClientData))">
+                Send Proposal
+            </MudMenuItem>
+            <MudMenuItem Icon="@Icons.Material.Filled.Message">
+                Send Message
             </MudMenuItem>
             <MudDivider />
-            <MudMenuItem OnClick="@(() => OnManageClient.InvokeAsync(ClientData))">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <MudIcon Icon="@Icons.Material.Filled.Settings" Size="Size.Small" />
-                    Manage Client
-                </div>
+            <MudMenuItem Icon="@Icons.Material.Filled.Settings"
+                        OnClick="@(() => OnManageClient.InvokeAsync(ClientData))">
+                Manage Client
             </MudMenuItem>
         </MudMenu>
     </div>
 </div>
 
 <style>
-.client-card-content {
-    margin-bottom: var(--space-lg);
-}
-
-.client-stats {
+.modern-client-card {
+    background: var(--color-surface);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--elevation-2);
+    border: 1px solid var(--color-neutral-200);
+    padding: var(--space-xxl);
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    align-items: center;
+    gap: var(--space-xxl);
+    transition: all var(--duration-gentle) var(--easing-standard);
+    width: 100%;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
 }
 
-.adherence-section {
+.modern-client-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 122, 0, 0.05), transparent);
+    transition: left 600ms ease;
+    z-index: 0;
+}
+
+.modern-client-card:hover::before {
+    left: 100%;
+}
+
+.modern-client-card > * {
+    position: relative;
+    z-index: 1;
+}
+
+.modern-client-card:hover {
+    box-shadow: 0 8px 25px rgba(16, 24, 40, 0.12), 0 4px 10px rgba(16, 24, 40, 0.08);
+    transform: translateY(-3px) scale(1.01);
+    border-color: var(--color-primary);
+}
+
+.modern-client-card:active {
+    transform: translateY(-1px) scale(0.99);
+    transition: all var(--duration-fast) var(--easing-standard);
+}
+
+.client-main {
     display: flex;
     align-items: center;
-    gap: var(--space-md);
+    gap: 24px;
+    flex: 1;
+    min-width: 0;
 }
 
-.adherence-circle {
-    width: 48px;
-    height: 48px;
+.client-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+    min-width: 0;
 }
 
-.adherence-info {
-    text-align: center;
+.client-avatar {
+    flex-shrink: 0;
 }
 
-.adherence-percentage {
+.client-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.client-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.client-name {
+    font-family: var(--font-family-primary);
     font-size: var(--font-size-lg);
     font-weight: var(--font-weight-semibold);
     color: var(--color-neutral-900);
-    line-height: 1;
+    margin: 0;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.adherence-label, .activity-label {
-    font-size: var(--font-size-xs);
-    color: var(--color-neutral-500);
-    margin-top: var(--space-xs);
+.client-alias {
+    font-size: 0.875rem;
+    color: #757575;
+    font-weight: 400;
 }
 
-.activity-section {
-    text-align: right;
+.scope-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 24px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    margin-bottom: 4px;
+    transition: all 200ms cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.modern-client-card:hover .scope-badge {
+    transform: scale(1.05);
+}
+
+.scope-badge.summary {
+    background: rgba(255, 122, 0, 0.1);
+    color: var(--color-primary);
+}
+
+.scope-badge.private {
+    background: rgba(117, 117, 117, 0.1);
+    color: #757575;
 }
 
 .last-activity {
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-medium);
-    color: var(--color-neutral-700);
+    font-size: 0.875rem;
+    color: #9E9E9E;
+    margin: 0;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.progress-section {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
+.progress-ring-container {
+    position: relative;
+    width: 80px;
+    height: 80px;
+}
+
+.progress-ring {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.progress-ring-background {
+    fill: none;
+    stroke: #F5F5F5;
+    stroke-width: 6;
+}
+
+.progress-ring-fill {
+    fill: none;
+    stroke: #00BFA5;
+    stroke-width: 6;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 600ms cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.modern-client-card:hover .progress-ring-fill {
+    filter: drop-shadow(0 0 4px rgba(0, 191, 165, 0.4));
+    animation: progressGlow 1.5s ease-in-out infinite;
+}
+
+@@keyframes progressGlow {
+    0%, 100% { filter: drop-shadow(0 0 4px rgba(0, 191, 165, 0.4)); }
+    50% { filter: drop-shadow(0 0 8px rgba(0, 191, 165, 0.6)); }
+}
+
+.progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.progress-percentage {
+    display: block;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1E2837;
     line-height: 1;
 }
 
-.client-card-actions {
-    display: flex;
-    justify-content: flex-end;
+.progress-label {
+    display: block;
+    font-size: 0.75rem;
+    color: #9E9E9E;
+    line-height: 1;
+    margin-top: 2px;
 }
 
-.three-dot-menu {
-    padding: var(--space-xs);
-    border-radius: var(--radius-sm);
-    transition: background-color var(--duration-fast) var(--easing-standard);
+.client-actions {
+    flex-shrink: 0;
 }
 
-.three-dot-menu:hover {
-    background-color: var(--color-neutral-100);
+.action-menu {
+    opacity: 0.6;
+    transition: all 200ms cubic-bezier(0.4, 0.0, 0.2, 1);
+    border-radius: 12px;
 }
 
+.action-menu:hover {
+    background: rgba(255, 122, 0, 0.1);
+    transform: scale(1.1);
+}
+
+.modern-client-card:hover .action-menu {
+    opacity: 1;
+}
+
+/* Mobile responsive */
+@@media (max-width: 768px) {
+    .modern-client-card {
+        padding: 16px;
+        gap: 16px;
+    }
+
+    .client-main {
+        gap: 16px;
+    }
+
+    .client-info {
+        gap: 12px;
+    }
+
+    .client-name {
+        font-size: 1rem;
+    }
+
+    .progress-ring-container {
+        width: 60px;
+        height: 60px;
+    }
+
+    .progress-percentage {
+        font-size: 0.875rem;
+    }
+
+    .progress-label {
+        font-size: 0.625rem;
+    }
+}
 </style>
 
 @code {
@@ -154,11 +329,43 @@
     [Parameter] public EventCallback<Adaplio.Frontend.Pages.HomeTrainer.ClientData> OnSendProposal { get; set; }
     [Parameter] public EventCallback<Adaplio.Frontend.Pages.HomeTrainer.ClientData> OnManageClient { get; set; }
 
+    private double CircumferenceValue => 2 * Math.PI * 40; // radius = 40
+    private double StrokeDashOffset => CircumferenceValue * (1 - ClientData.AdherencePercent / 100.0);
+
+    private string GetClientName()
+    {
+        if (!string.IsNullOrEmpty(ClientData.DisplayName))
+        {
+            return $"{ClientData.DisplayName} ({ClientData.Alias})";
+        }
+        return ClientData.Alias;
+    }
+
+    private string GetClientInitials()
+    {
+        if (!string.IsNullOrEmpty(ClientData.DisplayName))
+        {
+            var parts = ClientData.DisplayName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length >= 2)
+            {
+                return $"{parts[0][0]}{parts[1][0]}".ToUpper();
+            }
+            return ClientData.DisplayName.Length >= 2 ? ClientData.DisplayName.Substring(0, 2).ToUpper() : ClientData.DisplayName.ToUpper();
+        }
+
+        if (!string.IsNullOrEmpty(ClientData.Alias))
+        {
+            return ClientData.Alias.Length >= 2 ? ClientData.Alias.Substring(0, 2).ToUpper() : ClientData.Alias.ToUpper();
+        }
+
+        return "?";
+    }
+
     private string GetAdherenceColor(int percentage)
     {
-        return percentage >= 80 ? "var(--color-success)" :
-               percentage >= 60 ? "var(--color-warning)" :
-               "var(--color-error)";
+        return percentage >= 80 ? "#00BFA5" :
+               percentage >= 60 ? "#FF7A00" :
+               "#F04438";
     }
 
     private string GetRelativeTime(DateTime dateTime)
@@ -170,5 +377,4 @@
                timeSpan.TotalDays < 7 ? $"{(int)timeSpan.TotalDays}d ago" :
                dateTime.ToString("MMM dd");
     }
-
 }
