@@ -20,14 +20,14 @@
   "outputDirectory": "dist/wwwroot",
   "installCommand": "echo 'Using .NET runtime'",
   "devCommand": "dotnet watch run --project src/Frontend/Adaplio.Frontend/Adaplio.Frontend.csproj",
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "status": 404
+      "source": "/api/(.*)",
+      "destination": "/404.html"
     },
     {
-      "src": "/[^.]+",
-      "dest": "/index.html"
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
     }
   ],
   "headers": [
