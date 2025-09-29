@@ -1,650 +1,946 @@
 @page "/home/trainer"
 @using Adaplio.Frontend.Services
-@using Adaplio.Frontend.Components.Trainer
+@using System.ComponentModel.DataAnnotations
+@using System.Net.Http.Json
 @inject AuthStateService AuthState
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
 @inject IJSRuntime JSRuntime
+@inject HttpClient Http
 
-<PageTitle>Clients Overview - Adaplio</PageTitle>
+<PageTitle>Patients - Adaplio</PageTitle>
 
-<RoleGate TrainerOnly="true">
-
-<div class="trainer-home-modern">
-    <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="py-8">
-        <!-- Modern Header -->
-        <div class="page-header">
-            <div class="header-content">
-                <h1 class="modern-header">Clients Overview</h1>
-                <p class="modern-subheader">
-                    Welcome back, @AuthState.FullName — @GetClientSummary()
-                </p>
+<div class="trainer-dashboard">
+    <!-- Navigation Header -->
+    <nav class="dashboard-nav">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <span class="logo-icon">🧡</span>
+                <span class="brand-name">Adaplio</span>
             </div>
-
-            <div class="header-actions">
-                <MudButton Variant="Variant.Filled"
-                           Color="Color.Primary"
-                           Class="modern-invite-btn"
-                           StartIcon="@Icons.Material.Filled.PersonAdd"
-                           OnClick="SendInvite">
-                    Invite Client
-                </MudButton>
-
-                <div class="filter-tabs">
-                    <button class="filter-tab @(_currentFilter == "all" ? "active" : "")"
-                            @onclick="@(() => SetFilter("all"))">
-                        All (@_clients.Count)
-                    </button>
-                    <button class="filter-tab @(_currentFilter == "summary" ? "active" : "")"
-                            @onclick="@(() => SetFilter("summary"))">
-                        Summary (@_clients.Count(c => c.SharesSummary))
-                    </button>
-                    <button class="filter-tab @(_currentFilter == "private" ? "active" : "")"
-                            @onclick="@(() => SetFilter("private"))">
-                        Private (@_clients.Count(c => !c.SharesSummary))
-                    </button>
-                </div>
-
-                <!-- Top-right Icons for Notifications -->
-                <div class="top-actions">
-                    <MudIconButton Icon="@Icons.Material.Filled.Notifications"
-                                   Class="notification-icon"
-                                   OnClick="ToggleNotifications">
-                        @if (_notifications.Any(n => !n.IsRead))
-                        {
-                            <MudBadge Content="@_notifications.Count(n => !n.IsRead)"
-                                      Color="Color.Error"
-                                      Overlap="true"
-                                      Class="notification-badge" />
-                        }
-                    </MudIconButton>
+            <div class="nav-links">
+                <a href="/home/trainer" class="nav-link active">Dashboard</a>
+                <a href="/exercises" class="nav-link">Exercises</a>
+                <a href="/patients" class="nav-link highlighted">Patients</a>
+                <a href="/messages" class="nav-link">Messages</a>
+            </div>
+            <div class="nav-actions">
+                <button class="notification-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                </button>
+                <div class="profile-avatar">
+                    <span class="avatar-initials">@GetInitials()</span>
                 </div>
             </div>
         </div>
+    </nav>
 
-        <!-- Summary Banner -->
-        @if (_clients.Any())
-        {
-            <div class="summary-banner">
-                <div class="summary-content">
-                    <span class="summary-count">@_clients.Count Clients</span>
-                    <span class="summary-separator">·</span>
-                    <span class="summary-adherence">@GetAverageAdherence()% Average Adherence</span>
+    <!-- Main Content -->
+    <div class="dashboard-content">
+        <div class="content-container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1 class="page-title">Patients</h1>
+                <button class="invite-btn" @onclick="ShowInviteModal">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Invite New Patient
+                </button>
+            </div>
+
+            <!-- Filter Tabs -->
+            <div class="filter-tabs">
+                <button class="filter-tab @(_currentFilter == "all" ? "active" : "")" @onclick="@(() => SetFilter("all"))">
+                    All Patients
+                </button>
+                <button class="filter-tab @(_currentFilter == "active" ? "active" : "")" @onclick="@(() => SetFilter("active"))">
+                    Active
+                </button>
+                <button class="filter-tab @(_currentFilter == "needs-nudge" ? "active" : "")" @onclick="@(() => SetFilter("needs-nudge"))">
+                    Needs a Nudge
+                </button>
+            </div>
+
+            <!-- Patients Grid -->
+            <div class="patients-grid">
+                @if (_isLoading)
+                {
+                    @for (int i = 0; i < 6; i++)
+                    {
+                        <div class="patient-card loading">
+                            <div class="patient-avatar skeleton"></div>
+                            <div class="patient-info">
+                                <div class="patient-name skeleton-text"></div>
+                                <div class="patient-activity skeleton-text"></div>
+                                <div class="patient-stats">
+                                    <div class="skeleton-text small"></div>
+                                    <div class="skeleton-text small"></div>
+                                </div>
+                                <div class="progress-bar skeleton-bar"></div>
+                            </div>
+                        </div>
+                    }
+                }
+                else if (_filteredPatients.Any())
+                {
+                    @foreach (var patient in _filteredPatients)
+                    {
+                        <div class="patient-card" @onclick="@(() => ViewPatient(patient.Id))">
+                            <div class="patient-avatar">
+                                @if (!string.IsNullOrEmpty(patient.AvatarUrl))
+                                {
+                                    <img src="@patient.AvatarUrl" alt="@patient.Name" class="avatar-image" />
+                                }
+                                else
+                                {
+                                    <span class="avatar-initials">@GetPatientInitials(patient.Name)</span>
+                                }
+                            </div>
+                            <div class="patient-info">
+                                <h3 class="patient-name">@patient.Name</h3>
+                                <p class="patient-activity">Last active: @patient.LastActiveText</p>
+                                <div class="patient-stats">
+                                    <div class="stat-item">
+                                        <span class="stat-label">Level @patient.Level</span>
+                                        <span class="stat-separator">•</span>
+                                        <span class="stat-value">Streak: @patient.StreakDays days</span>
+                                    </div>
+                                </div>
+                                <div class="progress-section">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: @(patient.ProgressPercentage)%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.5">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                        </div>
+                        <h3 class="empty-title">No patients yet</h3>
+                        <p class="empty-description">Start building your patient base by sending your first invite.</p>
+                        <button class="empty-action-btn" @onclick="ShowInviteModal">
+                            Invite Your First Patient
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Invite Modal -->
+    @if (_showInviteModal)
+    {
+        <div class="modal-overlay" @onclick="CloseInviteModal">
+            <div class="modal-content" @onclick:stopPropagation="true">
+                <div class="modal-header">
+                    <h3>Invite New Patient</h3>
+                    <button class="close-btn" @onclick="CloseInviteModal">×</button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="@_inviteModel" OnValidSubmit="@SendInvite">
+                        <DataAnnotationsValidator />
+
+                        <div class="form-group">
+                            <label class="form-label">Patient Email</label>
+                            <input type="email"
+                                   @bind="_inviteModel.Email"
+                                   class="form-input"
+                                   placeholder="patient@email.com"
+                                   disabled="@_isSending" />
+                            <ValidationMessage For="@(() => _inviteModel.Email)" class="validation-error" />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Personal Message (Optional)</label>
+                            <textarea @bind="_inviteModel.Message"
+                                      class="form-textarea"
+                                      placeholder="Welcome to Adaplio! I'm excited to work with you on your recovery journey."
+                                      disabled="@_isSending"
+                                      rows="3"></textarea>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="cancel-btn" @onclick="CloseInviteModal" disabled="@_isSending">
+                                Cancel
+                            </button>
+                            <button type="submit" class="submit-btn" disabled="@(_isSending || string.IsNullOrWhiteSpace(_inviteModel.Email))">
+                                @if (_isSending)
+                                {
+                                    <span class="loading-spinner"></span>
+                                    <text>Sending...</text>
+                                }
+                                else
+                                {
+                                    <text>Send Invite</text>
+                                }
+                            </button>
+                        </div>
+                    </EditForm>
                 </div>
             </div>
-        }
-
-        <!-- Main Client Cards Section -->
-        <div class="clients-section">
-            @if (_isLoading)
-            {
-                <div class="loading-cards">
-                    @for (int i = 0; i < 5; i++)
-                    {
-                        <div class="client-card loading">
-                            <MudSkeleton Height="180px" />
-                        </div>
-                    }
-                </div>
-            }
-            else if (!_filteredClients.Any())
-            {
-                <div class="empty-state">
-                    <div class="empty-state-icon">
-                        <MudIcon Icon="@Icons.Material.Outlined.PersonSearch" Size="Size.Large" />
-                    </div>
-                    <div class="empty-state-title">No clients yet</div>
-                    <div class="empty-state-description">
-                        Start building your client base by sending your first invite.
-                        Once clients accept, they'll appear here as beautiful cards.
-                    </div>
-                    <MudButton Variant="Variant.Filled"
-                               Color="Color.Primary"
-                               StartIcon="@Icons.Material.Filled.PersonAdd"
-                               OnClick="SendInvite"
-                               Class="empty-state-action">
-                        Send First Invite
-                    </MudButton>
-                </div>
-            }
-            else
-            {
-                <div class="client-cards-grid">
-                    @{int index = 0;}
-                    @foreach (var client in _filteredClients)
-                    {
-                        <div class="client-card-wrapper" style="animation-delay: @((index * 100))ms;">
-                            <ClientCard ClientData="@client"
-                                        OnViewDetails="@ViewClientDetails"
-                                        OnSendProposal="@SendProposal"
-                                        OnManageClient="@ManageClient" />
-                        </div>
-                        index++;
-                    }
-                </div>
-            }
         </div>
-    </MudContainer>
-
-    <!-- Notification Slide Panel -->
-    <NotificationPanel IsOpen="@_notificationPanelOpen"
-                       Notifications="@_convertedNotifications"
-                       IsOpenChanged="@OnNotificationPanelToggle"
-                       OnNotificationRead="@OnNotificationRead"
-                       OnMarkAllRead="@OnMarkAllNotificationsRead" />
-
-    <!-- Floating Action Button -->
-    <FloatingActionButton OnNewProposal="@OnNewProposal"
-                           OnUploadVideo="@OnUploadVideo"
-                           OnSendInvite="@SendInvite" />
+    }
 </div>
 
 <style>
-/* 2025 Minimal SaaS Trainer Home */
-.trainer-home-modern {
-    background: var(--color-background);
+.trainer-dashboard {
     min-height: 100vh;
-    font-family: var(--font-family-primary);
+    background: #F9F7F4; /* Cream background */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-.page-header {
+/* Navigation */
+.dashboard-nav {
+    background: white;
+    border-bottom: 1px solid #E5E7EB;
+    padding: 0 24px;
+}
+
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: var(--space-xxxxl);
-    gap: var(--space-xl);
+    height: 64px;
 }
 
-.header-content {
-    flex: 1;
-}
-
-.header-actions {
+.nav-brand {
     display: flex;
     align-items: center;
-    gap: var(--space-xl);
+    font-weight: 600;
+    font-size: 20px;
+    color: #1F2937;
 }
 
-.filter-tabs {
+.logo-icon {
+    font-size: 24px;
+    margin-right: 8px;
+}
+
+.nav-links {
     display: flex;
-    background: var(--color-surface);
-    border-radius: var(--radius-lg);
-    padding: var(--space-xs);
-    box-shadow: var(--elevation-2);
-    gap: var(--space-xs);
+    gap: 32px;
 }
 
-.filter-tab {
-    background: transparent;
+.nav-link {
+    color: #6B7280;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 8px 0;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+    color: #1F2937;
+}
+
+.nav-link.active {
+    color: #1F2937;
+}
+
+.nav-link.highlighted {
+    color: #FF6B35;
+    border-bottom-color: #FF6B35;
+}
+
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.notification-btn {
+    background: none;
     border: none;
-    padding: var(--space-md) var(--space-lg);
-    border-radius: var(--radius-md);
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-medium);
-    color: var(--color-neutral-700);
+    color: #6B7280;
     cursor: pointer;
-    transition: all var(--duration-fast) var(--easing-standard);
-    white-space: nowrap;
+    padding: 8px;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
 }
 
-.filter-tab:hover {
-    background: var(--color-neutral-100);
-    color: var(--color-neutral-900);
+.notification-btn:hover {
+    background: #F3F4F6;
 }
 
-.filter-tab.active {
-    background: var(--color-primary);
-    color: var(--color-primary-on);
-    box-shadow: var(--elevation-1);
-}
-
-.top-actions {
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
-}
-
-.notification-icon {
-    padding: var(--space-md);
-    border-radius: var(--radius-lg);
-    background: var(--color-surface);
-    box-shadow: var(--elevation-2);
-    color: var(--color-neutral-700);
-    transition: all var(--duration-fast) var(--easing-standard);
-}
-
-.notification-icon:hover {
-    background: var(--color-neutral-100);
-    transform: translateY(-1px);
-    box-shadow: var(--elevation-3);
-}
-
-.clients-section {
-    width: 100%;
-}
-
-.client-cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-    gap: var(--space-xl);
-    width: 100%;
-}
-
-.client-card-wrapper {
-    animation: cardSlideIn 500ms cubic-bezier(0.4, 0.0, 0.2, 1) both;
-}
-
-@@keyframes cardSlideIn {
-    from {
-        opacity: 0;
-        transform: translateY(30px) scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-.loading-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-    gap: var(--space-xl);
-}
-
-.loading-cards .client-card.loading {
-    background: var(--color-surface);
-    border-radius: var(--radius-lg);
-    padding: var(--space-xl);
-    box-shadow: var(--elevation-2);
-}
-
-.empty-state-action {
-    margin-top: var(--space-lg);
-}
-
-/* Modern 2025 Styles */
-.modern-invite-btn {
-    border-radius: 24px !important;
-    font-weight: 600 !important;
-    text-transform: none !important;
-    padding: 12px 24px !important;
-    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05) !important;
-    transition: all 200ms cubic-bezier(0.4, 0.0, 0.2, 1) !important;
-}
-
-.modern-invite-btn:hover {
-    transform: translateY(-2px) scale(1.02) !important;
-    box-shadow: 0 8px 25px rgba(255, 122, 0, 0.3) !important;
-}
-
-.modern-invite-btn:active {
-    transform: translateY(0) scale(0.98) !important;
-    transition: all 150ms cubic-bezier(0.4, 0.0, 0.2, 1) !important;
-}
-
-.summary-banner {
-    background: #FFFFFF;
-    border: 1px solid #EEEEEE;
-    border-radius: 20px;
-    padding: 20px 32px;
-    margin-bottom: 32px;
-    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.1), 0 1px 2px rgba(16, 24, 40, 0.06);
-    transition: all 300ms cubic-bezier(0.4, 0.0, 0.2, 1);
-    animation: bannerSlideIn 600ms cubic-bezier(0.4, 0.0, 0.2, 1);
-}
-
-.summary-banner:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(16, 24, 40, 0.12), 0 4px 10px rgba(16, 24, 40, 0.08);
-}
-
-@@keyframes bannerSlideIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.summary-content {
+.profile-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #FF6B35;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-    font-size: 1rem;
+    color: white;
     font-weight: 600;
+    font-size: 12px;
 }
 
-.summary-count {
-    color: #1E2837;
+.avatar-initials {
+    text-transform: uppercase;
 }
 
-.summary-separator {
-    color: #9E9E9E;
-    font-weight: 400;
+/* Main Content */
+.dashboard-content {
+    padding: 32px 24px;
 }
 
-.summary-adherence {
-    color: #00BFA5;
+.content-container {
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
-.modern-header {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-    font-size: 2rem;
+/* Page Header */
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+}
+
+.page-title {
+    font-size: 36px;
     font-weight: 700;
-    color: #1E2837;
-    margin: 0 0 8px 0;
-    line-height: 1.2;
-}
-
-.modern-subheader {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-    font-size: 1rem;
-    color: #757575;
+    color: #1F2937;
     margin: 0;
-    line-height: 1.4;
 }
 
-/* Updated filter tabs for pill style */
+.invite-btn {
+    background: #FF6B35;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.invite-btn:hover {
+    background: #E55A2E;
+    transform: translateY(-1px);
+}
+
+/* Filter Tabs */
 .filter-tabs {
-    background: #F5F5F5;
-    border-radius: 24px;
+    display: flex;
+    gap: 8px;
+    margin-bottom: 32px;
+    background: #F3F4F6;
     padding: 4px;
-    box-shadow: none;
-    border: 1px solid #EEEEEE;
+    border-radius: 12px;
+    width: fit-content;
 }
 
 .filter-tab {
     background: transparent;
     border: none;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-    font-size: 0.875rem;
+    padding: 12px 20px;
+    border-radius: 8px;
     font-weight: 500;
-    color: #757575;
+    color: #6B7280;
     cursor: pointer;
-    transition: all 200ms cubic-bezier(0.4, 0.0, 0.2, 1);
+    transition: all 0.2s ease;
 }
 
 .filter-tab:hover {
-    background: #EEEEEE;
-    color: #1E2837;
-    transform: translateY(-1px);
+    color: #1F2937;
 }
 
 .filter-tab.active {
-    background: #FFFFFF;
-    color: #FF7A00;
+    background: white;
+    color: #1F2937;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Patients Grid */
+.patients-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+.patient-card {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid #F3F4F6;
+}
+
+.patient-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    border-color: #E5E7EB;
+}
+
+.patient-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #FED7AA, #F9A8D4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    overflow: hidden;
+}
+
+.avatar-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.patient-avatar .avatar-initials {
+    font-size: 24px;
     font-weight: 600;
-    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.1), 0 1px 2px rgba(16, 24, 40, 0.06);
-    transform: scale(1.02);
+    color: white;
 }
 
-.filter-tab.active:hover {
-    transform: scale(1.02) translateY(-1px);
-    box-shadow: 0 4px 12px rgba(255, 122, 0, 0.15);
+.patient-info {
+    flex: 1;
 }
 
-/* Mobile responsive */
+.patient-name {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1F2937;
+    margin: 0 0 8px 0;
+}
+
+.patient-activity {
+    font-size: 14px;
+    color: #6B7280;
+    margin: 0 0 16px 0;
+}
+
+.patient-stats {
+    margin-bottom: 16px;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.stat-label {
+    background: #10B981;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 12px;
+}
+
+.stat-separator {
+    color: #9CA3AF;
+}
+
+.stat-value {
+    color: #FF6B35;
+    font-weight: 500;
+}
+
+.progress-section {
+    margin-top: 16px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #F3F4F6;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #FF6B35, #FFA726);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+/* Loading States */
+.patient-card.loading {
+    pointer-events: none;
+}
+
+.skeleton {
+    background: linear-gradient(90deg, #F3F4F6 25%, #E5E7EB 50%, #F3F4F6 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 50%;
+}
+
+.skeleton-text {
+    background: linear-gradient(90deg, #F3F4F6 25%, #E5E7EB 50%, #F3F4F6 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    height: 16px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+}
+
+.skeleton-text.small {
+    height: 12px;
+    width: 60%;
+}
+
+.skeleton-bar {
+    background: linear-gradient(90deg, #F3F4F6 25%, #E5E7EB 50%, #F3F4F6 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    height: 8px;
+    border-radius: 4px;
+}
+
+@@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* Empty State */
+.empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 80px 20px;
+}
+
+.empty-icon {
+    margin-bottom: 24px;
+}
+
+.empty-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #1F2937;
+    margin: 0 0 12px 0;
+}
+
+.empty-description {
+    font-size: 16px;
+    color: #6B7280;
+    margin: 0 0 32px 0;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.empty-action-btn {
+    background: #FF6B35;
+    color: white;
+    border: none;
+    padding: 16px 32px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.empty-action-btn:hover {
+    background: #E55A2E;
+    transform: translateY(-1px);
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 24px;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.modal-header h3 {
+    font-size: 24px;
+    font-weight: 600;
+    color: #1F2937;
+    margin: 0;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #6B7280;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+}
+
+.close-btn:hover {
+    background: #F3F4F6;
+}
+
+.form-group {
+    margin-bottom: 24px;
+}
+
+.form-label {
+    display: block;
+    font-weight: 500;
+    color: #1F2937;
+    margin-bottom: 8px;
+}
+
+.form-input, .form-textarea {
+    width: 100%;
+    padding: 16px;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.2s ease;
+}
+
+.form-input:focus, .form-textarea:focus {
+    outline: none;
+    border-color: #FF6B35;
+    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.form-input:disabled, .form-textarea:disabled {
+    background: #F3F4F6;
+    color: #9CA3AF;
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 32px;
+}
+
+.cancel-btn {
+    background: transparent;
+    color: #6B7280;
+    border: 1px solid #E5E7EB;
+    padding: 16px 24px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.cancel-btn:hover:not(:disabled) {
+    background: #F3F4F6;
+    border-color: #D1D5DB;
+}
+
+.cancel-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.submit-btn {
+    background: #FF6B35;
+    color: white;
+    border: none;
+    padding: 16px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.submit-btn:hover:not(:disabled) {
+    background: #E55A2E;
+}
+
+.submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.loading-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.validation-error {
+    color: #EF4444;
+    font-size: 14px;
+    margin-top: 8px;
+}
+
+/* Responsive Design */
 @@media (max-width: 768px) {
-    .page-header {
-        flex-direction: column;
-        gap: 20px;
-        align-items: stretch;
+    .nav-container {
+        padding: 0 16px;
     }
 
-    .header-actions {
+    .nav-links {
+        display: none;
+    }
+
+    .dashboard-content {
+        padding: 24px 16px;
+    }
+
+    .page-header {
         flex-direction: column;
+        align-items: flex-start;
         gap: 16px;
-        align-items: stretch;
+    }
+
+    .patients-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
     }
 
     .filter-tabs {
-        order: 2;
+        width: 100%;
+        justify-content: center;
     }
 
-    .modern-invite-btn {
-        order: 1;
-        align-self: flex-start;
+    .modal-content {
+        padding: 24px;
+        margin: 16px;
     }
 
-    .summary-banner {
-        padding: 16px 20px;
-        margin-bottom: 24px;
+    .form-actions {
+        flex-direction: column;
     }
 
-    .summary-content {
-        font-size: 0.875rem;
-        gap: 8px;
-    }
-
-    .modern-header {
-        font-size: 1.75rem;
-    }
-
-    .modern-subheader {
-        font-size: 0.875rem;
+    .cancel-btn, .submit-btn {
+        width: 100%;
     }
 }
-
 </style>
 
 @code {
-    private bool _isLoading = true;
+    private List<PatientData> _patients = new();
+    private List<PatientData> _filteredPatients = new();
     private string _currentFilter = "all";
-    private bool _notificationPanelOpen = false;
-    private List<ClientData> _clients = new();
-    private List<Notification> _notifications = new();
-
-    private IEnumerable<ClientData> _filteredClients => _currentFilter switch
-    {
-        "summary" => _clients.Where(c => c.SharesSummary),
-        "private" => _clients.Where(c => !c.SharesSummary),
-        _ => _clients
-    };
-
-    private List<Components.Trainer.NotificationPanel.Notification> _convertedNotifications =>
-        _notifications.Select(n => new Components.Trainer.NotificationPanel.Notification
-        {
-            Message = n.Message,
-            CreatedAt = n.CreatedAt,
-            IsRead = n.IsRead
-        }).ToList();
+    private bool _isLoading = true;
+    private bool _showInviteModal = false;
+    private bool _isSending = false;
+    private readonly InviteModel _inviteModel = new();
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadData();
+        await LoadPatients();
+        _isLoading = false;
     }
 
-    private async Task LoadData()
+    private async Task LoadPatients()
     {
-        _isLoading = true;
-        StateHasChanged();
-
-        // Simulate API delay
-        await Task.Delay(1000);
-
-        // Mock data - Enhanced for 2025 design
-        _clients = new List<ClientData>
+        try
         {
-            new() { Id = 1, Alias = "C-AB12", DisplayName = "Sarah's Recovery Journey", Email = "sarah.j@email.com", SharesSummary = true, AdherencePercent = 85, LastActivity = DateTime.Now.AddHours(-2) },
-            new() { Id = 2, Alias = "C-CD34", DisplayName = "Mike's Strength Training", Email = "mike.r@email.com", SharesSummary = false, AdherencePercent = 92, LastActivity = DateTime.Now.AddDays(-1) },
-            new() { Id = 3, Alias = "C-EF56", DisplayName = "Getting Stronger 💪", Email = "alex.m@email.com", SharesSummary = true, AdherencePercent = 67, LastActivity = DateTime.Now.AddDays(-3) },
-            new() { Id = 4, Alias = "C-GH78", DisplayName = null, Email = "client4@email.com", SharesSummary = true, AdherencePercent = 94, LastActivity = DateTime.Now.AddHours(-4) },
-            new() { Id = 5, Alias = "C-IJ90", DisplayName = "Recovery Plus", Email = "jamie.l@email.com", SharesSummary = false, AdherencePercent = 78, LastActivity = DateTime.Now.AddDays(-2) }
-        };
+            // Simulate loading delay
+            await Task.Delay(1000);
 
-        _notifications = new List<Notification>
+            // Mock patient data
+            _patients = new List<PatientData>
+            {
+                new()
+                {
+                    Id = 1,
+                    Name = "Sarah Miller",
+                    LastActiveText = "2 days ago",
+                    Level = 3,
+                    StreakDays = 12,
+                    ProgressPercentage = 75,
+                    AvatarUrl = null
+                },
+                new()
+                {
+                    Id = 2,
+                    Name = "David Lee",
+                    LastActiveText = "1 week ago",
+                    Level = 3,
+                    StreakDays = 0,
+                    ProgressPercentage = 45,
+                    AvatarUrl = null
+                },
+                new()
+                {
+                    Id = 3,
+                    Name = "Emily Chen",
+                    LastActiveText = "3 days ago",
+                    Level = 4,
+                    StreakDays = 8,
+                    ProgressPercentage = 88,
+                    AvatarUrl = null
+                }
+            };
+
+            ApplyFilter();
+        }
+        catch (Exception ex)
         {
-            new() { Message = "C-AB12 declined Hip Extension exercise", CreatedAt = DateTime.Now.AddMinutes(-30), IsRead = false },
-            new() { Message = "C-CD34 changed sharing scope to Private", CreatedAt = DateTime.Now.AddHours(-2), IsRead = false },
-            new() { Message = "C-EF56 completed Week 1 milestone", CreatedAt = DateTime.Now.AddDays(-1), IsRead = true }
-        };
-
-        _isLoading = false;
-        StateHasChanged();
+            Snackbar.Add("Failed to load patients", Severity.Error);
+        }
     }
 
     private void SetFilter(string filter)
     {
         _currentFilter = filter;
-        StateHasChanged();
+        ApplyFilter();
+    }
+
+    private void ApplyFilter()
+    {
+        _filteredPatients = _currentFilter switch
+        {
+            "active" => _patients.Where(p => p.ProgressPercentage > 70).ToList(),
+            "needs-nudge" => _patients.Where(p => p.StreakDays == 0 || p.ProgressPercentage < 50).ToList(),
+            _ => _patients.ToList()
+        };
+    }
+
+    private void ViewPatient(int patientId)
+    {
+        Navigation.NavigateTo($"/patient/{patientId}");
+    }
+
+    private void ShowInviteModal()
+    {
+        _showInviteModal = true;
+        _inviteModel.Email = "";
+        _inviteModel.Message = "";
+    }
+
+    private void CloseInviteModal()
+    {
+        _showInviteModal = false;
     }
 
     private async Task SendInvite()
     {
-        // Generate grant code and copy to clipboard
-        var grantCode = "GRANT-" + Guid.NewGuid().ToString("N")[..8].ToUpper();
+        if (string.IsNullOrWhiteSpace(_inviteModel.Email))
+            return;
+
+        _isSending = true;
 
         try
         {
-            await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", grantCode);
-            Snackbar.Add($"Grant code {grantCode} copied to clipboard!", Severity.Success);
+            // TODO: Send invite via API
+            await Task.Delay(2000); // Simulate API call
+
+            Snackbar.Add($"Invite sent to {_inviteModel.Email}!", Severity.Success);
+            CloseInviteModal();
         }
-        catch
+        catch (Exception ex)
         {
-            Snackbar.Add($"Grant code: {grantCode} (Please copy manually)", Severity.Info);
+            Snackbar.Add("Failed to send invite. Please try again.", Severity.Error);
         }
-    }
-
-    private void ViewSummary(int clientId)
-    {
-        Navigation.NavigateTo($"/clients/{clientId}/summary");
-    }
-
-    private void NewProposal(int clientId)
-    {
-        Navigation.NavigateTo($"/proposals/new?clientId={clientId}");
-    }
-
-    private async Task UploadVideo()
-    {
-        Navigation.NavigateTo("/media/upload");
-    }
-
-    // New 2025 functionality
-    private string GetClientSummary()
-    {
-        if (!_clients.Any()) return "No clients connected yet";
-
-        var activeToday = _clients.Count(c => c.LastActivity.Date == DateTime.Today);
-        var avgAdherence = _clients.Average(c => c.AdherencePercent);
-
-        return $"{_clients.Count} client{(_clients.Count == 1 ? "" : "s")}, {avgAdherence:F0}% avg adherence";
-    }
-
-    private int GetAverageAdherence()
-    {
-        if (!_clients.Any()) return 0;
-        return (int)Math.Round(_clients.Average(c => c.AdherencePercent));
-    }
-
-    private void ToggleNotifications()
-    {
-        _notificationPanelOpen = !_notificationPanelOpen;
-    }
-
-    private async Task OnNotificationPanelToggle(bool isOpen)
-    {
-        _notificationPanelOpen = isOpen;
-    }
-
-    private async Task OnNotificationRead(Components.Trainer.NotificationPanel.Notification notification)
-    {
-        // Handle individual notification read
-        StateHasChanged();
-    }
-
-    private async Task OnMarkAllNotificationsRead()
-    {
-        // Handle mark all notifications as read
-        StateHasChanged();
-    }
-
-    private async Task ViewClientDetails(ClientData client)
-    {
-        if (client.SharesSummary)
+        finally
         {
-            Navigation.NavigateTo($"/clients/{client.Id}/summary");
-        }
-        else
-        {
-            Snackbar.Add("Client hasn't shared summary access", Severity.Info);
+            _isSending = false;
         }
     }
 
-    private async Task SendProposal(ClientData client)
+    private string GetInitials()
     {
-        Navigation.NavigateTo($"/proposals/new?clientId={client.Id}");
+        if (string.IsNullOrEmpty(AuthState.FullName))
+            return "TR";
+
+        var parts = AuthState.FullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2)
+            return $"{parts[0][0]}{parts[1][0]}".ToUpper();
+        return parts[0].Substring(0, Math.Min(2, parts[0].Length)).ToUpper();
     }
 
-    private async Task ManageClient(ClientData client)
+    private string GetPatientInitials(string name)
     {
-        Navigation.NavigateTo($"/clients/{client.Id}/manage");
+        if (string.IsNullOrEmpty(name))
+            return "P";
+
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2)
+            return $"{parts[0][0]}{parts[1][0]}".ToUpper();
+        return parts[0].Substring(0, Math.Min(2, parts[0].Length)).ToUpper();
     }
 
-    // FAB Actions
-    private async Task OnNewProposal()
-    {
-        Navigation.NavigateTo("/proposals/new");
-    }
-
-    private async Task OnUploadVideo()
-    {
-        Navigation.NavigateTo("/media/upload");
-    }
-
-    private Color GetAdherenceColor(int percentage)
-    {
-        return percentage >= 80 ? Color.Success :
-               percentage >= 60 ? Color.Warning :
-               Color.Error;
-    }
-
-
-    private string GetRelativeTime(DateTime dateTime)
-    {
-        var timeSpan = DateTime.Now - dateTime;
-
-        return timeSpan.TotalMinutes < 60 ? $"{(int)timeSpan.TotalMinutes}m ago" :
-               timeSpan.TotalHours < 24 ? $"{(int)timeSpan.TotalHours}h ago" :
-               timeSpan.TotalDays < 7 ? $"{(int)timeSpan.TotalDays}d ago" :
-               dateTime.ToString("MMM dd");
-    }
-
-
-    private string GetClientDisplayName(ClientData client)
-    {
-        if (!string.IsNullOrWhiteSpace(client.DisplayName))
-        {
-            return $"{client.DisplayName} ({client.Alias})";
-        }
-        return client.Alias;
-    }
-
-    // Data models
-    public class ClientData
+    public class PatientData
     {
         public int Id { get; set; }
-        public string Alias { get; set; } = "";
-        public string? DisplayName { get; set; }
-        public string Email { get; set; } = "";
-        public bool SharesSummary { get; set; }
-        public int AdherencePercent { get; set; }
-        public DateTime LastActivity { get; set; }
+        public string Name { get; set; } = "";
+        public string LastActiveText { get; set; } = "";
+        public int Level { get; set; }
+        public int StreakDays { get; set; }
+        public int ProgressPercentage { get; set; }
+        public string? AvatarUrl { get; set; }
+
+        // Compatibility properties for existing components
+        public string DisplayName => Name;
+        public string Alias => Name;
+        public int AdherencePercent => ProgressPercentage;
+        public DateTime LastActivity => DateTime.Now.AddDays(-1); // Mock for compatibility
+        public bool SharesSummary => true; // Mock for compatibility
     }
 
-    public class Notification
+    public class InviteModel
     {
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Please enter a valid email address")]
+        public string Email { get; set; } = "";
+
         public string Message { get; set; } = "";
-        public DateTime CreatedAt { get; set; }
-        public bool IsRead { get; set; }
     }
 }
-
-</RoleGate>

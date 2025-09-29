@@ -1,0 +1,596 @@
+@page "/exercise/{exerciseId}"
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<PageTitle>@ExerciseName - Adaplio</PageTitle>
+
+<div class="exercise-detail-page">
+    <!-- Header -->
+    <div class="exercise-header">
+        <div class="header-content">
+            <div class="brand-logo">
+                <span class="logo-icon">🧡</span>
+                <span class="brand-name">Adaplio</span>
+            </div>
+
+            <button class="close-btn" @onclick="@(() => Navigation.NavigateTo("/home/client"))">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="exercise-container">
+        <!-- Exercise Title -->
+        <h1 class="exercise-title">@ExerciseName</h1>
+
+        <!-- Video/Image Section -->
+        <div class="media-section">
+            @if (!string.IsNullOrEmpty(VideoUrl))
+            {
+                <div class="video-container">
+                    <video class="exercise-video" controls poster="@ThumbnailUrl">
+                        <source src="@VideoUrl" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    <div class="play-overlay" @onclick="PlayVideo">
+                        <div class="play-button">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="white" stroke="none">
+                                <polygon points="5,3 19,12 5,21"></polygon>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <!-- Placeholder when no video/image -->
+                <div class="media-placeholder">
+                    <div class="placeholder-content">
+                        <div class="placeholder-icon">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.5">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                <polyline points="21,15 16,10 5,21"></polyline>
+                            </svg>
+                        </div>
+                        <p class="placeholder-text">Exercise demonstration</p>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Exercise Parameters -->
+        <div class="exercise-params">
+            <div class="param-card sets">
+                <div class="param-label">Sets</div>
+                <div class="param-value">@Sets</div>
+            </div>
+            <div class="param-card hold">
+                <div class="param-label">Hold</div>
+                <div class="param-value">@HoldDuration</div>
+            </div>
+            <div class="param-card rest">
+                <div class="param-label">Rest</div>
+                <div class="param-value">@RestDuration</div>
+            </div>
+        </div>
+
+        <!-- Instructions Section -->
+        <div class="instructions-section">
+            <h2 class="section-title">How to do it</h2>
+            <div class="instructions-content">
+                <p>@Instructions</p>
+            </div>
+        </div>
+
+        <!-- Cautions Section -->
+        @if (!string.IsNullOrEmpty(Cautions))
+        {
+            <div class="cautions-section">
+                <h2 class="section-title">Cautions</h2>
+                <div class="cautions-content">
+                    <p>@Cautions</p>
+                </div>
+            </div>
+        }
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="complete-btn" @onclick="MarkAsComplete" disabled="@_isCompleting">
+                @if (_isCompleting)
+                {
+                    <span class="loading-spinner"></span>
+                    <text>Marking complete...</text>
+                }
+                else
+                {
+                    <text>Mark as complete</text>
+                }
+            </button>
+
+            <button class="difficulty-btn" @onclick="ReportDifficulty">
+                Report difficulty
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+.exercise-detail-page {
+    min-height: 100vh;
+    background: #F9F7F4; /* Cream background */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Header */
+.exercise-header {
+    background: white;
+    border-bottom: 1px solid #E5E7EB;
+    padding: 16px 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.brand-logo {
+    display: flex;
+    align-items: center;
+}
+
+.logo-icon {
+    font-size: 24px;
+    margin-right: 8px;
+}
+
+.brand-name {
+    font-size: 24px;
+    font-weight: 600;
+    color: #1F2937; /* Navy */
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.close-btn:hover {
+    background: #F3F4F6;
+}
+
+/* Main Content */
+.exercise-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 32px 24px;
+}
+
+.exercise-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #1F2937;
+    text-align: center;
+    margin: 0 0 32px 0;
+    line-height: 1.2;
+}
+
+/* Media Section */
+.media-section {
+    margin-bottom: 32px;
+}
+
+.video-container {
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    background: #E5E7EB;
+    aspect-ratio: 16/9;
+}
+
+.exercise-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.play-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    z-index: 2;
+}
+
+.play-button {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.play-button:hover {
+    background: rgba(0, 0, 0, 0.8);
+    transform: scale(1.1);
+}
+
+.media-placeholder {
+    border-radius: 20px;
+    background: #F3F4F6;
+    aspect-ratio: 16/9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed #D1D5DB;
+}
+
+.placeholder-content {
+    text-align: center;
+    opacity: 0.6;
+}
+
+.placeholder-icon {
+    margin-bottom: 12px;
+}
+
+.placeholder-text {
+    font-size: 16px;
+    color: #6B7280;
+    margin: 0;
+}
+
+/* Exercise Parameters */
+.exercise-params {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.param-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    border: 1px solid #E5E7EB;
+    transition: all 0.2s ease;
+}
+
+.param-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.param-card.sets {
+    border-top: 4px solid #FF6B35; /* Orange */
+}
+
+.param-card.hold {
+    border-top: 4px solid #10B981; /* Green */
+}
+
+.param-card.rest {
+    border-top: 4px solid #3B82F6; /* Blue */
+}
+
+.param-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #6B7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+}
+
+.param-card.sets .param-label {
+    color: #FF6B35;
+}
+
+.param-card.hold .param-label {
+    color: #10B981;
+}
+
+.param-card.rest .param-label {
+    color: #3B82F6;
+}
+
+.param-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1F2937;
+}
+
+/* Instructions Section */
+.instructions-section,
+.cautions-section {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    border: 1px solid #E5E7EB;
+}
+
+.section-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1F2937;
+    margin: 0 0 16px 0;
+}
+
+.instructions-content p,
+.cautions-content p {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #4B5563;
+    margin: 0;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 32px;
+}
+
+.complete-btn,
+.difficulty-btn {
+    width: 100%;
+    padding: 16px 24px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.complete-btn {
+    background: #FF6B35; /* Orange */
+    color: white;
+}
+
+.complete-btn:hover:not(:disabled) {
+    background: #E55A2E;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+.complete-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.difficulty-btn {
+    background: rgba(255, 107, 53, 0.1);
+    color: #FF6B35;
+    border: 1px solid rgba(255, 107, 53, 0.3);
+}
+
+.difficulty-btn:hover {
+    background: rgba(255, 107, 53, 0.15);
+    transform: translateY(-1px);
+}
+
+.loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@@media (max-width: 768px) {
+    .exercise-container {
+        padding: 24px 16px;
+    }
+
+    .exercise-title {
+        font-size: 28px;
+    }
+
+    .exercise-params {
+        gap: 12px;
+    }
+
+    .param-card {
+        padding: 16px;
+    }
+
+    .param-value {
+        font-size: 18px;
+    }
+
+    .instructions-section,
+    .cautions-section {
+        padding: 20px;
+    }
+
+    .action-buttons {
+        position: sticky;
+        bottom: 0;
+        background: #F9F7F4;
+        padding: 16px 0 0 0;
+        margin-top: 24px;
+    }
+}
+
+@@media (max-width: 480px) {
+    .exercise-params {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .param-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: left;
+        padding: 16px 20px;
+    }
+
+    .param-value {
+        font-size: 20px;
+    }
+}
+</style>
+
+@code {
+    [Parameter] public string ExerciseId { get; set; } = "";
+
+    private bool _isCompleting = false;
+    private ExerciseData? _exercise;
+
+    protected override void OnInitialized()
+    {
+        LoadExerciseData();
+    }
+
+    private void LoadExerciseData()
+    {
+        // Mock data based on exercise ID
+        _exercise = ExerciseId switch
+        {
+            "1" => new ExerciseData
+            {
+                Name = "Squats",
+                VideoUrl = "",
+                Sets = "10 reps",
+                HoldDuration = "2 seconds",
+                RestDuration = "30 seconds",
+                Instructions = "Stand with your feet shoulder-width apart. Lower your body as if sitting back into a chair, keeping your chest up and knees behind your toes. Push through your heels to return to standing position.",
+                Cautions = "Keep your knees aligned with your toes and avoid letting them cave inward. Don't lean too far forward."
+            },
+            "2" => new ExerciseData
+            {
+                Name = "Lunges",
+                VideoUrl = "",
+                Sets = "15 reps",
+                HoldDuration = "1 second",
+                RestDuration = "20 seconds",
+                Instructions = "Step forward with one leg, lowering your hips until both knees are bent at about a 90-degree angle. Make sure your front knee is directly above your ankle. Push back to the starting position and repeat with the other leg.",
+                Cautions = "Keep your upper body straight and avoid leaning forward. Don't let your front knee go past your toes."
+            },
+            "3" => new ExerciseData
+            {
+                Name = "Calf Raises",
+                VideoUrl = "",
+                Sets = "20 reps",
+                HoldDuration = "2 seconds",
+                RestDuration = "15 seconds",
+                Instructions = "Stand with your feet hip-width apart. Slowly rise up onto your toes, lifting your heels as high as possible. Hold for 2 seconds, then slowly lower back down.",
+                Cautions = "Move slowly and controlled. Avoid bouncing or using momentum."
+            },
+            "4" => new ExerciseData
+            {
+                Name = "Hamstring Curls",
+                VideoUrl = "",
+                Sets = "12 reps",
+                HoldDuration = "1 second",
+                RestDuration = "25 seconds",
+                Instructions = "Lie face down on a flat surface. Slowly curl your heels toward your buttocks, contracting your hamstring muscles. Hold for 1 second, then slowly lower your legs back to the starting position.",
+                Cautions = "Keep your hips pressed to the floor and avoid arching your back."
+            },
+            _ => new ExerciseData
+            {
+                Name = "Shoulder Blade Squeeze",
+                VideoUrl = "",
+                Sets = "10 reps",
+                HoldDuration = "10 seconds",
+                RestDuration = "10 seconds",
+                Instructions = "Sit or stand with your back straight. Squeeze your shoulder blades together as if you're trying to hold a pencil between them. Hold for 10 seconds, then relax. Repeat for 10 reps.",
+                Cautions = "Avoid shrugging your shoulders up towards your ears. Keep your neck relaxed and your gaze forward."
+            }
+        };
+    }
+
+    // Properties for binding
+    private string ExerciseName => _exercise?.Name ?? "Exercise";
+    private string VideoUrl => _exercise?.VideoUrl ?? "";
+    private string ThumbnailUrl => "";
+    private string Sets => _exercise?.Sets ?? "";
+    private string HoldDuration => _exercise?.HoldDuration ?? "";
+    private string RestDuration => _exercise?.RestDuration ?? "";
+    private string Instructions => _exercise?.Instructions ?? "";
+    private string Cautions => _exercise?.Cautions ?? "";
+
+    private void PlayVideo()
+    {
+        // Handle video play functionality
+        // For now, just remove the overlay
+    }
+
+    private async Task MarkAsComplete()
+    {
+        _isCompleting = true;
+        try
+        {
+            // Simulate API call to mark exercise as complete
+            await Task.Delay(1500);
+
+            Snackbar.Add("Exercise marked as complete! Great job! 🎉", Severity.Success);
+
+            // Navigate back to dashboard
+            Navigation.NavigateTo("/home/client");
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Failed to mark exercise as complete. Please try again.", Severity.Error);
+        }
+        finally
+        {
+            _isCompleting = false;
+        }
+    }
+
+    private void ReportDifficulty()
+    {
+        // Handle difficulty reporting
+        Snackbar.Add("Thanks for your feedback! Your trainer will be notified.", Severity.Info);
+    }
+
+    public class ExerciseData
+    {
+        public string Name { get; set; } = "";
+        public string VideoUrl { get; set; } = "";
+        public string Sets { get; set; } = "";
+        public string HoldDuration { get; set; } = "";
+        public string RestDuration { get; set; } = "";
+        public string Instructions { get; set; } = "";
+        public string Cautions { get; set; } = "";
+    }
+}

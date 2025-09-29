@@ -324,10 +324,10 @@
 </style>
 
 @code {
-    [Parameter] public Adaplio.Frontend.Pages.HomeTrainer.ClientData ClientData { get; set; } = new();
-    [Parameter] public EventCallback<Adaplio.Frontend.Pages.HomeTrainer.ClientData> OnViewDetails { get; set; }
-    [Parameter] public EventCallback<Adaplio.Frontend.Pages.HomeTrainer.ClientData> OnSendProposal { get; set; }
-    [Parameter] public EventCallback<Adaplio.Frontend.Pages.HomeTrainer.ClientData> OnManageClient { get; set; }
+    [Parameter] public Adaplio.Frontend.Pages.HomeTrainer.PatientData ClientData { get; set; } = new();
+    [Parameter] public EventCallback<Adaplio.Frontend.Pages.HomeTrainer.PatientData> OnViewDetails { get; set; }
+    [Parameter] public EventCallback<Adaplio.Frontend.Pages.HomeTrainer.PatientData> OnSendProposal { get; set; }
+    [Parameter] public EventCallback<Adaplio.Frontend.Pages.HomeTrainer.PatientData> OnManageClient { get; set; }
 
     private double CircumferenceValue => 2 * Math.PI * 40; // radius = 40
     private double StrokeDashOffset => CircumferenceValue * (1 - ClientData.AdherencePercent / 100.0);

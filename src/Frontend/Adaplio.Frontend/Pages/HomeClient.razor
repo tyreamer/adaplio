@@ -59,7 +59,7 @@
                     <div class="exercises-list">
                         @foreach (var exercise in _todaysExercises)
                         {
-                            <div class="exercise-card">
+                            <div class="exercise-card" @onclick="@(() => ViewExercise(exercise))">
                                 <div class="exercise-header">
                                     <div class="exercise-info">
                                         <div class="exercise-icon">
@@ -681,10 +681,10 @@
             // Mock data for today's exercises
             _todaysExercises = new List<TodayExercise>
             {
-                new() { Name = "Squats", Reps = "10 reps", Progress = 100, IsCompleted = true },
-                new() { Name = "Lunges", Reps = "15 reps", Progress = 60, IsCompleted = false },
-                new() { Name = "Calf Raises", Reps = "20 reps", Progress = 0, IsCompleted = false },
-                new() { Name = "Hamstring Curls", Reps = "12 reps", Progress = 0, IsCompleted = false }
+                new() { Id = "1", Name = "Squats", Reps = "10 reps", Progress = 100, IsCompleted = true },
+                new() { Id = "2", Name = "Lunges", Reps = "15 reps", Progress = 60, IsCompleted = false },
+                new() { Id = "3", Name = "Calf Raises", Reps = "20 reps", Progress = 0, IsCompleted = false },
+                new() { Id = "4", Name = "Hamstring Curls", Reps = "12 reps", Progress = 0, IsCompleted = false }
             };
         }
         catch
@@ -698,8 +698,15 @@
         }
     }
 
+    private void ViewExercise(TodayExercise exercise)
+    {
+        // Navigate to exercise detail page
+        Navigation.NavigateTo($"/exercise/{exercise.Id}");
+    }
+
     public class TodayExercise
     {
+        public string Id { get; set; } = "";
         public string Name { get; set; } = "";
         public string Reps { get; set; } = "";
         public int Progress { get; set; }

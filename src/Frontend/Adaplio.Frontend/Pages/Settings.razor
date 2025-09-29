@@ -12,16 +12,9 @@
     <!-- Header -->
     <div class="settings-header">
         <div class="header-content">
-            <button class="back-btn" @onclick="@(() => Navigation.NavigateTo("/profile"))">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="15,18 9,12 15,6"></polyline>
-                </svg>
-            </button>
-            <div class="header-info">
-                <div class="brand-logo">
-                    <span class="logo-icon">🧡</span>
-                    <span class="brand-name">Adaplio</span>
-                </div>
+            <div class="brand-logo">
+                <span class="logo-icon">🧡</span>
+                <span class="brand-name">Adaplio</span>
             </div>
             <div class="header-actions">
                 <button class="settings-icon-btn">
@@ -182,8 +175,8 @@
                     <div class="setting-icon">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2">
                             <circle cx="12" cy="12" r="10"></circle>
-                            <path d="M9,9h6v6H9z"></path>
-                            <path d="M9 1v6h6V1"></path>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
                         </svg>
                     </div>
                     <div class="setting-content">
@@ -254,37 +247,17 @@
 /* Header */
 .settings-header {
     background: white;
-    border-bottom: 1px solid #E5E7EB;
-    padding: 16px 0;
+    padding: 20px 24px;
+    display: flex;
+    justify-content: center;
 }
 
 .header-content {
+    width: 100%;
     max-width: 600px;
-    margin: 0 auto;
-    padding: 0 24px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-}
-
-.back-btn {
-    background: none;
-    border: none;
-    color: #6B7280;
-    cursor: pointer;
-    padding: 8px;
-    border-radius: 8px;
-    transition: background-color 0.2s ease;
-}
-
-.back-btn:hover {
-    background: #F3F4F6;
-}
-
-.header-info {
-    flex: 1;
-    display: flex;
-    justify-content: center;
 }
 
 .brand-logo {
@@ -348,31 +321,35 @@
 
 /* Content */
 .settings-content {
-    padding: 24px;
+    padding: 0 24px 24px 24px;
+    display: flex;
+    justify-content: center;
 }
 
 .settings-container {
+    width: 100%;
     max-width: 600px;
-    margin: 0 auto;
 }
 
 .settings-title {
-    font-size: 28px;
+    font-size: 32px;
     font-weight: 700;
     color: #1F2937; /* Navy */
-    margin: 0 0 32px 0;
+    margin: 32px 0;
 }
 
 /* Sections */
 .settings-section {
-    margin-bottom: 32px;
+    margin-bottom: 40px;
 }
 
 .section-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: #1F2937; /* Navy */
+    font-size: 16px;
+    font-weight: 500;
+    color: #6B7280; /* Gray */
     margin: 0 0 16px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 /* Setting Items */
@@ -380,21 +357,31 @@
     background: white;
     border-radius: 12px;
     padding: 16px;
-    margin-bottom: 12px;
+    margin-bottom: 1px;
     display: flex;
     align-items: center;
     cursor: pointer;
     transition: all 0.2s ease;
-    border: 1px solid #E5E7EB;
+    min-height: 60px;
 }
 
 .setting-item:hover {
     background: #F9FAFB;
-    border-color: #D1D5DB;
+}
+
+.setting-item:first-child {
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
 }
 
 .setting-item:last-child {
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
     margin-bottom: 0;
+}
+
+.setting-item:not(:first-child):not(:last-child) {
+    border-radius: 0;
 }
 
 .setting-icon {
@@ -402,6 +389,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 40px;
+    height: 40px;
 }
 
 .setting-content {
@@ -476,42 +465,45 @@ input:checked + .toggle-slider:before {
 
 /* Logout Section */
 .logout-section {
-    margin-top: 40px;
-    padding-top: 24px;
-    border-top: 1px solid #E5E7EB;
+    margin-top: 32px;
+    margin-bottom: 32px;
 }
 
 .logout-btn {
     width: 100%;
     padding: 16px;
     background: transparent;
-    color: #EF4444; /* Red */
-    border: 1px solid #E5E7EB;
+    color: #1F2937;
+    border: none;
     border-radius: 12px;
     font-size: 16px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;
+    text-align: center;
 }
 
 .logout-btn:hover {
-    background: #FEF2F2;
-    border-color: #FECACA;
+    background: #F3F4F6;
 }
 
 /* Responsive Design */
 @@media (max-width: 640px) {
     .settings-content {
+        padding: 0 16px 24px 16px;
+    }
+
+    .settings-header {
         padding: 16px;
     }
 
     .header-content {
-        padding: 0 16px;
+        padding: 0;
     }
 
     .settings-title {
-        font-size: 24px;
-        margin-bottom: 24px;
+        font-size: 28px;
+        margin: 24px 0;
     }
 
     .setting-item {
@@ -519,14 +511,14 @@ input:checked + .toggle-slider:before {
     }
 
     .section-title {
-        font-size: 16px;
+        font-size: 14px;
     }
 }
 </style>
 
 @code {
     private bool _exerciseReminders = true;
-    private bool _messageAlerts = true;
+    private bool _messageAlerts = false;
     private bool _darkMode = false;
 
     private async Task ToggleExerciseReminders()

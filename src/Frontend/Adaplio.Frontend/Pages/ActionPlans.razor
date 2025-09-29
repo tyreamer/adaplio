@@ -1,0 +1,1000 @@
+@page "/action-plans"
+@using System.ComponentModel.DataAnnotations
+@using System.Net.Http.Json
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
+@inject HttpClient Http
+
+<PageTitle>Action Plan Invites - Adaplio</PageTitle>
+
+<div class="action-plans-page">
+    <!-- Navigation Header -->
+    <nav class="dashboard-nav">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <span class="logo-icon">🧡</span>
+                <span class="brand-name">Adaplio</span>
+            </div>
+            <div class="nav-links">
+                <a href="/home/trainer" class="nav-link">Dashboard</a>
+                <a href="/patients" class="nav-link">Clients</a>
+                <a href="/action-plans" class="nav-link highlighted">Action Plans</a>
+                <a href="/exercises" class="nav-link">Exercises</a>
+                <a href="/resources" class="nav-link">Resources</a>
+            </div>
+            <div class="nav-actions">
+                <button class="notification-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                </button>
+                <div class="profile-avatar">
+                    <span class="avatar-initials">@GetInitials()</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="dashboard-content">
+        <div class="content-container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1 class="page-title">Action Plan Invites</h1>
+                <button class="new-invite-btn" @onclick="CreateNewInvite">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    New Invite
+                </button>
+            </div>
+
+            <!-- Action Plans Table -->
+            <div class="table-container">
+                @if (_isLoading)
+                {
+                    <div class="loading-state">
+                        @for (int i = 0; i < 5; i++)
+                        {
+                            <div class="table-row loading">
+                                <div class="status-cell">
+                                    <div class="skeleton-badge"></div>
+                                </div>
+                                <div class="date-cell">
+                                    <div class="skeleton-text"></div>
+                                </div>
+                                <div class="actions-cell">
+                                    <div class="skeleton-actions"></div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else if (_actionPlans.Any())
+                {
+                    <div class="table-header">
+                        <div class="status-header">Status</div>
+                        <div class="date-header">Date Created</div>
+                        <div class="actions-header">Actions</div>
+                    </div>
+
+                    <div class="table-body">
+                        @foreach (var plan in _actionPlans)
+                        {
+                            <div class="table-row">
+                                <div class="status-cell">
+                                    <span class="status-badge @GetStatusClass(plan.Status)">
+                                        @plan.Status
+                                    </span>
+                                </div>
+                                <div class="date-cell">
+                                    <span class="date-text">@plan.DateCreated.ToString("MMM dd, yyyy")</span>
+                                </div>
+                                <div class="actions-cell">
+                                    <button class="action-btn edit" @onclick="@(() => EditPlan(plan.Id))" title="Edit">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                        </svg>
+                                    </button>
+                                    <button class="action-btn send" @onclick="@(() => SendPlan(plan.Id))" title="Send">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                                            <polygon points="22,2 15,22 11,13 2,9"></polygon>
+                                        </svg>
+                                    </button>
+                                    <button class="action-btn delete" @onclick="@(() => DeletePlan(plan.Id))" title="Delete">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="3,6 5,6 21,6"></polyline>
+                                            <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6m3,0V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.5">
+                                <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="empty-title">No action plans yet</h3>
+                        <p class="empty-description">Create your first action plan invite to get started.</p>
+                        <button class="empty-action-btn" @onclick="CreateNewInvite">
+                            Create New Action Plan
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- New Invite Modal -->
+    @if (_showNewInviteModal)
+    {
+        <div class="modal-overlay" @onclick="CloseNewInviteModal">
+            <div class="modal-content" @onclick:stopPropagation="true">
+                <div class="modal-header">
+                    <h3>Create New Action Plan Invite</h3>
+                    <button class="close-btn" @onclick="CloseNewInviteModal">×</button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="@_newInviteModel" OnValidSubmit="@CreateInvite">
+                        <DataAnnotationsValidator />
+
+                        <div class="form-group">
+                            <label class="form-label">Client Email</label>
+                            <input type="email"
+                                   @bind="_newInviteModel.ClientEmail"
+                                   class="form-input"
+                                   placeholder="client@email.com"
+                                   disabled="@_isCreating" />
+                            <ValidationMessage For="@(() => _newInviteModel.ClientEmail)" class="validation-error" />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Action Plan Title</label>
+                            <input type="text"
+                                   @bind="_newInviteModel.Title"
+                                   class="form-input"
+                                   placeholder="Recovery Plan for Knee Injury"
+                                   disabled="@_isCreating" />
+                            <ValidationMessage For="@(() => _newInviteModel.Title)" class="validation-error" />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Description (Optional)</label>
+                            <textarea @bind="_newInviteModel.Description"
+                                      class="form-textarea"
+                                      placeholder="Brief description of the action plan..."
+                                      disabled="@_isCreating"
+                                      rows="3"></textarea>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="cancel-btn" @onclick="CloseNewInviteModal" disabled="@_isCreating">
+                                Cancel
+                            </button>
+                            <button type="submit" class="submit-btn" disabled="@(_isCreating || !IsFormValid())">
+                                @if (_isCreating)
+                                {
+                                    <span class="loading-spinner"></span>
+                                    <text>Creating...</text>
+                                }
+                                else
+                                {
+                                    <text>Create Invite</text>
+                                }
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+.action-plans-page {
+    min-height: 100vh;
+    background: #F9F7F4; /* Cream background */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Navigation */
+.dashboard-nav {
+    background: white;
+    border-bottom: 1px solid #E5E7EB;
+    padding: 0 24px;
+}
+
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+}
+
+.nav-brand {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    font-size: 20px;
+    color: #1F2937;
+}
+
+.logo-icon {
+    font-size: 24px;
+    margin-right: 8px;
+}
+
+.nav-links {
+    display: flex;
+    gap: 32px;
+}
+
+.nav-link {
+    color: #6B7280;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 8px 0;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+    color: #1F2937;
+}
+
+.nav-link.highlighted {
+    color: #FF6B35;
+    border-bottom-color: #FF6B35;
+}
+
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.notification-btn {
+    background: none;
+    border: none;
+    color: #6B7280;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+}
+
+.notification-btn:hover {
+    background: #F3F4F6;
+}
+
+.profile-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #FF6B35;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.avatar-initials {
+    text-transform: uppercase;
+}
+
+/* Main Content */
+.dashboard-content {
+    padding: 32px 24px;
+}
+
+.content-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Page Header */
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+}
+
+.page-title {
+    font-size: 36px;
+    font-weight: 700;
+    color: #1F2937;
+    margin: 0;
+}
+
+.new-invite-btn {
+    background: #FF6B35;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.new-invite-btn:hover {
+    background: #E55A2E;
+    transform: translateY(-1px);
+}
+
+/* Table */
+.table-container {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.table-header {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    background: #F9FAFB;
+    border-bottom: 1px solid #E5E7EB;
+    padding: 16px 24px;
+    font-weight: 600;
+    color: #374151;
+    font-size: 14px;
+}
+
+.status-header,
+.date-header,
+.actions-header {
+    display: flex;
+    align-items: center;
+}
+
+.table-body {
+    background: white;
+}
+
+.table-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    padding: 20px 24px;
+    border-bottom: 1px solid #F3F4F6;
+    align-items: center;
+    transition: background-color 0.2s ease;
+}
+
+.table-row:last-child {
+    border-bottom: none;
+}
+
+.table-row:hover {
+    background: #F9FAFB;
+}
+
+.table-row.loading {
+    pointer-events: none;
+}
+
+/* Status Badges */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+.status-badge.draft {
+    background: #F3F4F6;
+    color: #6B7280;
+}
+
+.status-badge.sent {
+    background: #DBEAFE;
+    color: #1D4ED8;
+}
+
+.status-badge.approved {
+    background: #D1FAE5;
+    color: #059669;
+}
+
+.status-badge.rejected {
+    background: #FEE2E2;
+    color: #DC2626;
+}
+
+/* Date Cell */
+.date-text {
+    color: #6B7280;
+    font-size: 14px;
+}
+
+/* Actions */
+.actions-cell {
+    display: flex;
+    gap: 8px;
+}
+
+.action-btn {
+    background: none;
+    border: 1px solid #E5E7EB;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6B7280;
+}
+
+.action-btn:hover {
+    background: #F3F4F6;
+    border-color: #D1D5DB;
+    color: #374151;
+}
+
+.action-btn.edit:hover {
+    background: #EEF2FF;
+    border-color: #C7D2FE;
+    color: #4F46E5;
+}
+
+.action-btn.send:hover {
+    background: #ECFDF5;
+    border-color: #BBF7D0;
+    color: #059669;
+}
+
+.action-btn.delete:hover {
+    background: #FEF2F2;
+    border-color: #FECACA;
+    color: #DC2626;
+}
+
+/* Loading States */
+.loading-state {
+    background: white;
+}
+
+.skeleton-badge {
+    width: 80px;
+    height: 32px;
+    background: linear-gradient(90deg, #F3F4F6 25%, #E5E7EB 50%, #F3F4F6 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 20px;
+}
+
+.skeleton-text {
+    width: 120px;
+    height: 16px;
+    background: linear-gradient(90deg, #F3F4F6 25%, #E5E7EB 50%, #F3F4F6 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+}
+
+.skeleton-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.skeleton-actions::before,
+.skeleton-actions::after {
+    content: '';
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(90deg, #F3F4F6 25%, #E5E7EB 50%, #F3F4F6 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 8px;
+}
+
+@@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    background: white;
+}
+
+.empty-icon {
+    margin-bottom: 24px;
+}
+
+.empty-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #1F2937;
+    margin: 0 0 12px 0;
+}
+
+.empty-description {
+    font-size: 16px;
+    color: #6B7280;
+    margin: 0 0 32px 0;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.empty-action-btn {
+    background: #FF6B35;
+    color: white;
+    border: none;
+    padding: 16px 32px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.empty-action-btn:hover {
+    background: #E55A2E;
+    transform: translateY(-1px);
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 24px;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.modal-header h3 {
+    font-size: 24px;
+    font-weight: 600;
+    color: #1F2937;
+    margin: 0;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #6B7280;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+}
+
+.close-btn:hover {
+    background: #F3F4F6;
+}
+
+.form-group {
+    margin-bottom: 24px;
+}
+
+.form-label {
+    display: block;
+    font-weight: 500;
+    color: #1F2937;
+    margin-bottom: 8px;
+}
+
+.form-input, .form-textarea {
+    width: 100%;
+    padding: 16px;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.2s ease;
+}
+
+.form-input:focus, .form-textarea:focus {
+    outline: none;
+    border-color: #FF6B35;
+    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.form-input:disabled, .form-textarea:disabled {
+    background: #F3F4F6;
+    color: #9CA3AF;
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 32px;
+}
+
+.cancel-btn {
+    background: transparent;
+    color: #6B7280;
+    border: 1px solid #E5E7EB;
+    padding: 16px 24px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.cancel-btn:hover:not(:disabled) {
+    background: #F3F4F6;
+    border-color: #D1D5DB;
+}
+
+.cancel-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.submit-btn {
+    background: #FF6B35;
+    color: white;
+    border: none;
+    padding: 16px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.submit-btn:hover:not(:disabled) {
+    background: #E55A2E;
+}
+
+.submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.loading-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.validation-error {
+    color: #EF4444;
+    font-size: 14px;
+    margin-top: 8px;
+}
+
+/* Responsive Design */
+@@media (max-width: 768px) {
+    .nav-container {
+        padding: 0 16px;
+    }
+
+    .nav-links {
+        display: none;
+    }
+
+    .dashboard-content {
+        padding: 24px 16px;
+    }
+
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .table-header,
+    .table-row {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .table-header {
+        display: none;
+    }
+
+    .table-row {
+        padding: 16px;
+        border: 1px solid #E5E7EB;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        background: white;
+    }
+
+    .status-cell::before {
+        content: 'Status: ';
+        font-weight: 600;
+        color: #6B7280;
+        font-size: 14px;
+    }
+
+    .date-cell::before {
+        content: 'Created: ';
+        font-weight: 600;
+        color: #6B7280;
+        font-size: 14px;
+    }
+
+    .actions-cell {
+        justify-content: flex-start;
+        margin-top: 8px;
+    }
+
+    .modal-content {
+        padding: 24px;
+        margin: 16px;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .cancel-btn, .submit-btn {
+        width: 100%;
+    }
+}
+</style>
+
+@code {
+    private List<ActionPlanInvite> _actionPlans = new();
+    private bool _isLoading = true;
+    private bool _showNewInviteModal = false;
+    private bool _isCreating = false;
+    private readonly NewInviteModel _newInviteModel = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadActionPlans();
+        _isLoading = false;
+    }
+
+    private async Task LoadActionPlans()
+    {
+        try
+        {
+            // Simulate loading delay
+            await Task.Delay(1000);
+
+            // Mock action plan data
+            _actionPlans = new List<ActionPlanInvite>
+            {
+                new()
+                {
+                    Id = 1,
+                    Status = "Draft",
+                    DateCreated = new DateTime(2024, 7, 26),
+                    ClientEmail = "sarah@example.com",
+                    Title = "Knee Recovery Plan"
+                },
+                new()
+                {
+                    Id = 2,
+                    Status = "Sent",
+                    DateCreated = new DateTime(2024, 7, 20),
+                    ClientEmail = "david@example.com",
+                    Title = "Shoulder Rehabilitation"
+                },
+                new()
+                {
+                    Id = 3,
+                    Status = "Approved",
+                    DateCreated = new DateTime(2024, 7, 15),
+                    ClientEmail = "emily@example.com",
+                    Title = "Back Pain Management"
+                },
+                new()
+                {
+                    Id = 4,
+                    Status = "Rejected",
+                    DateCreated = new DateTime(2024, 7, 10),
+                    ClientEmail = "john@example.com",
+                    Title = "Ankle Sprain Recovery"
+                },
+                new()
+                {
+                    Id = 5,
+                    Status = "Draft",
+                    DateCreated = new DateTime(2024, 7, 5),
+                    ClientEmail = "lisa@example.com",
+                    Title = "Hip Mobility Plan"
+                }
+            };
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Failed to load action plans", Severity.Error);
+        }
+    }
+
+    private string GetStatusClass(string status)
+    {
+        return status.ToLower();
+    }
+
+    private void CreateNewInvite()
+    {
+        _showNewInviteModal = true;
+        _newInviteModel.ClientEmail = "";
+        _newInviteModel.Title = "";
+        _newInviteModel.Description = "";
+    }
+
+    private void CloseNewInviteModal()
+    {
+        _showNewInviteModal = false;
+    }
+
+    private bool IsFormValid()
+    {
+        return !string.IsNullOrWhiteSpace(_newInviteModel.ClientEmail) &&
+               !string.IsNullOrWhiteSpace(_newInviteModel.Title);
+    }
+
+    private async Task CreateInvite()
+    {
+        if (!IsFormValid())
+            return;
+
+        _isCreating = true;
+
+        try
+        {
+            // TODO: Create invite via API
+            await Task.Delay(2000); // Simulate API call
+
+            var newPlan = new ActionPlanInvite
+            {
+                Id = _actionPlans.Count + 1,
+                Status = "Draft",
+                DateCreated = DateTime.Now,
+                ClientEmail = _newInviteModel.ClientEmail,
+                Title = _newInviteModel.Title,
+                Description = _newInviteModel.Description
+            };
+
+            _actionPlans.Insert(0, newPlan);
+
+            Snackbar.Add($"Action plan invite created successfully!", Severity.Success);
+            CloseNewInviteModal();
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Failed to create invite. Please try again.", Severity.Error);
+        }
+        finally
+        {
+            _isCreating = false;
+        }
+    }
+
+    private async Task EditPlan(int planId)
+    {
+        // TODO: Navigate to edit page or show edit modal
+        Navigation.NavigateTo($"/action-plans/{planId}/edit");
+    }
+
+    private async Task SendPlan(int planId)
+    {
+        try
+        {
+            // TODO: Send plan via API
+            await Task.Delay(1000);
+
+            var plan = _actionPlans.FirstOrDefault(p => p.Id == planId);
+            if (plan != null)
+            {
+                plan.Status = "Sent";
+            }
+
+            Snackbar.Add("Action plan sent successfully!", Severity.Success);
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Failed to send action plan", Severity.Error);
+        }
+    }
+
+    private async Task DeletePlan(int planId)
+    {
+        try
+        {
+            // TODO: Confirm deletion and delete via API
+            var plan = _actionPlans.FirstOrDefault(p => p.Id == planId);
+            if (plan != null)
+            {
+                _actionPlans.Remove(plan);
+                Snackbar.Add("Action plan deleted successfully!", Severity.Success);
+            }
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Failed to delete action plan", Severity.Error);
+        }
+    }
+
+    private string GetInitials()
+    {
+        // Mock initials - in real app would come from user service
+        return "PT";
+    }
+
+    public class ActionPlanInvite
+    {
+        public int Id { get; set; }
+        public string Status { get; set; } = "";
+        public DateTime DateCreated { get; set; }
+        public string ClientEmail { get; set; } = "";
+        public string Title { get; set; } = "";
+        public string? Description { get; set; }
+    }
+
+    public class NewInviteModel
+    {
+        [Required(ErrorMessage = "Client email is required")]
+        [EmailAddress(ErrorMessage = "Please enter a valid email address")]
+        public string ClientEmail { get; set; } = "";
+
+        [Required(ErrorMessage = "Title is required")]
+        public string Title { get; set; } = "";
+
+        public string? Description { get; set; }
+    }
+}
