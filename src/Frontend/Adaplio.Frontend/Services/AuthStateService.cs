@@ -42,39 +42,51 @@ public class AuthStateService
         try
         {
             // Try to get token from localStorage
-            _authToken = await _localStorage.GetItemAsync("auth_token");
+            _authToken = await _localStorage.GetItemAsync<string>("auth_token");
 
             if (!string.IsNullOrEmpty(_authToken))
             {
                 _httpClient.SetBearerToken(_authToken);
 
                 var response = await _httpClient.GetApiAsync<UserInfo>("/auth/me");
-                if (response.IsSuccess)
+                if (response.IsSuccess && response.Data != null)
                 {
                     _currentUser = response.Data;
                 }
                 else
                 {
-                    // Token is invalid, clear it
-                    await _localStorage.RemoveItemAsync("auth_token");
-                    _authToken = null;
-                    _httpClient.ClearBearerToken();
-                    _currentUser = null;
+                    // Token is invalid or API call failed, clear it
+                    await ClearAuthenticationAsync();
                 }
             }
             else
             {
-                _currentUser = null;
+                // No token found
+                await ClearAuthenticationAsync();
             }
         }
-        catch
+        catch (Exception)
         {
-            _currentUser = null;
+            // Any initialization error, clear auth state
+            await ClearAuthenticationAsync();
         }
 
         _isInitialized = true;
         NotifyAuthStateChanged();
         return IsAuthenticated;
+    }
+
+    private async Task ClearAuthenticationAsync()
+    {
+        try
+        {
+            await _localStorage.RemoveItemAsync("auth_token");
+        }
+        catch { }
+
+        _authToken = null;
+        _httpClient.ClearBearerToken();
+        _currentUser = null;
     }
 
     public async Task<bool> RefreshUserAsync()

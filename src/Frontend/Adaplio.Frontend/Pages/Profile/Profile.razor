@@ -74,6 +74,7 @@ else
         // Redirect if not authenticated
         if (!AuthState.IsAuthenticated)
         {
+            Navigation.NavigateTo("/auth/client/login");
             return;
         }
     }

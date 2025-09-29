@@ -1,0 +1,70 @@
+{
+  "version": 2,
+  "public": true,
+  "github": {
+    "silent": true
+  },
+  "build": {
+    "env": {
+      "DOTNET_CLI_TELEMETRY_OPTOUT": "1",
+      "DOTNET_SKIP_FIRST_TIME_EXPERIENCE": "1",
+      "ASPNETCORE_ENVIRONMENT": "Production"
+    }
+  },
+  "env": {
+    "API_BASE_URL": "https://adaplio.onrender.com",
+    "ENABLE_ANALYTICS": "true",
+    "ENABLE_ERROR_REPORTING": "true"
+  },
+  "buildCommand": "dotnet publish src/Frontend/Adaplio.Frontend/Adaplio.Frontend.csproj -c Release -o dist --nologo",
+  "outputDirectory": "dist/wwwroot",
+  "installCommand": "echo 'Using .NET runtime'",
+  "devCommand": "dotnet watch run --project src/Frontend/Adaplio.Frontend/Adaplio.Frontend.csproj",
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "status": 404
+    },
+    {
+      "src": "/[^.]+",
+      "dest": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)\\.(js|css|woff|woff2|ttf|svg|png|jpg|jpeg|gif|ico|webp)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/_framework/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
+  ]
+}

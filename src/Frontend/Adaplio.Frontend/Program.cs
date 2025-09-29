@@ -10,10 +10,14 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
+// Add configuration services
+builder.Services.AddAppConfiguration();
+
 // Custom HttpClient that includes credentials for cross-origin requests
 builder.Services.AddScoped<HttpClient>(sp =>
 {
-    var httpClient = new HttpClient { BaseAddress = new Uri("https://adaplio.onrender.com") };
+    var config = sp.GetRequiredService<AppConfiguration>();
+    var httpClient = new HttpClient { BaseAddress = new Uri(config.ApiBaseUrl) };
 
     // This won't work for Blazor WebAssembly cross-origin, so we'll need to handle this differently
     return httpClient;
