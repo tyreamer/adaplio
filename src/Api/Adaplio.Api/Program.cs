@@ -20,26 +20,27 @@ var builder = WebApplication.CreateBuilder(args);
 var dbProvider = Environment.GetEnvironmentVariable("DB_PROVIDER") ?? "sqlite";
 var conn = Environment.GetEnvironmentVariable("DB_CONNECTION") ?? "Data Source=db.sqlite";
 
+// Log connection details (without password)
+if (dbProvider.Equals("pgsql", StringComparison.OrdinalIgnoreCase))
+{
+    var safeConn = System.Text.RegularExpressions.Regex.Replace(conn, @"Password=[^;]+", "Password=***");
+    Console.WriteLine($"PostgreSQL Connection: {safeConn}");
+}
+
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     if (dbProvider.Equals("pgsql", StringComparison.OrdinalIgnoreCase))
     {
-        // Configure Npgsql for Supabase compatibility
-        var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(conn);
-
-        // Disable server compatibility mode that may cause auth issues
-        dataSourceBuilder.EnableDynamicJson();
-
-        var dataSource = dataSourceBuilder.Build();
-        options.UseNpgsql(dataSource, npgsqlOptions =>
+        // Use simple connection string for Supabase
+        options.UseNpgsql(conn, npgsqlOptions =>
         {
             // Set command timeout
-            npgsqlOptions.CommandTimeout(30);
+            npgsqlOptions.CommandTimeout(60);
 
             // Enable retry on failure for transient errors
             npgsqlOptions.EnableRetryOnFailure(
-                maxRetryCount: 3,
-                maxRetryDelay: TimeSpan.FromSeconds(5),
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(10),
                 errorCodesToAdd: null);
         });
     }
