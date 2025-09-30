@@ -13,6 +13,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Npgsql;
+
+AppContext.SetSwitch("Npgsql.EnableLegacyIPv6Resolver", true);
 
 var builder = WebApplication.CreateBuilder(args);
 
