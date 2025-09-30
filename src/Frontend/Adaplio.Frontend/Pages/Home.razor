@@ -93,12 +93,38 @@
 
 .landing-page {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background: white;
+    background: var(--bg-primary);
     min-height: 100vh;
-    color: #1F2937;
+    color: var(--text-primary);
     display: flex;
     flex-direction: column;
     justify-content: center;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* CSS Variables for Theme Support */
+:root, [data-theme="light"] {
+    --bg-primary: #ffffff;
+    --text-primary: #1F2937;
+    --text-secondary: #6B7280;
+    --border-color: #E5E7EB;
+    --border-hover: #D1D5DB;
+    --card-bg: #ffffff;
+    --hover-bg: #F3F4F6;
+    --accent-orange: #FF6B35;
+    --footer-text: #9CA3AF;
+}
+
+[data-theme="dark"] {
+    --bg-primary: #1F2937;
+    --text-primary: #F9FAFB;
+    --text-secondary: #D1D5DB;
+    --border-color: #374151;
+    --border-hover: #4B5563;
+    --card-bg: #374151;
+    --hover-bg: #4B5563;
+    --accent-orange: #FF8A5B;
+    --footer-text: #9CA3AF;
 }
 
 /* Header */
@@ -119,7 +145,7 @@
 .brand-logo .logo-text {
     font-size: 24px;
     font-weight: 700;
-    color: #FF6B35;
+    color: var(--accent-orange);
 }
 
 .header-actions {
@@ -131,13 +157,13 @@
     padding: 8px;
     cursor: pointer;
     border-radius: 8px;
-    transition: background-color 0.2s ease;
-    color: #6B7280;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    color: var(--text-secondary);
 }
 
 .theme-toggle:hover {
-    background: #F3F4F6;
-    color: #1F2937;
+    background: var(--hover-bg);
+    color: var(--text-primary);
 }
 
 /* Main Content */
@@ -160,17 +186,19 @@
 .main-title {
     font-size: 48px;
     font-weight: 700;
-    color: #1F2937;
+    color: var(--text-primary);
     margin-bottom: 16px;
     line-height: 1.1;
+    transition: color 0.3s ease;
 }
 
 .main-subtitle {
     font-size: 18px;
-    color: #6B7280;
+    color: var(--text-secondary);
     line-height: 1.6;
     max-width: 600px;
     margin: 0 auto;
+    transition: color 0.3s ease;
 }
 
 /* User Type Cards */
@@ -184,19 +212,19 @@
 }
 
 .user-card {
-    background: white;
-    border: 1px solid #E5E7EB;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
     border-radius: 16px;
     padding: 32px 24px;
     text-align: center;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .user-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-    border-color: #D1D5DB;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    border-color: var(--border-hover);
 }
 
 .therapist-card .card-icon {
@@ -224,16 +252,18 @@
 .card-title {
     font-size: 20px;
     font-weight: 600;
-    color: #1F2937;
+    color: var(--text-primary);
     margin-bottom: 12px;
     line-height: 1.2;
+    transition: color 0.3s ease;
 }
 
 .card-description {
     font-size: 16px;
-    color: #6B7280;
+    color: var(--text-secondary);
     line-height: 1.5;
     margin-bottom: 24px;
+    transition: color 0.3s ease;
 }
 
 .card-button {
@@ -248,7 +278,7 @@
 }
 
 .card-button.primary {
-    background: #FF6B35;
+    background: var(--accent-orange);
     color: white;
 }
 
@@ -259,15 +289,15 @@
 }
 
 .card-button.secondary {
-    background: #F3F4F6;
-    color: #6B7280;
-    border: 1px solid #E5E7EB;
+    background: var(--hover-bg);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
 }
 
 .card-button.secondary:hover {
-    background: #E5E7EB;
-    color: #1F2937;
-    border-color: #D1D5DB;
+    background: var(--border-color);
+    color: var(--text-primary);
+    border-color: var(--border-hover);
 }
 
 /* Footer */
@@ -278,7 +308,8 @@
 
 .footer-text {
     font-size: 14px;
-    color: #9CA3AF;
+    color: var(--footer-text);
+    transition: color 0.3s ease;
 }
 
 /* Responsive Design */

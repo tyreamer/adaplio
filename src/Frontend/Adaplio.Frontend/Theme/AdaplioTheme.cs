@@ -145,10 +145,5 @@ public static class AdaplioTheme
         }
     };
 
-    public static MudTheme DarkTheme => new()
-    {
-        PaletteLight = LightTheme.PaletteLight,
-        PaletteDark = LightTheme.PaletteDark,
-        LayoutProperties = LightTheme.LayoutProperties
-    };
+    public static MudTheme DarkTheme => LightTheme;
 }
