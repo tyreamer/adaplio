@@ -2,7 +2,6 @@
 @page "/home"
 @layout EmptyLayout
 @inject NavigationManager Navigation
-@inject Adaplio.Frontend.Theme.ThemeService ThemeService
 
 <PageTitle>Welcome to Adaplio</PageTitle>
 
@@ -22,23 +21,6 @@
             <div class="header-content">
                 <div class="brand-logo">
                     <span class="logo-text">adaplio</span>
-                </div>
-                <div class="header-actions">
-                    <div class="theme-toggle" @onclick="ToggleTheme">
-                        @if (_isDarkMode)
-                        {
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-                            </svg>
-                        }
-                        else
-                        {
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="5"/>
-                                <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-                            </svg>
-                        }
-                    </div>
                 </div>
             </div>
         </div>
@@ -93,38 +75,12 @@
 
 .landing-page {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background: var(--bg-primary);
+    background: #ffffff;
     min-height: 100vh;
-    color: var(--text-primary);
+    color: #1F2937;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-/* CSS Variables for Theme Support */
-:root, [data-theme="light"] {
-    --bg-primary: #ffffff;
-    --text-primary: #1F2937;
-    --text-secondary: #6B7280;
-    --border-color: #E5E7EB;
-    --border-hover: #D1D5DB;
-    --card-bg: #ffffff;
-    --hover-bg: #F3F4F6;
-    --accent-orange: #FF6B35;
-    --footer-text: #9CA3AF;
-}
-
-[data-theme="dark"] {
-    --bg-primary: #1F2937;
-    --text-primary: #F9FAFB;
-    --text-secondary: #D1D5DB;
-    --border-color: #374151;
-    --border-hover: #4B5563;
-    --card-bg: #374151;
-    --hover-bg: #4B5563;
-    --accent-orange: #FF8A5B;
-    --footer-text: #9CA3AF;
 }
 
 /* Header */
@@ -145,26 +101,9 @@
 .brand-logo .logo-text {
     font-size: 24px;
     font-weight: 700;
-    color: var(--accent-orange);
+    color: #FF6B35;
 }
 
-.header-actions {
-    display: flex;
-    align-items: center;
-}
-
-.theme-toggle {
-    padding: 8px;
-    cursor: pointer;
-    border-radius: 8px;
-    transition: background-color 0.2s ease, color 0.2s ease;
-    color: var(--text-secondary);
-}
-
-.theme-toggle:hover {
-    background: var(--hover-bg);
-    color: var(--text-primary);
-}
 
 /* Main Content */
 .main-content {
@@ -186,19 +125,17 @@
 .main-title {
     font-size: 48px;
     font-weight: 700;
-    color: var(--text-primary);
+    color: #1F2937;
     margin-bottom: 16px;
     line-height: 1.1;
-    transition: color 0.3s ease;
 }
 
 .main-subtitle {
     font-size: 18px;
-    color: var(--text-secondary);
+    color: #6B7280;
     line-height: 1.6;
     max-width: 600px;
     margin: 0 auto;
-    transition: color 0.3s ease;
 }
 
 /* User Type Cards */
@@ -212,19 +149,19 @@
 }
 
 .user-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
+    background: white;
+    border: 1px solid #E5E7EB;
     border-radius: 16px;
     padding: 32px 24px;
     text-align: center;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .user-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-    border-color: var(--border-hover);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    border-color: #D1D5DB;
 }
 
 .therapist-card .card-icon {
@@ -252,18 +189,16 @@
 .card-title {
     font-size: 20px;
     font-weight: 600;
-    color: var(--text-primary);
+    color: #1F2937;
     margin-bottom: 12px;
     line-height: 1.2;
-    transition: color 0.3s ease;
 }
 
 .card-description {
     font-size: 16px;
-    color: var(--text-secondary);
+    color: #6B7280;
     line-height: 1.5;
     margin-bottom: 24px;
-    transition: color 0.3s ease;
 }
 
 .card-button {
@@ -278,7 +213,7 @@
 }
 
 .card-button.primary {
-    background: var(--accent-orange);
+    background: #FF6B35;
     color: white;
 }
 
@@ -289,15 +224,15 @@
 }
 
 .card-button.secondary {
-    background: var(--hover-bg);
-    color: var(--text-secondary);
-    border: 1px solid var(--border-color);
+    background: #F3F4F6;
+    color: #6B7280;
+    border: 1px solid #E5E7EB;
 }
 
 .card-button.secondary:hover {
-    background: var(--border-color);
-    color: var(--text-primary);
-    border-color: var(--border-hover);
+    background: #E5E7EB;
+    color: #1F2937;
+    border-color: #D1D5DB;
 }
 
 /* Footer */
@@ -308,8 +243,7 @@
 
 .footer-text {
     font-size: 14px;
-    color: var(--footer-text);
-    transition: color 0.3s ease;
+    color: #9CA3AF;
 }
 
 /* Responsive Design */
@@ -380,26 +314,6 @@
 </style>
 
 @code {
-    private bool _isDarkMode = false;
-
-    protected override async Task OnInitializedAsync()
-    {
-        await ThemeService.InitializeAsync();
-        _isDarkMode = ThemeService.IsDarkMode;
-        ThemeService.OnThemeChanged += HandleThemeChanged;
-    }
-
-    private void HandleThemeChanged()
-    {
-        _isDarkMode = ThemeService.IsDarkMode;
-        StateHasChanged();
-    }
-
-    private async Task ToggleTheme()
-    {
-        await ThemeService.ToggleThemeAsync();
-    }
-
     private void NavigateToTrainerSignup()
     {
         Navigation.NavigateTo("/auth/trainer/login");
@@ -408,10 +322,5 @@
     private void NavigateToClientLogin()
     {
         Navigation.NavigateTo("/auth/client/login");
-    }
-
-    public void Dispose()
-    {
-        ThemeService.OnThemeChanged -= HandleThemeChanged;
     }
 }
