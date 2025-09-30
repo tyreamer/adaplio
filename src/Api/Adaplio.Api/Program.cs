@@ -35,14 +35,12 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     }
 });
 
-// Add HTTP client for Resend
-builder.Services.AddHttpClient<EmailService>();
-builder.Services.AddHttpClient<SMSService>();
-
 // Add authentication services
 builder.Services.AddScoped<IJwtService, JwtService>();
-builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddScoped<ISMSService, SMSService>();
+
+// Add HTTP clients with proper service registration
+builder.Services.AddHttpClient<IEmailService, EmailService>();
+builder.Services.AddHttpClient<ISMSService, SMSService>();
 builder.Services.AddScoped<IAliasService, AliasService>();
 builder.Services.AddScoped<IProgressService, ProgressService>();
 builder.Services.AddScoped<IPlanService, PlanService>();

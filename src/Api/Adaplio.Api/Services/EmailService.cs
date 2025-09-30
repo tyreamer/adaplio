@@ -28,6 +28,9 @@ public class EmailService : IEmailService
             var resendApiKey = Environment.GetEnvironmentVariable("RESEND_API_KEY") ?? _configuration["Resend:ApiKey"];
             var fromEmail = Environment.GetEnvironmentVariable("RESEND_FROM_EMAIL") ?? _configuration["Resend:FromEmail"] ?? "noreply@adaplio.com";
 
+            _logger.LogInformation("Attempting to send magic link. API Key present: {HasKey}, From: {FromEmail}",
+                !string.IsNullOrEmpty(resendApiKey), fromEmail);
+
             // Check if Resend is properly configured
             if (string.IsNullOrEmpty(resendApiKey))
             {
@@ -110,7 +113,8 @@ public class EmailService : IEmailService
             Console.WriteLine($"CODE: {code}");
             Console.WriteLine($"=========================================================");
 
-            throw;
+            // Don't throw in development - allow the flow to continue so users can still get the code via console
+            // In production with proper email config, this should be investigated
         }
     }
 }

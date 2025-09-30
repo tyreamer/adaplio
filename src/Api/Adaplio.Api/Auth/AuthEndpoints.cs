@@ -39,7 +39,8 @@ public static class AuthEndpoints
         ClientMagicLinkRequest request,
         AppDbContext context,
         IEmailService emailService,
-        HttpContext httpContext)
+        HttpContext httpContext,
+        ILogger<Program> logger)
     {
         try
         {
@@ -65,7 +66,7 @@ public static class AuthEndpoints
             context.MagicLinks.Add(magicLink);
             await context.SaveChangesAsync();
 
-            // Send email
+            // Send email (will log code to console if email service not configured)
             await emailService.SendMagicLinkAsync(request.Email, code);
 
             return Results.Ok(new ClientMagicLinkResponse(
@@ -74,6 +75,7 @@ public static class AuthEndpoints
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "Failed to send magic link for email: {Email}", request.Email);
             return Results.Problem("Failed to send magic link. Please try again later.");
         }
     }
