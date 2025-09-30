@@ -24,7 +24,24 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 {
     if (dbProvider.Equals("pgsql", StringComparison.OrdinalIgnoreCase))
     {
-        options.UseNpgsql(conn);
+        // Configure Npgsql for Supabase compatibility
+        var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(conn);
+
+        // Disable server compatibility mode that may cause auth issues
+        dataSourceBuilder.EnableDynamicJson();
+
+        var dataSource = dataSourceBuilder.Build();
+        options.UseNpgsql(dataSource, npgsqlOptions =>
+        {
+            // Set command timeout
+            npgsqlOptions.CommandTimeout(30);
+
+            // Enable retry on failure for transient errors
+            npgsqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 3,
+                maxRetryDelay: TimeSpan.FromSeconds(5),
+                errorCodesToAdd: null);
+        });
     }
     else
     {
