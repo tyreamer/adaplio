@@ -2,6 +2,7 @@
 @page "/home"
 @layout EmptyLayout
 @inject NavigationManager Navigation
+@inject Adaplio.Frontend.Theme.ThemeService ThemeService
 
 <PageTitle>Welcome to Adaplio</PageTitle>
 
@@ -23,11 +24,20 @@
                     <span class="logo-text">Adaplio</span>
                 </div>
                 <div class="header-actions">
-                    <div class="theme-toggle">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="5"/>
-                            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-                        </svg>
+                    <div class="theme-toggle" @onclick="ToggleTheme">
+                        @if (_isDarkMode)
+                        {
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                            </svg>
+                        }
+                        else
+                        {
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="5"/>
+                                <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                            </svg>
+                        }
                     </div>
                 </div>
             </div>
@@ -88,15 +98,13 @@
     color: #1F2937;
     display: flex;
     flex-direction: column;
+    justify-content: center;
 }
 
 /* Header */
 .header {
     width: 100%;
     padding: 20px 0;
-    position: absolute;
-    top: 0;
-    left: 0;
 }
 
 .header-content {
@@ -134,7 +142,6 @@
 
 /* Main Content */
 .main-content {
-    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -143,7 +150,6 @@
     max-width: 1200px;
     margin: 0 auto;
     width: 100%;
-    position: relative;
 }
 
 .welcome-section {
@@ -267,7 +273,6 @@
 /* Footer */
 .footer {
     text-align: center;
-    margin-top: auto;
     padding: 20px 0;
 }
 
@@ -344,6 +349,26 @@
 </style>
 
 @code {
+    private bool _isDarkMode = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ThemeService.InitializeAsync();
+        _isDarkMode = ThemeService.IsDarkMode;
+        ThemeService.OnThemeChanged += HandleThemeChanged;
+    }
+
+    private void HandleThemeChanged()
+    {
+        _isDarkMode = ThemeService.IsDarkMode;
+        StateHasChanged();
+    }
+
+    private async Task ToggleTheme()
+    {
+        await ThemeService.ToggleThemeAsync();
+    }
+
     private void NavigateToTrainerSignup()
     {
         Navigation.NavigateTo("/auth/trainer/login");
@@ -352,5 +377,10 @@
     private void NavigateToClientLogin()
     {
         Navigation.NavigateTo("/auth/client/login");
+    }
+
+    public void Dispose()
+    {
+        ThemeService.OnThemeChanged -= HandleThemeChanged;
     }
 }
