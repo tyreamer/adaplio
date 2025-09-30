@@ -1,257 +1,67 @@
 @page "/"
 @page "/home"
-@using Adaplio.Frontend.Services
-@using System.ComponentModel.DataAnnotations
-@using System.Net.Http.Json
-@inject AuthStateService AuthState
 @inject NavigationManager Navigation
-@inject ISnackbar Snackbar
-@inject IJSRuntime JSRuntime
-@inject HttpClient HttpClient
-@implements IDisposable
 
-<PageTitle>Adaplio: Your Partner in Physical Therapy</PageTitle>
+<PageTitle>Welcome to Adaplio</PageTitle>
 
-@if (!_isInitialized)
-{
-    <!-- Loading state -->
-    <div class="loading-container">
-        <div class="loading-spinner"></div>
-        <p class="loading-text">Loading...</p>
+<div class="landing-page">
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div class="brand-logo">
+                <span class="logo-text">Adaplio</span>
+            </div>
+            <div class="header-actions">
+                <div class="theme-toggle">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"/>
+                        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
     </div>
-}
-else if (!AuthState.IsAuthenticated)
-{
-    <!-- Modern Landing Page -->
-    <div class="landing-page">
-        <!-- Navigation Header -->
-        <nav class="nav-header">
-            <div class="nav-container">
-                <div class="nav-brand">
-                    <span class="logo-icon">🧡</span>
-                    <span class="brand-name">Adaplio</span>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="welcome-section">
+            <h1 class="main-title">Welcome to Adaplio</h1>
+            <p class="main-subtitle">The future of physical therapy. Connect with your clients and guide them on their recovery journey.</p>
+        </div>
+
+        <div class="user-type-cards">
+            <div class="user-card therapist-card">
+                <div class="card-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#FF6B35" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
                 </div>
-                <div class="nav-links">
-                    <a href="#therapists" class="nav-link">For Therapists</a>
-                    <a href="#clients" class="nav-link">For Clients</a>
-                    <button class="get-started-btn" @onclick="StartJourney">Get Started</button>
-                </div>
+                <h2 class="card-title">For Therapists & Trainers</h2>
+                <p class="card-description">Create personalized plans, track client progress, and manage your practice efficiently.</p>
+                <button class="card-button primary" @onclick="NavigateToTrainerSignup">Get Started</button>
             </div>
-        </nav>
 
-        <!-- Hero Section -->
-        <section class="hero-section">
-            <div class="hero-container">
-                <div class="hero-content">
-                    <h1 class="hero-title">Adaplio: Your Partner in Physical Therapy</h1>
-                    <p class="hero-subtitle">Connect with your therapist, track your progress, and achieve your goals with our easy-to-use app.</p>
-                    <div class="hero-buttons">
-                        <button class="primary-btn" @onclick="StartJourney">Get Started Free</button>
-                        <button class="secondary-btn" @onclick="LearnMore">Learn More</button>
-                    </div>
+            <div class="user-card client-card">
+                <div class="card-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
                 </div>
-                <div class="hero-image">
-                    <div class="illustration-container">
-                        <!-- PT Exercise Illustration -->
-                        <div class="exercise-scene">
-                            <div class="person-exercising">
-                                <div class="person-body"></div>
-                                <div class="person-head"></div>
-                                <div class="weights">
-                                    <div class="weight left-weight"></div>
-                                    <div class="weight right-weight"></div>
-                                    <div class="barbell"></div>
-                                </div>
-                            </div>
-                            <div class="exercise-table"></div>
-                            <div class="accessories">
-                                <div class="water-bottle"></div>
-                                <div class="exercise-ball"></div>
-                                <div class="mat"></div>
-                            </div>
-                            <div class="background-circle"></div>
-                        </div>
-                    </div>
-                </div>
+                <h2 class="card-title">For Clients & Patients</h2>
+                <p class="card-description">Access your exercise plan, track your recovery, and stay connected with your therapist.</p>
+                <button class="card-button secondary" @onclick="NavigateToClientLogin">Login</button>
             </div>
-        </section>
+        </div>
 
-        <!-- How Adaplio Works Section -->
-        <section class="how-it-works">
-            <div class="container">
-                <h2 class="section-title">How Adaplio Works</h2>
-                <p class="section-subtitle">Adaplio simplifies your physical therapy journey, connecting you with your therapist and providing tools for effective at-home exercises and progress tracking.</p>
-
-                <div class="features-grid">
-                    <div class="feature-card">
-                        <div class="feature-icon connect">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#FF6B35" stroke-width="2">
-                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="9" cy="7" r="4"></circle>
-                                <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                            </svg>
-                        </div>
-                        <h3 class="feature-title">Connect with Your Therapist</h3>
-                        <p class="feature-description">Find and connect with your physical therapist through the app.</p>
-                    </div>
-
-                    <div class="feature-card">
-                        <div class="feature-icon plans">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#FF6B35" stroke-width="2">
-                                <path d="M9 12l2 2 4-4"></path>
-                                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
-                                <path d="M3 5v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"></path>
-                            </svg>
-                        </div>
-                        <h3 class="feature-title">Personalized Exercise Plans</h3>
-                        <p class="feature-description">Receive customized exercise plans tailored to your specific needs and goals.</p>
-                    </div>
-
-                    <div class="feature-card">
-                        <div class="feature-icon progress">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#FF6B35" stroke-width="2">
-                                <polyline points="22,12 18,12 15,21 9,3 6,12 2,12"></polyline>
-                            </svg>
-                        </div>
-                        <h3 class="feature-title">Track Your Progress</h3>
-                        <p class="feature-description">Monitor your progress, celebrate milestones, and stay motivated on your path to recovery.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Footer -->
-        <footer class="footer">
-            <div class="footer-container">
-                <div class="footer-content">
-                    <span class="footer-text">© 2025 Adaplio. All rights reserved.</span>
-                    <div class="footer-links">
-                        <a href="#privacy" class="footer-link">Privacy Policy</a>
-                        <a href="#terms" class="footer-link">Terms of Service</a>
-                    </div>
-                </div>
-            </div>
-        </footer>
-
-        <!-- Quick Start Modal Overlay (when Get Started is clicked) -->
-        @if (_showQuickStart)
-        {
-            <div class="modal-overlay" @onclick="CloseQuickStart">
-                <div class="modal-content" @onclick:stopPropagation="true">
-                    <div class="modal-header">
-                        <h3>Get Started with Adaplio</h3>
-                        <button class="close-btn" @onclick="CloseQuickStart">×</button>
-                    </div>
-                    <div class="modal-body">
-                        <p>Choose how you'd like to connect with your therapist:</p>
-
-                        @if (!string.IsNullOrEmpty(_validationError))
-                        {
-                            <div class="error-message">@_validationError</div>
-                        }
-
-                        <div class="quick-start-options">
-                            <button class="option-btn" @onclick="StartCodeEntry" disabled="@_isProcessing">
-                                <div class="option-icon">🔑</div>
-                                <div class="option-content">
-                                    <div class="option-title">Enter Code</div>
-                                    <div class="option-description">Type your PT code manually</div>
-                                </div>
-                            </button>
-
-                            <button class="option-btn" @onclick="StartSMSEntry" disabled="@_isProcessing">
-                                <div class="option-icon">📱</div>
-                                <div class="option-content">
-                                    <div class="option-title">Text Me the Link</div>
-                                    <div class="option-description">Receive invite via SMS</div>
-                                </div>
-                            </button>
-
-                            <button class="option-btn" @onclick="StartQRScan" disabled="@_isProcessing">
-                                <div class="option-icon">📷</div>
-                                <div class="option-content">
-                                    <div class="option-title">Scan QR Code</div>
-                                    <div class="option-description">Use your camera to scan</div>
-                                </div>
-                            </button>
-                        </div>
-
-                        <!-- Code Entry Form -->
-                        @if (_showCodeEntry)
-                        {
-                            <div class="entry-form">
-                                <EditForm Model="@_codeModel" OnValidSubmit="@HandleCodeSubmit">
-                                    <DataAnnotationsValidator />
-                                    <div class="form-group">
-                                        <input type="text"
-                                               @bind="_codeModel.Code"
-                                               @ref="_codeInputRef"
-                                               class="form-input"
-                                               placeholder="Enter your PT code"
-                                               disabled="@_isProcessing" />
-                                        <ValidationMessage For="@(() => _codeModel.Code)" class="validation-error" />
-                                    </div>
-                                    <button type="submit"
-                                            class="submit-btn"
-                                            disabled="@(_isProcessing || string.IsNullOrWhiteSpace(_codeModel.Code))">
-                                        @if (_isProcessing)
-                                        {
-                                            <span class="loading-spinner small"></span>
-                                            <text>Validating...</text>
-                                        }
-                                        else
-                                        {
-                                            <text>Continue</text>
-                                        }
-                                    </button>
-                                </EditForm>
-                            </div>
-                        }
-
-                        <!-- SMS Entry Form -->
-                        @if (_showSMSEntry)
-                        {
-                            <div class="entry-form">
-                                <EditForm Model="@_smsModel" OnValidSubmit="@HandleSMSSubmit">
-                                    <DataAnnotationsValidator />
-                                    <div class="form-group">
-                                        <input type="tel"
-                                               @bind="_smsModel.PhoneNumber"
-                                               class="form-input"
-                                               placeholder="+1 (555) 123-4567"
-                                               disabled="@_isProcessing" />
-                                        <ValidationMessage For="@(() => _smsModel.PhoneNumber)" class="validation-error" />
-                                    </div>
-                                    <div class="form-group">
-                                        <input type="text"
-                                               @bind="_smsModel.InviteCode"
-                                               class="form-input"
-                                               placeholder="PT Code (Optional)"
-                                               disabled="@_isProcessing" />
-                                    </div>
-                                    <button type="submit"
-                                            class="submit-btn"
-                                            disabled="@(_isProcessing || string.IsNullOrWhiteSpace(_smsModel.PhoneNumber))">
-                                        @if (_isProcessing)
-                                        {
-                                            <span class="loading-spinner small"></span>
-                                            <text>Sending...</text>
-                                        }
-                                        else
-                                        {
-                                            <text>Send Link</text>
-                                        }
-                                    </button>
-                                </EditForm>
-                            </div>
-                        }
-                    </div>
-                </div>
-            </div>
-        }
+        <div class="footer">
+            <p class="footer-text">© 2025 Adaplio. All rights reserved.</p>
+        </div>
     </div>
-}
+</div>
 
 <style>
 /* Base Styles */
@@ -262,51 +72,21 @@ else if (!AuthState.IsAuthenticated)
 }
 
 .landing-page {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: #F9F7F4; /* Cream background */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: white;
     min-height: 100vh;
-    color: #1F2937; /* Navy */
-}
-
-/* Loading State */
-.loading-container {
+    color: #1F2937;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    background: #F9F7F4;
 }
 
-.loading-spinner {
-    width: 40px;
-    height: 40px;
-    border: 3px solid #E5E7EB;
-    border-top: 3px solid #FF6B35;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-bottom: 16px;
+/* Header */
+.header {
+    padding: 20px 0;
+    border-bottom: 1px solid #E5E7EB;
 }
 
-.loading-text {
-    font-size: 16px;
-    color: #6B7280;
-}
-
-@@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* Navigation */
-.nav-header {
-    background: #F9F7F4;
-    padding: 16px 0;
-    position: relative;
-    z-index: 10;
-}
-
-.nav-container {
+.header-content {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 24px;
@@ -315,1053 +95,248 @@ else if (!AuthState.IsAuthenticated)
     justify-content: space-between;
 }
 
-.nav-brand {
-    display: flex;
-    align-items: center;
-    font-weight: 600;
-    font-size: 20px;
-    color: #1F2937;
-}
-
-.logo-icon {
+.brand-logo .logo-text {
     font-size: 24px;
-    margin-right: 8px;
+    font-weight: 700;
+    color: #FF6B35;
 }
 
-.nav-links {
+.header-actions {
     display: flex;
     align-items: center;
-    gap: 32px;
 }
 
-.nav-link {
+.theme-toggle {
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
     color: #6B7280;
-    text-decoration: none;
-    font-weight: 500;
-    transition: color 0.2s ease;
 }
 
-.nav-link:hover {
+.theme-toggle:hover {
+    background: #F3F4F6;
     color: #1F2937;
 }
 
-.get-started-btn {
-    background: #FF6B35;
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.get-started-btn:hover {
-    background: #E55A2E;
-    transform: translateY(-1px);
-}
-
-/* Hero Section */
-.hero-section {
-    padding: 80px 0 120px 0;
-    background: #F9F7F4;
-}
-
-.hero-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 24px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 80px;
+/* Main Content */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
     align-items: center;
+    justify-content: center;
+    padding: 60px 24px 40px 24px;
+    max-width: 800px;
+    margin: 0 auto;
+    width: 100%;
 }
 
-.hero-content {
-    max-width: 500px;
+.welcome-section {
+    text-align: center;
+    margin-bottom: 60px;
 }
 
-.hero-title {
+.main-title {
     font-size: 48px;
     font-weight: 700;
-    line-height: 1.1;
-    color: #1F2937;
-    margin-bottom: 24px;
-}
-
-.hero-subtitle {
-    font-size: 18px;
-    color: #6B7280;
-    line-height: 1.6;
-    margin-bottom: 32px;
-}
-
-.hero-buttons {
-    display: flex;
-    gap: 16px;
-}
-
-.primary-btn {
-    background: #FF6B35;
-    color: white;
-    border: none;
-    padding: 16px 32px;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.primary-btn:hover {
-    background: #E55A2E;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(255, 107, 53, 0.3);
-}
-
-.secondary-btn {
-    background: transparent;
-    color: #6B7280;
-    border: 1px solid #E5E7EB;
-    padding: 16px 32px;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.secondary-btn:hover {
-    background: white;
-    border-color: #D1D5DB;
-    color: #1F2937;
-}
-
-/* Hero Illustration */
-.hero-image {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.illustration-container {
-    width: 400px;
-    height: 400px;
-    position: relative;
-}
-
-.exercise-scene {
-    width: 100%;
-    height: 100%;
-    position: relative;
-}
-
-.background-circle {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 300px;
-    height: 300px;
-    background: linear-gradient(135deg, #FFF7ED, #FED7AA);
-    border-radius: 50%;
-    z-index: 1;
-}
-
-.person-exercising {
-    position: absolute;
-    top: 40%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 3;
-}
-
-.person-body {
-    width: 60px;
-    height: 80px;
-    background: #3B82F6;
-    border-radius: 30px 30px 20px 20px;
-    position: relative;
-    margin: 0 auto;
-}
-
-.person-head {
-    width: 40px;
-    height: 40px;
-    background: #FBBF24;
-    border-radius: 50%;
-    position: absolute;
-    top: -35px;
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-.weights {
-    position: absolute;
-    top: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-.barbell {
-    width: 100px;
-    height: 8px;
-    background: #6B7280;
-    border-radius: 4px;
-    margin: 16px 0;
-}
-
-.weight {
-    width: 20px;
-    height: 20px;
-    background: #1F2937;
-    border-radius: 50%;
-    position: absolute;
-    top: 12px;
-}
-
-.left-weight {
-    left: -15px;
-}
-
-.right-weight {
-    right: -15px;
-}
-
-.exercise-table {
-    position: absolute;
-    bottom: 20%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 120px;
-    height: 60px;
-    background: #8B5CF6;
-    border-radius: 8px;
-    z-index: 2;
-}
-
-.exercise-table::before {
-    content: '';
-    position: absolute;
-    bottom: -30px;
-    left: 10px;
-    width: 8px;
-    height: 30px;
-    background: #8B5CF6;
-}
-
-.exercise-table::after {
-    content: '';
-    position: absolute;
-    bottom: -30px;
-    right: 10px;
-    width: 8px;
-    height: 30px;
-    background: #8B5CF6;
-}
-
-.accessories {
-    position: absolute;
-    bottom: 10%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 200px;
-    height: 40px;
-    z-index: 2;
-}
-
-.water-bottle {
-    position: absolute;
-    right: 20px;
-    bottom: 0;
-    width: 12px;
-    height: 30px;
-    background: #06B6D4;
-    border-radius: 6px;
-}
-
-.exercise-ball {
-    position: absolute;
-    left: 20px;
-    bottom: 0;
-    width: 25px;
-    height: 25px;
-    background: #EF4444;
-    border-radius: 50%;
-}
-
-.mat {
-    position: absolute;
-    bottom: -5px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100px;
-    height: 8px;
-    background: #10B981;
-    border-radius: 4px;
-}
-
-/* How It Works Section */
-.how-it-works {
-    padding: 120px 0;
-    background: white;
-}
-
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 24px;
-}
-
-.section-title {
-    font-size: 32px;
-    font-weight: 700;
-    text-align: center;
     color: #1F2937;
     margin-bottom: 16px;
+    line-height: 1.1;
 }
 
-.section-subtitle {
+.main-subtitle {
     font-size: 18px;
     color: #6B7280;
-    text-align: center;
     line-height: 1.6;
     max-width: 600px;
-    margin: 0 auto 64px auto;
+    margin: 0 auto;
 }
 
-.features-grid {
+/* User Type Cards */
+.user-type-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 40px;
-    margin-top: 64px;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    width: 100%;
+    max-width: 700px;
+    margin-bottom: 80px;
 }
 
-.feature-card {
-    text-align: center;
-    padding: 32px 24px;
-    background: #F9FAFB;
+.user-card {
+    background: white;
+    border: 1px solid #E5E7EB;
     border-radius: 16px;
-    transition: transform 0.2s ease;
+    padding: 32px 24px;
+    text-align: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.feature-card:hover {
+.user-card:hover {
     transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    border-color: #D1D5DB;
 }
 
-.feature-icon {
-    width: 64px;
-    height: 64px;
+.therapist-card .card-icon {
     background: rgba(255, 107, 53, 0.1);
     border-radius: 50%;
+    width: 80px;
+    height: 80px;
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto 24px auto;
 }
 
-.feature-title {
+.client-card .card-icon {
+    background: rgba(107, 114, 128, 0.1);
+    border-radius: 50%;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px auto;
+}
+
+.card-title {
     font-size: 20px;
     font-weight: 600;
     color: #1F2937;
     margin-bottom: 12px;
+    line-height: 1.2;
 }
 
-.feature-description {
+.card-description {
     font-size: 16px;
     color: #6B7280;
     line-height: 1.5;
+    margin-bottom: 24px;
+}
+
+.card-button {
+    width: 100%;
+    padding: 14px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.card-button.primary {
+    background: #FF6B35;
+    color: white;
+}
+
+.card-button.primary:hover {
+    background: #E55A2E;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+.card-button.secondary {
+    background: #F3F4F6;
+    color: #6B7280;
+    border: 1px solid #E5E7EB;
+}
+
+.card-button.secondary:hover {
+    background: #E5E7EB;
+    color: #1F2937;
+    border-color: #D1D5DB;
 }
 
 /* Footer */
 .footer {
-    padding: 32px 0;
-    background: #F9F7F4;
-    border-top: 1px solid #E5E7EB;
-}
-
-.footer-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 24px;
-}
-
-.footer-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    text-align: center;
+    margin-top: auto;
+    padding: 20px 0;
 }
 
 .footer-text {
-    color: #6B7280;
     font-size: 14px;
-}
-
-.footer-links {
-    display: flex;
-    gap: 24px;
-}
-
-.footer-link {
-    color: #6B7280;
-    text-decoration: none;
-    font-size: 14px;
-    transition: color 0.2s ease;
-}
-
-.footer-link:hover {
-    color: #FF6B35;
-}
-
-/* Modal Styles */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-    padding: 24px;
-}
-
-.modal-content {
-    background: white;
-    border-radius: 16px;
-    padding: 32px;
-    max-width: 500px;
-    width: 100%;
-    max-height: 90vh;
-    overflow-y: auto;
-}
-
-.modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 24px;
-}
-
-.modal-header h3 {
-    font-size: 24px;
-    font-weight: 600;
-    color: #1F2937;
-}
-
-.close-btn {
-    background: none;
-    border: none;
-    font-size: 24px;
-    color: #6B7280;
-    cursor: pointer;
-    padding: 8px;
-    border-radius: 8px;
-    transition: background-color 0.2s ease;
-}
-
-.close-btn:hover {
-    background: #F3F4F6;
-}
-
-.modal-body p {
-    color: #6B7280;
-    margin-bottom: 24px;
-    line-height: 1.5;
-}
-
-.error-message {
-    background: #FEF2F2;
-    color: #DC2626;
-    padding: 12px 16px;
-    border-radius: 8px;
-    margin-bottom: 24px;
-    font-size: 14px;
-}
-
-.quick-start-options {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 24px;
-}
-
-.option-btn {
-    display: flex;
-    align-items: center;
-    padding: 16px;
-    background: #F9FAFB;
-    border: 1px solid #E5E7EB;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-align: left;
-}
-
-.option-btn:hover {
-    background: #F3F4F6;
-    border-color: #D1D5DB;
-}
-
-.option-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.option-icon {
-    font-size: 24px;
-    margin-right: 16px;
-    min-width: 40px;
-}
-
-.option-content {
-    flex: 1;
-}
-
-.option-title {
-    font-weight: 600;
-    color: #1F2937;
-    margin-bottom: 4px;
-}
-
-.option-description {
-    font-size: 14px;
-    color: #6B7280;
-}
-
-.entry-form {
-    background: #F9FAFB;
-    padding: 24px;
-    border-radius: 12px;
-    margin-top: 16px;
-}
-
-.form-group {
-    margin-bottom: 16px;
-}
-
-.form-input {
-    width: 100%;
-    padding: 16px;
-    border: 1px solid #E5E7EB;
-    border-radius: 8px;
-    font-size: 16px;
-    transition: border-color 0.2s ease;
-}
-
-.form-input:focus {
-    outline: none;
-    border-color: #FF6B35;
-    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
-}
-
-.form-input:disabled {
-    background: #F3F4F6;
     color: #9CA3AF;
 }
 
-.submit-btn {
-    width: 100%;
-    background: #FF6B35;
-    color: white;
-    border: none;
-    padding: 16px;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-.submit-btn:hover:not(:disabled) {
-    background: #E55A2E;
-}
-
-.submit-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.loading-spinner.small {
-    width: 16px;
-    height: 16px;
-    border-width: 2px;
-}
-
-.validation-error {
-    color: #DC2626;
-    font-size: 14px;
-    margin-top: 8px;
-}
-
 /* Responsive Design */
-@@media (max-width: 1024px) {
-    .hero-container {
-        grid-template-columns: 1fr;
-        gap: 40px;
-        text-align: center;
-    }
-
-    .hero-content {
-        max-width: none;
-    }
-
-    .illustration-container {
-        width: 300px;
-        height: 300px;
-    }
-}
-
 @@media (max-width: 768px) {
-    .nav-container {
+    .header-content {
         padding: 0 16px;
     }
 
-    .nav-links {
-        gap: 16px;
+    .main-content {
+        padding: 40px 16px 20px 16px;
     }
 
-    .nav-link {
-        display: none;
-    }
-
-    .hero-section {
-        padding: 40px 0 80px 0;
-    }
-
-    .hero-container {
-        padding: 0 16px;
-    }
-
-    .hero-title {
+    .main-title {
         font-size: 36px;
     }
 
-    .hero-buttons {
-        flex-direction: column;
-        align-items: center;
+    .main-subtitle {
+        font-size: 16px;
     }
 
-    .primary-btn,
-    .secondary-btn {
-        width: 100%;
-        max-width: 300px;
-    }
-
-    .container {
-        padding: 0 16px;
-    }
-
-    .section-title {
-        font-size: 28px;
-    }
-
-    .features-grid {
+    .user-type-cards {
         grid-template-columns: 1fr;
         gap: 24px;
+        margin-bottom: 60px;
     }
 
-    .footer-content {
-        flex-direction: column;
-        gap: 16px;
-        text-align: center;
+    .user-card {
+        padding: 24px 20px;
     }
 
-    .modal-content {
-        padding: 24px;
-        margin: 16px;
+    .card-icon {
+        width: 64px;
+        height: 64px;
+    }
+
+    .card-icon svg {
+        width: 36px;
+        height: 36px;
+    }
+
+    .card-title {
+        font-size: 18px;
+    }
+
+    .card-description {
+        font-size: 14px;
     }
 }
 
 @@media (max-width: 480px) {
-    .hero-title {
+    .main-title {
         font-size: 28px;
     }
 
-    .hero-subtitle {
-        font-size: 16px;
+    .main-subtitle {
+        font-size: 14px;
     }
 
-    .illustration-container {
-        width: 250px;
-        height: 250px;
+    .user-card {
+        padding: 20px 16px;
     }
 
-    .modal-content {
-        padding: 20px;
+    .card-button {
+        padding: 12px 20px;
+        font-size: 14px;
     }
 }
 </style>
 
 @code {
-    private bool _isInitialized = false;
-    private readonly CodeEntryModel _codeModel = new();
-    private readonly SMSEntryModel _smsModel = new();
-    private ElementReference _codeInputRef;
-    private bool _isProcessing = false;
-    private string? _validationError;
-
-    // Modal and entry states
-    private bool _showQuickStart = false;
-    private bool _showCodeEntry = false;
-    private bool _showSMSEntry = false;
-
-    protected override async Task OnInitializedAsync()
+    private void NavigateToTrainerSignup()
     {
-        AuthState.OnAuthStateChanged += HandleAuthStateChanged;
-
-        // Initialize auth state
-        await AuthState.InitializeAsync();
-        _isInitialized = true;
-
-        // Check for invite parameter in URL
-        await CheckForInviteParameter();
-
-        // Redirect based on role if authenticated
-        await RedirectBasedOnRole();
+        Navigation.NavigateTo("/auth/trainer/login");
     }
 
-    private async void HandleAuthStateChanged()
+    private void NavigateToClientLogin()
     {
-        await RedirectBasedOnRole();
-        StateHasChanged();
+        Navigation.NavigateTo("/auth/client/login");
     }
-
-    private async Task CheckForInviteParameter()
-    {
-        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
-        var query = ParseQueryString(uri.Query);
-
-        if (query.TryGetValue("invite", out var inviteToken) && !string.IsNullOrWhiteSpace(inviteToken))
-        {
-            // Process invite token (opaque token, not grant code)
-            await ProcessInviteToken(inviteToken);
-        }
-    }
-
-    private async Task ProcessInviteToken(string inviteToken)
-    {
-        _isProcessing = true;
-        _validationError = null;
-
-        try
-        {
-            // Track analytics for invite link method
-            await TrackEntryMethod("invite_link");
-
-            // Validate the invite token
-            var response = await HttpClient.GetAsync($"/api/invites/validate/{inviteToken}");
-
-            if (response.IsSuccessStatusCode)
-            {
-                var inviteInfo = await response.Content.ReadFromJsonAsync<ValidateInviteTokenResponse>();
-                if (inviteInfo != null && inviteInfo.IsValid)
-                {
-                    // Valid token - start onboarding flow with invite info
-                    Navigation.NavigateTo($"/onboarding?code={Uri.EscapeDataString(inviteInfo.GrantCode)}&trainer={Uri.EscapeDataString(inviteInfo.TrainerName)}&clinic={Uri.EscapeDataString(inviteInfo.ClinicName)}");
-                }
-                else
-                {
-                    _validationError = "Unable to validate invite. Please try again.";
-                }
-            }
-            else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-            {
-                _validationError = "That invite link isn't valid or has expired.";
-            }
-            else
-            {
-                _validationError = "Unable to validate invite. Please try again.";
-            }
-        }
-        catch (Exception)
-        {
-            _validationError = "Unable to process invite. Please try again.";
-        }
-        finally
-        {
-            _isProcessing = false;
-        }
-    }
-
-    private static Dictionary<string, string> ParseQueryString(string query)
-    {
-        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-
-        if (string.IsNullOrEmpty(query) || query == "?")
-            return result;
-
-        if (query.StartsWith("?"))
-            query = query.Substring(1);
-
-        var pairs = query.Split('&', StringSplitOptions.RemoveEmptyEntries);
-        foreach (var pair in pairs)
-        {
-            var parts = pair.Split('=', 2);
-            var key = Uri.UnescapeDataString(parts[0]);
-            var value = parts.Length > 1 ? Uri.UnescapeDataString(parts[1]) : "";
-            result[key] = value;
-        }
-
-        return result;
-    }
-
-    private async Task RedirectBasedOnRole()
-    {
-        if (AuthState.IsAuthenticated)
-        {
-            var currentPath = Navigation.ToBaseRelativePath(Navigation.Uri);
-
-            // Only redirect if we're on the root/home page
-            if (currentPath == "" || currentPath == "home")
-            {
-                if (AuthState.IsClient)
-                {
-                    Navigation.NavigateTo("/home/client");
-                }
-                else if (AuthState.IsTrainer)
-                {
-                    Navigation.NavigateTo("/home/trainer");
-                }
-            }
-        }
-    }
-
-    private void StartJourney()
-    {
-        _showQuickStart = true;
-        _showCodeEntry = false;
-        _showSMSEntry = false;
-        _validationError = null;
-    }
-
-    private void LearnMore()
-    {
-        // Scroll to how it works section
-        _ = JSRuntime.InvokeVoidAsync("scrollToElement", "how-it-works");
-    }
-
-    private void CloseQuickStart()
-    {
-        _showQuickStart = false;
-        _showCodeEntry = false;
-        _showSMSEntry = false;
-        _validationError = null;
-    }
-
-    private void StartCodeEntry()
-    {
-        _showCodeEntry = true;
-        _showSMSEntry = false;
-        _validationError = null;
-    }
-
-    private void StartSMSEntry()
-    {
-        _showSMSEntry = true;
-        _showCodeEntry = false;
-        _validationError = null;
-    }
-
-    private async Task StartQRScan()
-    {
-        _isProcessing = true;
-        _validationError = null;
-
-        try
-        {
-            // Track analytics for QR scan method
-            await TrackEntryMethod("qr");
-
-            // Request camera permission and start QR scanning
-            var hasPermission = await JSRuntime.InvokeAsync<bool>("navigator.permissions.query", new { name = "camera" });
-
-            if (hasPermission)
-            {
-                // TODO: Implement actual QR scanning with camera
-                // For now, show placeholder message
-                Snackbar.Add("QR scanner opening... (Camera functionality coming soon)", Severity.Info);
-
-                // Simulate QR scan result for testing
-                // In real implementation, this would be the URL from QR code
-                // var scannedUrl = await JSRuntime.InvokeAsync<string>("scanQRCode");
-                // await ProcessQRResult(scannedUrl);
-            }
-            else
-            {
-                _validationError = "Camera permission required for QR scanning. Please allow camera access or use another method.";
-            }
-        }
-        catch (Exception)
-        {
-            _validationError = "Camera access not available. Please try another method.";
-        }
-        finally
-        {
-            _isProcessing = false;
-        }
-    }
-
-    private async Task HandleCodeSubmit()
-    {
-        if (string.IsNullOrWhiteSpace(_codeModel.Code))
-            return;
-
-        _isProcessing = true;
-        _validationError = null;
-
-        try
-        {
-            // Track analytics for code entry method
-            await TrackEntryMethod("code");
-
-            var response = await HttpClient.GetAsync($"/api/grants/{_codeModel.Code}");
-
-            if (response.IsSuccessStatusCode)
-            {
-                var grantInfo = await response.Content.ReadFromJsonAsync<GrantValidationResponse>();
-                if (grantInfo != null)
-                {
-                    // Valid code - start onboarding flow with grant info
-                    Navigation.NavigateTo($"/onboarding?code={_codeModel.Code}&trainer={Uri.EscapeDataString(grantInfo.TrainerName)}&clinic={Uri.EscapeDataString(grantInfo.ClinicName)}");
-                }
-                else
-                {
-                    _validationError = "Unable to validate code. Please try again.";
-                }
-            }
-            else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-            {
-                _validationError = "That code isn't valid or has expired.";
-            }
-            else
-            {
-                _validationError = "Unable to validate code. Please try again.";
-            }
-        }
-        catch (Exception)
-        {
-            _validationError = "Unable to validate code. Please try again.";
-        }
-        finally
-        {
-            _isProcessing = false;
-        }
-    }
-
-    private async Task HandleSMSSubmit()
-    {
-        if (string.IsNullOrWhiteSpace(_smsModel.PhoneNumber))
-            return;
-
-        _isProcessing = true;
-        _validationError = null;
-
-        try
-        {
-            // Track analytics for SMS entry method
-            await TrackEntryMethod("sms");
-
-            var request = new
-            {
-                PhoneNumber = _smsModel.PhoneNumber,
-                InviteCode = _smsModel.InviteCode
-            };
-
-            var response = await HttpClient.PostAsJsonAsync("/api/invites/sms", request);
-
-            if (response.IsSuccessStatusCode)
-            {
-                Snackbar.Add($"Invite link sent to {_smsModel.PhoneNumber}!", Severity.Success);
-                _smsModel.PhoneNumber = "";
-                _smsModel.InviteCode = "";
-                _showSMSEntry = false;
-            }
-            else
-            {
-                _validationError = "Failed to send SMS. Please try again.";
-            }
-        }
-        catch (Exception)
-        {
-            _validationError = "Failed to send SMS. Please try again.";
-        }
-        finally
-        {
-            _isProcessing = false;
-        }
-    }
-
-    private async Task TrackEntryMethod(string method)
-    {
-        try
-        {
-            // Send analytics event
-            var analyticsData = new
-            {
-                Event = "entry_method_used",
-                Method = method,
-                Timestamp = DateTimeOffset.UtcNow
-            };
-
-            // Fire and forget analytics call
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    await HttpClient.PostAsJsonAsync("/api/analytics/events", analyticsData);
-                }
-                catch
-                {
-                    // Ignore analytics failures
-                }
-            });
-        }
-        catch
-        {
-            // Never let analytics break the main flow
-        }
-    }
-
-    public void Dispose()
-    {
-        AuthState.OnAuthStateChanged -= HandleAuthStateChanged;
-    }
-
-    public class CodeEntryModel
-    {
-        [Required(ErrorMessage = "Please enter your PT code")]
-        [MinLength(4, ErrorMessage = "Code must be at least 4 characters")]
-        public string Code { get; set; } = "";
-    }
-
-    public class SMSEntryModel
-    {
-        [Required(ErrorMessage = "Phone number is required")]
-        [Phone(ErrorMessage = "Please enter a valid phone number")]
-        public string PhoneNumber { get; set; } = "";
-
-        public string? InviteCode { get; set; }
-    }
-
-    public record GrantValidationResponse(
-        string TrainerName,
-        string ClinicName,
-        string? LogoUrl,
-        DateTimeOffset ExpiresAt
-    );
-
-    public record ValidateInviteTokenResponse(
-        bool IsValid,
-        string TrainerName,
-        string ClinicName,
-        string GrantCode,
-        DateTimeOffset ExpiresAt
-    );
 }
