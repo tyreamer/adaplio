@@ -1,79 +1,87 @@
 # Adaplio - Physical Therapy Platform
 
 ## Overview
-Adaplio is a comprehensive physical therapy platform built with ASP.NET Core Web API backend and Blazor WebAssembly frontend. The platform connects physical therapists with their clients, providing exercise management, progress tracking, and communication tools.
+Adaplio is a comprehensive physical therapy platform built with ASP.NET Core Web API backend and Blazor WebAssembly frontend. The platform connects physical therapists with their clients, providing exercise management, progress tracking, gamification, and communication tools.
 
 ## Architecture
 
 ### Backend (ASP.NET Core Web API)
 - **Location**: `src/Api/Adaplio.Api/`
-- **Database**: PostgreSQL with Entity Framework Core
-- **Authentication**: JWT-based with magic links
-- **Security**: Rate limiting, audit logging, CORS configuration
-- **Communication**: Twilio SMS integration
+- **Framework**: .NET 8 with ASP.NET Core
+- **Database**: PostgreSQL (production) / SQLite (development) with Entity Framework Core 8.0
+- **Authentication**: JWT Bearer tokens with magic link authentication for clients
+- **Security**: Comprehensive middleware stack with rate limiting and audit logging
+- **Communication**: Twilio SMS and MailKit email integration
 
 ### Frontend (Blazor WebAssembly)
 - **Location**: `src/Frontend/Adaplio.Frontend/`
-- **Framework**: Blazor WebAssembly with MudBlazor components
-- **Styling**: Custom CSS with design system
-- **State Management**: Scoped services and local state
+- **Framework**: Blazor WebAssembly .NET 8 with MudBlazor UI components
+- **Styling**: Custom CSS design system with responsive layouts
+- **State Management**: Scoped services and local component state
+- **PWA Support**: Service worker and manifest for progressive web app capabilities
 
-## Key Features Implemented
+### Additional Projects
+- **Jobs**: `src/Jobs/Adaplio.Jobs/` - Background job processing (placeholder)
+- **Shared**: `src/Shared/Adaplio.Shared/` - Shared models and DTOs (placeholder)
 
-### 1. Authentication System
-- **Magic Link Authentication** for both trainers and clients
-- **Multi-step onboarding** with profile setup
-- **Role-based access control** (Trainer/Client)
-- **Secure JWT token management**
+## Technology Stack
 
-### 2. User Interface Overhauls
-Recent major UI overhauls completed:
+### Backend Dependencies
+- **Entity Framework Core 8.0** - Database ORM with PostgreSQL/SQLite providers
+- **BCrypt.Net** - Secure password hashing
+- **AspNetCoreRateLimit** - API rate limiting
+- **Twilio** - SMS messaging service
+- **MailKit** - Email service
+- **QRCoder** - QR code generation
+- **Microsoft.AspNetCore.Authentication.JwtBearer** - JWT authentication
 
-#### Settings Page (`Pages/Settings.razor`)
-- **iOS-style grouped settings** with Account, Notifications, App Preferences, and About sections
-- **Custom toggle switches** with orange accent color
-- **Clean navigation** and responsive design
+### Frontend Dependencies
+- **MudBlazor 8.12.0** - Material Design UI components
+- **Microsoft.AspNetCore.Components.WebAssembly 8.0** - Blazor framework
+- **System.Net.Http.Json** - HTTP client extensions
+- **Microsoft.Extensions.Http** - HTTP client factory
 
-#### Landing Page (`Pages/Home.razor`)
-- **Modern hero section** with custom CSS exercise illustration
-- **"How Adaplio Works"** feature section
-- **Responsive navigation** header
-- **Custom CSS animations** for person exercising with weights
+## Key Features
 
-#### Trainer Dashboard (`Pages/HomeTrainer.razor`)
-- **Patient management interface** with card-based layout
-- **Patient filtering** and search functionality
-- **Progress tracking** with adherence percentages
-- **Invite modal** for new patient onboarding
+### 1. Authentication & Authorization System
+- **Magic Link Authentication** for clients using 6-digit codes
+- **Email/Password Authentication** for trainers with MFA support
+- **JWT Token Security** with automatic refresh and secure storage
+- **Role-Based Access Control** (Client/Trainer roles)
+- **Comprehensive Audit Logging** for all security events
 
-#### Action Plans Page (`Pages/ActionPlans.razor`)
-- **Clean table design** for PT action plan management
-- **Status badges** (Draft, Sent, Approved, Rejected) with color coding
-- **Action buttons** for Edit, Send, and Delete operations
-- **"New Invite" modal** with form validation
+### 2. User Management
+- **AppUser Base Entity** with specialized ClientProfile and TrainerProfile
+- **Pseudonymous Client Aliases** (e.g., "C-7Q2F") for privacy
+- **Consent Management System** between trainers and clients
+- **Multi-Step Onboarding** workflows for both user types
+- **Profile Management** with image upload and contact information
 
-#### Exercise Detail Page (`Pages/ExerciseDetail.razor`)
-- **Full exercise view** with video player placeholder
-- **Exercise parameters** in colored cards (Sets, Hold, Rest)
-- **Instructions and cautions** sections
-- **Completion tracking** with "Mark as complete" functionality
-- **Difficulty reporting** for trainer feedback
+### 3. Exercise & Plan Management
+- **Exercise Library** with categories, instructions, and default parameters
+- **Plan Templates** created by trainers for reusability
+- **Plan Proposals** with client acceptance workflow
+- **Exercise Instances** with tracking and progress monitoring
+- **Progress Logging** with automatic adherence calculations
 
-### 3. Client Features
-#### Client Dashboard (`Pages/HomeClient.razor`)
-- **Today's exercises** with progress tracking
-- **XP progression system** with level indicators
-- **Streak tracking** with visual indicators
-- **Trainer notes** and communication
-- **Clickable exercise cards** linking to detail pages
+### 4. Gamification System
+- **XP-Based Leveling** with calculated progression curves
+- **Streak Tracking** (daily and weekly exercise completion)
+- **Badge System** with JSON storage for achievements
+- **Progress Events** with automatic XP awards for milestones
 
-### 4. Design System
-Consistent branding throughout the application:
-- **Primary Orange**: #FF6B35
-- **Navy**: #1F2937
-- **Cream Background**: #F9F7F4
-- **Success Green**: #10B981
-- **Error Red**: #EF4444
+### 5. Communication Features
+- **Invite Token System** for secure client onboarding
+- **SMS Notifications** via Twilio integration
+- **Email Communications** via MailKit
+- **QR Code Generation** for easy trainer-client connections
+
+### 6. Modern User Interface
+- **Responsive Design** optimized for mobile and desktop
+- **Clean Landing Page** with user type selection
+- **Dashboard Interfaces** for both trainers and clients
+- **Exercise Detail Views** with completion tracking
+- **Settings Management** with iOS-style grouped interface
 
 ## Directory Structure
 
@@ -81,29 +89,176 @@ Consistent branding throughout the application:
 src/
 ├── Api/
 │   └── Adaplio.Api/
-│       ├── Auth/                 # Authentication endpoints
-│       ├── Services/             # Business logic services
-│       ├── Middleware/           # Security and rate limiting
-│       └── Program.cs            # API configuration
+│       ├── Analytics/           # Usage analytics endpoints
+│       ├── Auth/               # Authentication endpoints
+│       ├── Data/               # Entity Framework context and models
+│       ├── Middleware/         # Security and rate limiting
+│       ├── Profile/            # User profile management
+│       ├── Services/           # Business logic services
+│       └── Program.cs          # Application entry point
 ├── Frontend/
 │   └── Adaplio.Frontend/
-│       ├── Pages/                # Razor pages
-│       │   ├── Home.razor        # Landing page
-│       │   ├── Settings.razor    # User settings
-│       │   ├── HomeClient.razor  # Client dashboard
-│       │   ├── HomeTrainer.razor # Trainer dashboard
-│       │   ├── ActionPlans.razor # PT action plans
-│       │   ├── ExerciseDetail.razor # Exercise details
-│       │   └── Auth/             # Authentication pages
-│       ├── Components/           # Reusable components
-│       │   ├── Profile/          # Profile management
-│       │   └── Trainer/          # Trainer-specific components
-│       └── Services/             # Frontend services
-├── Shared/
-│   └── Adaplio.Shared/           # Shared models and DTOs
-└── Jobs/
-    └── Adaplio.Jobs/             # Background job processing
+│       ├── Components/         # Reusable UI components
+│       │   ├── Base/          # Core components (ErrorBoundary, etc.)
+│       │   ├── Profile/       # Profile management components
+│       │   ├── Progress/      # Progress tracking components
+│       │   └── Trainer/       # Trainer-specific components
+│       ├── Extensions/         # Service extensions
+│       ├── Pages/             # Razor pages
+│       │   ├── Auth/          # Authentication pages
+│       │   └── Profile/       # Profile pages
+│       ├── Services/          # Frontend services
+│       ├── Validators/        # Form validation
+│       └── wwwroot/           # Static assets
+├── Jobs/
+│   └── Adaplio.Jobs/          # Background job processing (placeholder)
+└── Shared/
+    └── Adaplio.Shared/        # Shared models (placeholder)
 ```
+
+## Database Schema
+
+### Core Entities (20 Domain Models)
+
+#### User Management
+- **AppUser** - Base user entity with common properties
+- **ClientProfile** - Client-specific data with pseudonymous aliases
+- **TrainerProfile** - Trainer credentials and practice information
+- **ConsentGrant** - Permission system between trainers and clients
+
+#### Exercise Management
+- **Exercise** - Exercise library with instructions and parameters
+- **PlanTemplate** - Reusable exercise plans created by trainers
+- **PlanProposal** - Plan proposals sent to clients for acceptance
+- **PlanInstance** - Active client plans with tracking
+- **ExerciseInstance** - Individual exercise assignments
+
+#### Progress Tracking
+- **ProgressEvent** - Exercise completion logs with timestamps
+- **AdherenceWeek** - Weekly adherence statistics and summaries
+- **PlanItemAcceptance** - Client acceptance tracking for plan items
+
+#### Gamification
+- **Gamification** - XP points, levels, streaks, and badges
+- **XpAward** - XP awards tied to specific progress events
+
+#### Authentication
+- **MagicLink** - Magic link tokens for client authentication
+- **GrantCode** - Trainer-generated codes for client invitations
+- **InviteToken** - Secure invitation tokens
+
+#### Media & Support
+- **MediaAsset** - File storage references
+- **Transcript** - Text transcriptions
+- **ExtractionResult** - Data extraction results
+
+## API Endpoints (46 total)
+
+### Authentication Endpoints
+```
+POST /auth/client/magic-link     # Send magic link to client
+POST /auth/client/verify         # Verify magic link token
+POST /auth/trainer/register      # Trainer registration
+POST /auth/trainer/login         # Trainer authentication
+GET  /auth/me                    # Get current user information
+PUT  /auth/profile               # Update user profile
+POST /auth/role                  # Set user role
+```
+
+### Client Management
+```
+GET  /client/board               # Client dashboard data
+GET  /client/progress            # Progress tracking data
+GET  /client/plans               # Active client plans
+GET  /client/proposals           # Plan proposals
+GET  /client/gamification        # Gamification stats
+```
+
+### Trainer Management
+```
+GET  /trainer/clients            # Client list for trainer
+GET  /trainer/templates          # Plan templates
+POST /trainer/proposals          # Create plan proposals
+GET  /trainer/grants            # Grant management
+```
+
+### Supporting Endpoints
+```
+POST /upload/presigned          # File upload with presigned URLs
+GET  /health                    # Health check endpoint
+POST /dev/seed                  # Development data seeding
+GET  /analytics/events          # Usage analytics
+```
+
+## Frontend Pages & Components
+
+### Main Pages
+- **Home.razor** - Clean landing page with user type selection
+- **Settings.razor** - iOS-style grouped settings interface
+- **ActionPlans.razor** - PT action plan management with status tracking
+- **ExerciseDetail.razor** - Detailed exercise view with completion tracking
+- **HomeClient.razor** - Client dashboard with exercises and progress
+- **HomeTrainer.razor** - Trainer dashboard with patient management
+- **ClientProgress.razor** - Detailed progress tracking interface
+
+### Authentication Pages
+- **ClientLogin.razor** - Magic link authentication for clients
+- **TrainerLogin.razor** - Email/password login for trainers
+- **ClientOnboarding.razor** - Multi-step client registration
+- **Verify.razor** - Magic link verification interface
+
+### Components
+- **ClientCard.razor** - Patient cards for trainer dashboard
+- **ProgressLadder.razor** - Visual progress tracking
+- **ErrorBoundary.razor** - Error handling component
+- **ProfileHeader.razor** - User profile display
+- **AccountSettings.razor** - Account management interface
+
+## Security Architecture
+
+### Middleware Stack
+1. **SecurityRateLimitingMiddleware** - Prevents API abuse
+2. **SecurityAuditMiddleware** - Comprehensive security logging
+3. **ProfileRateLimitingMiddleware** - User-specific rate limits
+4. **JWT Authentication** - Token validation with cookie fallback
+
+### Rate Limiting Configuration
+```json
+{
+  "Auth": "10 requests/minute",
+  "General": "60 requests/minute",
+  "Profile": "30 requests/minute"
+}
+```
+
+### Security Features
+- **Input Sanitization** for all user inputs
+- **CORS Configuration** for production origins
+- **Audit Logging** with detailed security events
+- **Token Refresh** automatic JWT token management
+- **Password Hashing** using BCrypt with salt
+
+## Services Architecture
+
+### Backend Services
+- **IJwtService** - JWT token creation and validation
+- **IEmailService** - Email communication via MailKit
+- **ISMSService** - SMS messaging via Twilio
+- **IAliasService** - Client pseudonym generation
+- **IProgressService** - Exercise progress tracking
+- **IPlanService** - Plan creation and management
+- **IGamificationService** - XP and achievement system
+- **IUploadService** - File upload and management
+- **IAuditService** - Security event logging
+- **ISecurityMonitoringService** - Threat detection
+
+### Frontend Services
+- **AuthStateService** - Authentication state management
+- **ProfileService** - User profile operations
+- **AuthenticatedHttpClient** - API communication with auth
+- **NotificationService** - User notification system
+- **FormValidationService** - Client-side form validation
+- **ThemeService** - Dark/light mode management
 
 ## Development Commands
 
@@ -111,6 +266,9 @@ src/
 ```bash
 # Build entire solution
 dotnet build
+
+# Build for production
+dotnet build --configuration Release
 
 # Run API (from src/Api/Adaplio.Api/)
 dotnet run
@@ -126,129 +284,186 @@ dotnet ef migrations add <MigrationName> --project src/Api/Adaplio.Api
 
 # Update database
 dotnet ef database update --project src/Api/Adaplio.Api
+
+# Drop database
+dotnet ef database drop --project src/Api/Adaplio.Api
+```
+
+### Testing
+```bash
+# Run all tests
+dotnet test
+
+# Run specific test project
+dotnet test src/Api/Adaplio.Api.Tests
 ```
 
 ## Environment Configuration
 
 ### Required Environment Variables
-- `DB_PROVIDER`: Database provider (postgresql/sqlite)
-- `DB_CONNECTION`: Database connection string
-- `TWILIO_ACCOUNT_SID`: Twilio SMS service
-- `TWILIO_AUTH_TOKEN`: Twilio authentication
-- `JWT_SECRET`: JWT signing key
+```bash
+# Database Configuration
+DB_PROVIDER=postgresql          # or sqlite for development
+DB_CONNECTION=<connection_string>
 
-### CORS Configuration
-Configured for production with proper origins in `render.yaml`:
-```yaml
-- key: CORS_ORIGINS
-  value: "https://adaplio.onrender.com,https://www.adaplio.com"
+# Authentication
+JWT_SECRET=<secure_random_key>
+
+# Communication Services
+TWILIO_ACCOUNT_SID=<twilio_sid>
+TWILIO_AUTH_TOKEN=<twilio_token>
+
+# Email Configuration
+SMTP_HOST=<smtp_server>
+SMTP_PORT=<port>
+SMTP_USERNAME=<username>
+SMTP_PASSWORD=<password>
+
+# CORS Configuration
+CORS__ORIGINS=https://yourdomain.com,https://www.yourdomain.com
 ```
 
-## Key Technical Patterns
+### Configuration Files
+- **appsettings.json** - Base configuration
+- **appsettings.Development.json** - Development overrides
+- **appsettings.Production.json** - Production settings
+- **render.yaml** - Render.com deployment configuration
+- **vercel.json** - Vercel frontend deployment
+- **Dockerfile** - Container configuration
 
-### 1. CSS in Blazor
-- Using `@@keyframes` and `@@media` for CSS rules (escaped for Blazor compilation)
-- Custom CSS animations and transitions
-- Responsive design with mobile-first approach
+## Design System
 
-### 2. Navigation Patterns
-- Consistent header design across pages
-- Role-based navigation (Client vs Trainer views)
-- Breadcrumb and back navigation where appropriate
+### Color Palette
+- **Primary Orange**: #FF6B35 (brand primary)
+- **Navy**: #1F2937 (dark text)
+- **Cream Background**: #F9F7F4 (page backgrounds)
+- **Success Green**: #10B981 (success states)
+- **Error Red**: #EF4444 (error states)
+- **Gray Scale**: #6B7280, #9CA3AF, #E5E7EB, #F3F4F6
 
-### 3. State Management
-- Scoped services for user state
-- Local component state for UI interactions
-- Event callbacks for parent-child communication
+### Typography
+- **Font Family**: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif
+- **Font Weights**: 400 (normal), 500 (medium), 600 (semibold), 700 (bold)
+- **Font Sizes**: 14px, 16px, 18px, 20px, 24px, 28px, 32px, 48px
 
-### 4. Form Validation
-- DataAnnotations validation
-- Custom validation messages
-- Loading states and error handling
-
-## Security Features
-
-### 1. Rate Limiting
-- API endpoint rate limiting
-- Security-focused rate limiting middleware
-- Profile-specific rate limiting
-
-### 2. Audit Logging
-- Comprehensive audit trail
-- Security monitoring service
-- User action logging
-
-### 3. Authentication Security
-- Magic link expiration
-- JWT token management
-- Role-based authorization
-
-## Recent Completions
-
-### UI/UX Overhauls (2024)
-1. ✅ **Settings Page** - iOS-style grouped settings with toggles
-2. ✅ **Landing Page** - Modern hero with custom CSS illustration
-3. ✅ **Trainer Dashboard** - Patient management with cards and filtering
-4. ✅ **Action Plans Page** - Clean table design with status badges
-5. ✅ **Exercise Detail Page** - Full exercise view with completion tracking
-
-### Technical Improvements
-1. ✅ **CORS Configuration** - Production-ready CORS setup
-2. ✅ **Responsive Design** - Mobile-optimized across all pages
-3. ✅ **Component Navigation** - Clickable exercise cards with routing
-4. ✅ **Loading States** - Skeleton loading and spinner animations
-5. ✅ **Error Handling** - Comprehensive error boundaries and validation
-
-## Future Development Areas
-
-### Potential Enhancements
-- Real video/image upload for exercises
-- Advanced progress analytics
-- Real-time messaging between trainers and clients
-- Mobile app development
-- Integration with wearable devices
-- Advanced reporting and analytics
-
-### Technical Debt
-- Migrate from mock data to real API endpoints
-- Implement comprehensive unit testing
-- Add integration testing
-- Performance optimization
-- Enhanced accessibility features
+### Component Patterns
+- **Border Radius**: 8px (buttons), 12px (cards), 16px (large cards)
+- **Shadows**: Subtle elevation with rgba(0, 0, 0, 0.1)
+- **Transitions**: 0.2s ease for hover states
+- **Spacing Scale**: 4px, 8px, 12px, 16px, 20px, 24px, 32px, 40px
 
 ## Deployment
 
 ### Production Environment
-- **Platform**: Render.com
-- **Database**: PostgreSQL
-- **Frontend**: Static deployment
-- **API**: Container deployment
+- **API Hosting**: Render.com (Docker container)
+- **Frontend Hosting**: Vercel (static deployment)
+- **Database**: PostgreSQL on Render
+- **Domain**: adaplio.com with SSL/TLS
 
-### Environment Setup
-1. Configure environment variables in Render dashboard
-2. Deploy API and Frontend separately
-3. Ensure CORS origins match production domains
-4. Verify database connectivity
+### Build Pipeline
+1. **API Build**: Docker multi-stage build with .NET 8
+2. **Frontend Build**: Blazor WebAssembly publish
+3. **Database Migration**: Automatic EF migrations on startup
+4. **Health Checks**: Endpoint monitoring for uptime
+
+### Monitoring & Logging
+- **Health Endpoints**: `/health` for uptime monitoring
+- **Security Audit Logs**: Comprehensive security event logging
+- **Performance Monitoring**: Rate limiting and response time tracking
+- **Error Tracking**: Detailed error logging with context
+
+## Testing Structure
+
+### Test Projects
+- **Adaplio.Api.Tests** - API endpoint and service testing
+- **Adaplio.Frontend.Tests** - Component and integration testing
+
+### Test Categories
+- **Unit Tests**: Service logic and data models
+- **Integration Tests**: API endpoints with database
+- **Component Tests**: Blazor component rendering
+- **Security Tests**: Authentication and authorization
+- **Performance Tests**: Load testing and optimization
+
+## Recent Development Activity
+
+### Major Features Completed (2024-2025)
+1. **Complete UI Overhaul** - Modern responsive design across all pages
+2. **Landing Page Redesign** - Clean welcome page with user type selection
+3. **Dashboard Implementations** - Separate dashboards for trainers and clients
+4. **Exercise Detail Pages** - Comprehensive exercise views with completion tracking
+5. **Settings Interface** - iOS-style grouped settings with toggles
+6. **Action Plan Management** - Table-based plan management with status tracking
+
+### Recent Commits
+- Frontend overhaul with modern UI components
+- Route conflict resolution between settings pages
+- CORS and deployment configuration fixes
+- Exercise detail page implementation
+- Authentication flow improvements
+
+## Future Development Areas
+
+### Planned Enhancements
+- **Real-time Features** - WebSocket integration for live updates
+- **Mobile App Development** - Native iOS/Android applications
+- **Advanced Analytics** - Detailed progress reporting and insights
+- **Wearable Integration** - Fitness tracker and smartwatch support
+- **Video Exercise Library** - Video demonstrations and instructions
+- **Telehealth Integration** - Virtual consultation capabilities
+
+### Technical Improvements
+- **Background Jobs** - Full implementation of job processing system
+- **Caching Layer** - Redis for improved performance
+- **API Versioning** - Version management for backward compatibility
+- **Advanced Testing** - Comprehensive test coverage and automation
+- **Performance Optimization** - Database query optimization and caching
+
+## Code Conventions
+
+### Backend Conventions
+- **Controllers**: Minimal API endpoints with clear naming
+- **Services**: Interface-based dependency injection
+- **Models**: Entity Framework entities with proper relationships
+- **Validation**: FluentValidation for complex business rules
+- **Error Handling**: Consistent error responses with proper HTTP status codes
+
+### Frontend Conventions
+- **Components**: Razor components with code-behind separation
+- **Services**: Scoped services for state management
+- **Styling**: Component-scoped CSS with design system variables
+- **Navigation**: Clean routing with proper parameter handling
+- **State Management**: Reactive updates with StateHasChanged()
+
+### Security Conventions
+- **Authentication**: JWT tokens with secure storage
+- **Authorization**: Role-based access control
+- **Input Validation**: Server-side validation for all inputs
+- **Audit Logging**: Comprehensive security event tracking
+- **Rate Limiting**: Configurable limits per endpoint type
 
 ## Notes for Future Development
 
-### Code Conventions
-- Follow existing naming patterns
-- Maintain consistent component structure
-- Use established color system
-- Implement responsive design patterns
-- Follow security best practices
+### Development Best Practices
+1. **Follow existing naming patterns** and architectural decisions
+2. **Maintain consistent component structure** across pages
+3. **Use established color system** and design patterns
+4. **Implement proper error handling** and loading states
+5. **Add appropriate accessibility features** for inclusivity
+6. **Include comprehensive logging** for debugging and monitoring
 
-### Component Development
-- Check existing components before creating new ones
-- Follow established CSS patterns
-- Use proper error handling
-- Implement loading states
-- Add appropriate accessibility features
+### Performance Considerations
+- **Database Queries**: Use efficient queries with proper indexing
+- **Frontend Rendering**: Implement virtualization for large lists
+- **API Responses**: Paginate large datasets
+- **Static Assets**: Optimize images and minimize bundle sizes
+- **Caching**: Implement appropriate caching strategies
 
-### API Development
-- Follow existing endpoint patterns
-- Implement proper error handling
-- Add rate limiting where appropriate
-- Include audit logging for sensitive operations
-- Follow security middleware patterns
+### Security Guidelines
+- **Input Sanitization**: Validate and sanitize all user inputs
+- **Authentication**: Secure token management and refresh cycles
+- **Authorization**: Implement proper role-based access controls
+- **Audit Trails**: Log all significant security events
+- **Rate Limiting**: Protect against abuse and DOS attacks
+
+This documentation represents the current state of the Adaplio platform as of January 2025, including all recent UI overhauls, feature implementations, and architectural improvements.

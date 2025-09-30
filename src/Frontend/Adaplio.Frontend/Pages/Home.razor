@@ -1,29 +1,29 @@
 @page "/"
 @page "/home"
+@layout null
 @inject NavigationManager Navigation
 
 <PageTitle>Welcome to Adaplio</PageTitle>
 
 <div class="landing-page">
-    <!-- Header -->
-    <div class="header">
-        <div class="header-content">
-            <div class="brand-logo">
-                <span class="logo-text">Adaplio</span>
-            </div>
-            <div class="header-actions">
-                <div class="theme-toggle">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="5"/>
-                        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-                    </svg>
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <div class="brand-logo">
+                    <span class="logo-text">Adaplio</span>
+                </div>
+                <div class="header-actions">
+                    <div class="theme-toggle">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="5"/>
+                            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                        </svg>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Main Content -->
-    <div class="main-content">
         <div class="welcome-section">
             <h1 class="main-title">Welcome to Adaplio</h1>
             <p class="main-subtitle">The future of physical therapy. Connect with your clients and guide them on their recovery journey.</p>
@@ -82,8 +82,11 @@
 
 /* Header */
 .header {
+    width: 100%;
     padding: 20px 0;
-    border-bottom: 1px solid #E5E7EB;
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 
 .header-content {
@@ -126,10 +129,11 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 60px 24px 40px 24px;
-    max-width: 800px;
+    padding: 40px 24px;
+    max-width: 1200px;
     margin: 0 auto;
     width: 100%;
+    position: relative;
 }
 
 .welcome-section {
