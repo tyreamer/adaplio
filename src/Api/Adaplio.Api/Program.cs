@@ -210,6 +210,7 @@ _ = Task.Run(async () =>
                     break;
                 }
             }
+        }
 
         // Fix PostgreSQL identity columns if they don't exist
         if (dbProvider.Equals("pgsql", StringComparison.OrdinalIgnoreCase))
