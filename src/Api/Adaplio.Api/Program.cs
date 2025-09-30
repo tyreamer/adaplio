@@ -160,52 +160,56 @@ Console.WriteLine($"Starting server on port {port}");
 
 var app = builder.Build();
 
-// Ensure database is created and migrated
-using (var scope = app.Services.CreateScope())
+// Ensure database is created and migrated (run in background to not block startup)
+_ = Task.Run(async () =>
 {
-    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-    // Check if we should skip migrations (useful for deployment issues)
-    var skipMigrations = Environment.GetEnvironmentVariable("SKIP_MIGRATIONS")?.ToLower() == "true";
-
-    if (skipMigrations)
+    try
     {
-        Console.WriteLine("Skipping database migrations (SKIP_MIGRATIONS=true)");
-    }
-    else if (app.Environment.IsDevelopment())
-    {
-        Console.WriteLine("Development mode: Ensuring database created");
-        context.Database.EnsureCreated();
-    }
-    else
-    {
-        // In production, run migrations with retry logic
-        Console.WriteLine("Production mode: Running database migrations");
-        var maxRetries = 3;
-        var retryDelay = TimeSpan.FromSeconds(5);
+        using var scope = app.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-        for (int i = 0; i < maxRetries; i++)
+        // Check if we should skip migrations (useful for deployment issues)
+        var skipMigrations = Environment.GetEnvironmentVariable("SKIP_MIGRATIONS")?.ToLower() == "true";
+
+        if (skipMigrations)
         {
-            try
-            {
-                context.Database.Migrate();
-                Console.WriteLine("Database migrations completed successfully");
-                break;
-            }
-            catch (Exception ex) when (i < maxRetries - 1)
-            {
-                Console.WriteLine($"Migration attempt {i + 1} failed: {ex.Message}");
-                Console.WriteLine($"Retrying in {retryDelay.TotalSeconds} seconds...");
-                await Task.Delay(retryDelay);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Failed to run migrations after {maxRetries} attempts: {ex.Message}");
-                Console.WriteLine("Starting application without migrations. Database may not be in correct state.");
-                // Don't throw - allow app to start so we can diagnose connection issues
-                break;
-            }
+            Console.WriteLine("Skipping database migrations (SKIP_MIGRATIONS=true)");
+            return;
         }
+
+        if (app.Environment.IsDevelopment())
+        {
+            Console.WriteLine("Development mode: Ensuring database created");
+            await context.Database.EnsureCreatedAsync();
+        }
+        else
+        {
+            // In production, run migrations with retry logic
+            Console.WriteLine("Production mode: Running database migrations");
+            var maxRetries = 3;
+            var retryDelay = TimeSpan.FromSeconds(5);
+
+            for (int i = 0; i < maxRetries; i++)
+            {
+                try
+                {
+                    await context.Database.MigrateAsync();
+                    Console.WriteLine("Database migrations completed successfully");
+                    break;
+                }
+                catch (Exception ex) when (i < maxRetries - 1)
+                {
+                    Console.WriteLine($"Migration attempt {i + 1} failed: {ex.Message}");
+                    Console.WriteLine($"Retrying in {retryDelay.TotalSeconds} seconds...");
+                    await Task.Delay(retryDelay);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to run migrations after {maxRetries} attempts: {ex.Message}");
+                    Console.WriteLine("Application started without migrations. Database may not be in correct state.");
+                    break;
+                }
+            }
 
         // Fix PostgreSQL identity columns if they don't exist
         if (dbProvider.Equals("pgsql", StringComparison.OrdinalIgnoreCase))
@@ -287,7 +291,13 @@ using (var scope = app.Services.CreateScope())
             }
         }
     }
-}
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Critical error during database initialization: {ex}");
+    }
+});
+
+Console.WriteLine("Application startup complete - migrations running in background");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
