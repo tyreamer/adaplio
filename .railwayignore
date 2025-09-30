@@ -1,0 +1,26 @@
+# Ignore frontend files (not needed for API deployment)
+src/Frontend/
+build.sh
+
+# Node modules
+node_modules/
+npm-debug.log
+
+# Development files
+*.md
+.vscode/
+.vs/
+
+# Test files
+*.Tests/
+
+# Build artifacts (will be rebuilt)
+**/bin/
+**/obj/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
+# Environment files
+.env
+.env.local

@@ -11,7 +11,7 @@ services:
       - key: JWT_SECRET
         generateValue: true
       - key: JWT_ISSUER
-        value: adaplio-api-render
+        value: adaplio-api
       - key: JWT_AUDIENCE
         value: adaplio-frontend
       - key: CORS__ORIGINS

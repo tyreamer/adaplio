@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "../src/Api/Adaplio.Api/Adaplio.Api.csproj",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "publish"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/api/index"
+    }
+  ]
+}

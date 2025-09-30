@@ -13,6 +13,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Net;
+using System.Net.Sockets;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,11 +22,15 @@ var builder = WebApplication.CreateBuilder(args);
 var dbProvider = Environment.GetEnvironmentVariable("DB_PROVIDER") ?? "sqlite";
 var conn = Environment.GetEnvironmentVariable("DB_CONNECTION") ?? "Data Source=db.sqlite";
 
-// Log connection details (without password)
+// Log connection details (without password) and network capabilities
 if (dbProvider.Equals("pgsql", StringComparison.OrdinalIgnoreCase))
 {
     var safeConn = System.Text.RegularExpressions.Regex.Replace(conn, @"Password=[^;]+", "Password=***");
     Console.WriteLine($"PostgreSQL Connection: {safeConn}");
+
+    // Check IPv6 support
+    Console.WriteLine($"IPv6 Supported: {Socket.OSSupportsIPv6}");
+    Console.WriteLine($"IPv4 Supported: {Socket.OSSupportsIPv4}");
 }
 
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -147,8 +153,10 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
-builder.WebHost.UseUrls($"http://*:{port}");
+// Configure the port from environment variable (for Railway/Render deployment)
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+Console.WriteLine($"Starting server on port {port}");
 
 var app = builder.Build();
 
@@ -156,14 +164,48 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    if (app.Environment.IsDevelopment())
+
+    // Check if we should skip migrations (useful for deployment issues)
+    var skipMigrations = Environment.GetEnvironmentVariable("SKIP_MIGRATIONS")?.ToLower() == "true";
+
+    if (skipMigrations)
     {
+        Console.WriteLine("Skipping database migrations (SKIP_MIGRATIONS=true)");
+    }
+    else if (app.Environment.IsDevelopment())
+    {
+        Console.WriteLine("Development mode: Ensuring database created");
         context.Database.EnsureCreated();
     }
     else
     {
-        // In production, run migrations
-        context.Database.Migrate();
+        // In production, run migrations with retry logic
+        Console.WriteLine("Production mode: Running database migrations");
+        var maxRetries = 3;
+        var retryDelay = TimeSpan.FromSeconds(5);
+
+        for (int i = 0; i < maxRetries; i++)
+        {
+            try
+            {
+                context.Database.Migrate();
+                Console.WriteLine("Database migrations completed successfully");
+                break;
+            }
+            catch (Exception ex) when (i < maxRetries - 1)
+            {
+                Console.WriteLine($"Migration attempt {i + 1} failed: {ex.Message}");
+                Console.WriteLine($"Retrying in {retryDelay.TotalSeconds} seconds...");
+                await Task.Delay(retryDelay);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to run migrations after {maxRetries} attempts: {ex.Message}");
+                Console.WriteLine("Starting application without migrations. Database may not be in correct state.");
+                // Don't throw - allow app to start so we can diagnose connection issues
+                break;
+            }
+        }
 
         // Fix PostgreSQL identity columns if they don't exist
         if (dbProvider.Equals("pgsql", StringComparison.OrdinalIgnoreCase))

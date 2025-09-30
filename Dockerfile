@@ -25,10 +25,12 @@ COPY --from=build /app/out .
 
 # Set environment variables
 ENV ASPNETCORE_ENVIRONMENT=Production
-ENV ASPNETCORE_URLS=http://+:$PORT
 
-# Expose the port that Render will use
-EXPOSE $PORT
+# Railway uses PORT environment variable
+ENV ASPNETCORE_URLS=http://0.0.0.0:${PORT:-8080}
+
+# Expose port (Railway will use PORT env var)
+EXPOSE 8080
 
 # Run the application
 ENTRYPOINT ["dotnet", "Adaplio.Api.dll"]
