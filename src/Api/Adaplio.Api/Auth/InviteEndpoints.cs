@@ -3,6 +3,7 @@ using Adaplio.Api.Domain;
 using Adaplio.Api.Services;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 
 namespace Adaplio.Api.Auth;
 
@@ -39,11 +40,14 @@ public static class InviteEndpoints
             if (!string.IsNullOrEmpty(request.InviteCode))
             {
                 // Validate the provided code and get trainer info
-                var grantCode = await context.GrantCodes
+                // Client-side date evaluation for EF compatibility
+                var now = DateTimeOffset.UtcNow;
+                var grantCodes = await context.GrantCodes
                     .Include(gc => gc.TrainerProfile)
-                    .FirstOrDefaultAsync(gc => gc.Code == request.InviteCode &&
-                                             gc.ExpiresAt > DateTimeOffset.UtcNow &&
-                                             gc.UsedAt == null);
+                    .Where(gc => gc.Code == request.InviteCode && gc.UsedAt == null)
+                    .ToListAsync();
+
+                var grantCode = grantCodes.FirstOrDefault(gc => gc.ExpiresAt > now);
 
                 if (grantCode == null)
                 {
@@ -109,7 +113,7 @@ public static class InviteEndpoints
     {
         try
         {
-            var userId = httpContext.User.FindFirst("UserId")?.Value;
+            var userId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var userType = httpContext.User.FindFirst("user_type")?.Value;
 
             if (string.IsNullOrEmpty(userId) || userType != "trainer")
@@ -126,10 +130,13 @@ public static class InviteEndpoints
                 return Results.NotFound("Trainer profile not found");
             }
 
-            var grantCode = await context.GrantCodes
-                .FirstOrDefaultAsync(gc => gc.TrainerProfileId == trainerProfile.Id &&
-                                         gc.ExpiresAt > DateTimeOffset.UtcNow &&
-                                         gc.UsedAt == null);
+            // Client-side date evaluation for EF compatibility
+            var now = DateTimeOffset.UtcNow;
+            var grantCodes = await context.GrantCodes
+                .Where(gc => gc.TrainerProfileId == trainerProfile.Id && gc.UsedAt == null)
+                .ToListAsync();
+
+            var grantCode = grantCodes.FirstOrDefault(gc => gc.ExpiresAt > now);
 
             if (grantCode == null)
             {

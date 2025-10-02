@@ -3,7 +3,9 @@ using System.ComponentModel.DataAnnotations;
 namespace Adaplio.Api.Auth;
 
 // Trainer grant creation
-public record CreateGrantRequest();
+public record CreateGrantRequest(
+    int? ExpirationHours = 72
+);
 
 public record CreateGrantResponse(
     string GrantCode,

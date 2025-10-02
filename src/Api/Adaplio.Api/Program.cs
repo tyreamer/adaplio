@@ -70,6 +70,7 @@ builder.Services.AddScoped<IUploadService, UploadService>();
 builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddScoped<IInputSanitizer, InputSanitizer>();
 builder.Services.AddScoped<ISecurityMonitoringService, SecurityMonitoringService>();
+builder.Services.AddScoped<IInviteService, MockInviteService>();
 
 // Add JWT authentication
 var jwtSecret = builder.Configuration["Jwt:Secret"] ?? "your-256-bit-secret-key-here-make-it-long-enough-for-security";

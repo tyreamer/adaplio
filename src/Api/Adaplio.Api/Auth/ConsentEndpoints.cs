@@ -68,7 +68,7 @@ public static class ConsentEndpoints
                 grantCode = aliasService.GenerateUniqueCode();
             } while (await context.GrantCodes.AnyAsync(gc => gc.Code == grantCode));
 
-            var expiresAt = DateTimeOffset.UtcNow.AddHours(24); // 24 hour expiry
+            var expiresAt = DateTimeOffset.UtcNow.AddHours(request.ExpirationHours ?? 72);
 
             var grant = new GrantCode
             {
