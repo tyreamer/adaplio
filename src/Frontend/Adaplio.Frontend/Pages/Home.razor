@@ -14,51 +14,65 @@
 </head>
 <body>
 <div class="landing-page">
-    <!-- Main Content -->
     <div class="main-content">
-        <!-- Header -->
-        <div class="header">
-            <div class="header-content">
-                <div class="brand-logo">
-                    <span class="logo-text">adaplio</span>
-                </div>
-            </div>
+        <!-- Illustration -->
+        <div class="illustration">
+            <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Background -->
+                <rect width="200" height="200" fill="#FFF9F0" rx="16"/>
+                <!-- Person exercising on balance board -->
+                <ellipse cx="100" cy="160" rx="50" ry="8" fill="#7FA89B" opacity="0.3"/>
+                <!-- Balance board -->
+                <path d="M65 160 Q 100 165 135 160" stroke="#4A7C7E" stroke-width="8" fill="none" stroke-linecap="round"/>
+                <ellipse cx="100" cy="160" rx="35" ry="5" fill="#355E61"/>
+                <!-- Person -->
+                <!-- Legs -->
+                <path d="M 95 130 L 85 155" stroke="#4A5568" stroke-width="8" stroke-linecap="round"/>
+                <path d="M 105 130 L 115 155" stroke="#4A5568" stroke-width="8" stroke-linecap="round"/>
+                <!-- Shoes -->
+                <ellipse cx="85" cy="157" rx="8" ry="4" fill="#2D3748"/>
+                <ellipse cx="115" cy="157" rx="8" ry="4" fill="#2D3748"/>
+                <!-- Body -->
+                <ellipse cx="100" cy="110" rx="18" ry="22" fill="#7FA89B"/>
+                <!-- Arm (left) -->
+                <path d="M 88 105 Q 70 95 65 85" stroke="#D4A574" stroke-width="6" stroke-linecap="round"/>
+                <circle cx="65" cy="82" r="5" fill="#D4A574"/>
+                <!-- Arm (right) -->
+                <path d="M 112 115 L 125 110" stroke="#D4A574" stroke-width="6" stroke-linecap="round"/>
+                <circle cx="127" cy="109" r="5" fill="#D4A574"/>
+                <!-- Head -->
+                <circle cx="100" cy="85" r="16" fill="#D4A574"/>
+                <!-- Hair -->
+                <path d="M 92 75 Q 100 68 108 75" fill="#2D3748"/>
+                <path d="M 88 78 Q 85 70 92 72" fill="#2D3748"/>
+                <path d="M 112 78 Q 115 70 108 72" fill="#2D3748"/>
+                <!-- Plant decoration -->
+                <path d="M 155 150 L 155 165" stroke="#5A8F7B" stroke-width="3"/>
+                <ellipse cx="155" cy="145" rx="6" ry="10" fill="#5A8F7B"/>
+                <ellipse cx="150" cy="148" rx="5" ry="8" fill="#5A8F7B"/>
+                <ellipse cx="160" cy="148" rx="5" ry="8" fill="#5A8F7B"/>
+            </svg>
         </div>
+
+        <!-- Welcome Text -->
         <div class="welcome-section">
-            <h1 class="main-title">welcome to adaplio</h1>
-            <p class="main-subtitle">from recovery to performance, adaplio helps clients and trainers work together to stay consistent and achieve results.</p>
+            <h1 class="main-title">Welcome to <span class="brand-name">Adaplio</span></h1>
+            <p class="main-subtitle">Your path to recovery starts here.</p>
         </div>
 
-        <div class="user-type-cards">
-            <div class="user-card therapist-card">
-                <div class="card-icon">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#FF6B35" stroke-width="2">
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                        <circle cx="9" cy="7" r="4"/>
-                        <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                    </svg>
-                </div>
-                <h2 class="card-title">For Therapists & Trainers</h2>
-                <p class="card-description">Create personalized plans, track client progress, and manage your practice efficiently.</p>
-                <button class="card-button primary" @onclick="NavigateToTrainerSignup">Get Started</button>
-            </div>
-
-            <div class="user-card client-card">
-                <div class="card-icon">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                        <circle cx="12" cy="7" r="4"/>
-                    </svg>
-                </div>
-                <h2 class="card-title">For Clients</h2>
-                <p class="card-description">Access your exercise plan, track your recovery, and stay connected with your therapist.</p>
-                <button class="card-button secondary" @onclick="NavigateToClientLogin">Login</button>
-            </div>
+        <!-- User Type Buttons -->
+        <div class="user-type-buttons">
+            <button class="user-button primary" @onclick="NavigateToClientLogin">I'm a Client</button>
+            <button class="user-button secondary" @onclick="NavigateToTrainerSignup">I'm a Therapist</button>
         </div>
 
+        <!-- Footer -->
         <div class="footer">
-            <p class="footer-text">© 2025 Adaplio. All rights reserved.</p>
+            <p class="footer-text">
+                <a href="#" class="footer-link">Terms of Service</a>
+                <span class="separator">|</span>
+                <a href="#" class="footer-link">Privacy Policy</a>
+            </p>
         </div>
     </div>
 </div>
@@ -75,35 +89,14 @@
 
 .landing-page {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background: #ffffff;
+    background: #FFF9F0;
     min-height: 100vh;
     color: #1F2937;
     display: flex;
     flex-direction: column;
     justify-content: center;
-}
-
-/* Header */
-.header {
-    width: 100%;
-    padding: 20px 0;
-}
-
-.header-content {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 24px;
-    display: flex;
     align-items: center;
-    justify-content: space-between;
 }
-
-.brand-logo .logo-text {
-    font-size: 24px;
-    font-weight: 700;
-    color: #FF6B35;
-}
-
 
 /* Main Content */
 .main-content {
@@ -111,128 +104,91 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 40px 24px;
-    max-width: 1200px;
-    margin: 0 auto;
+    padding: 60px 24px;
+    max-width: 600px;
     width: 100%;
 }
 
+/* Illustration */
+.illustration {
+    margin-bottom: 40px;
+    animation: fadeIn 0.6s ease-in;
+}
+
+@@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Welcome Section */
 .welcome-section {
     text-align: center;
-    margin-bottom: 60px;
+    margin-bottom: 40px;
 }
 
 .main-title {
-    font-size: 48px;
+    font-size: 42px;
     font-weight: 700;
     color: #1F2937;
-    margin-bottom: 16px;
-    line-height: 1.1;
+    margin-bottom: 12px;
+    line-height: 1.2;
+}
+
+.brand-name {
+    color: #FF6B35;
 }
 
 .main-subtitle {
     font-size: 18px;
     color: #6B7280;
     line-height: 1.6;
-    max-width: 600px;
-    margin: 0 auto;
 }
 
-/* User Type Cards */
-.user-type-cards {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 32px;
-    width: 100%;
-    max-width: 700px;
-    margin-bottom: 80px;
-}
-
-.user-card {
-    background: white;
-    border: 1px solid #E5E7EB;
-    border-radius: 16px;
-    padding: 32px 24px;
-    text-align: center;
-    transition: all 0.2s ease;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.user-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-    border-color: #D1D5DB;
-}
-
-.therapist-card .card-icon {
-    background: rgba(255, 107, 53, 0.1);
-    border-radius: 50%;
-    width: 80px;
-    height: 80px;
+/* User Type Buttons */
+.user-type-buttons {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 24px auto;
-}
-
-.client-card .card-icon {
-    background: rgba(107, 114, 128, 0.1);
-    border-radius: 50%;
-    width: 80px;
-    height: 80px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 24px auto;
-}
-
-.card-title {
-    font-size: 20px;
-    font-weight: 600;
-    color: #1F2937;
-    margin-bottom: 12px;
-    line-height: 1.2;
-}
-
-.card-description {
-    font-size: 16px;
-    color: #6B7280;
-    line-height: 1.5;
-    margin-bottom: 24px;
-}
-
-.card-button {
+    flex-direction: column;
+    gap: 16px;
     width: 100%;
-    padding: 14px 24px;
-    border-radius: 8px;
+    max-width: 400px;
+    margin-bottom: 60px;
+}
+
+.user-button {
+    width: 100%;
+    padding: 16px 32px;
+    border-radius: 12px;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
-    border: none;
+    border: 2px solid transparent;
+    font-family: inherit;
 }
 
-.card-button.primary {
+.user-button.primary {
     background: #FF6B35;
     color: white;
+    border-color: #FF6B35;
 }
 
-.card-button.primary:hover {
+.user-button.primary:hover {
     background: #E55A2E;
-    transform: translateY(-1px);
+    border-color: #E55A2E;
+    transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
 }
 
-.card-button.secondary {
-    background: #F3F4F6;
-    color: #6B7280;
-    border: 1px solid #E5E7EB;
-}
-
-.card-button.secondary:hover {
-    background: #E5E7EB;
+.user-button.secondary {
+    background: transparent;
     color: #1F2937;
     border-color: #D1D5DB;
+}
+
+.user-button.secondary:hover {
+    background: rgba(255, 107, 53, 0.05);
+    border-color: #FF6B35;
+    color: #FF6B35;
 }
 
 /* Footer */
@@ -246,14 +202,24 @@
     color: #9CA3AF;
 }
 
+.footer-link {
+    color: #9CA3AF;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.footer-link:hover {
+    color: #FF6B35;
+}
+
+.separator {
+    margin: 0 12px;
+}
+
 /* Responsive Design */
 @@media (max-width: 768px) {
-    .header-content {
-        padding: 0 16px;
-    }
-
     .main-content {
-        padding: 40px 16px 20px 16px;
+        padding: 40px 20px;
     }
 
     .main-title {
@@ -264,51 +230,33 @@
         font-size: 16px;
     }
 
-    .user-type-cards {
-        grid-template-columns: 1fr;
-        gap: 24px;
-        margin-bottom: 60px;
-    }
-
-    .user-card {
-        padding: 24px 20px;
-    }
-
-    .card-icon {
-        width: 64px;
-        height: 64px;
-    }
-
-    .card-icon svg {
-        width: 36px;
-        height: 36px;
-    }
-
-    .card-title {
-        font-size: 18px;
-    }
-
-    .card-description {
-        font-size: 14px;
+    .illustration svg {
+        width: 180px;
+        height: 180px;
     }
 }
 
 @@media (max-width: 480px) {
+    .main-content {
+        padding: 30px 16px;
+    }
+
     .main-title {
-        font-size: 28px;
+        font-size: 32px;
     }
 
     .main-subtitle {
-        font-size: 14px;
+        font-size: 15px;
     }
 
-    .user-card {
-        padding: 20px 16px;
+    .user-button {
+        padding: 14px 24px;
+        font-size: 15px;
     }
 
-    .card-button {
-        padding: 12px 20px;
-        font-size: 14px;
+    .illustration svg {
+        width: 160px;
+        height: 160px;
     }
 }
 </style>
