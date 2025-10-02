@@ -320,12 +320,18 @@ public class GamificationService : IGamificationService
         var startOfWeek = weekStart ?? GetStartOfWeek(DateTime.UtcNow);
         var endOfWeek = startOfWeek.AddDays(7).AddTicks(-1);
 
-        // Get XP awards for this week
-        var weeklyXpAwards = await _context.XpAwards
-            .Where(xa => xa.UserId == clientProfileId &&
-                        xa.CreatedAt >= startOfWeek &&
-                        xa.CreatedAt <= endOfWeek)
-            .SumAsync(xa => xa.XpAwarded);
+        // Convert to DateTimeOffset for comparison (SQLite compatibility)
+        var startOfWeekOffset = new DateTimeOffset(startOfWeek, TimeSpan.Zero);
+        var endOfWeekOffset = new DateTimeOffset(endOfWeek, TimeSpan.Zero);
+
+        // Get XP awards for this week (client-side filtering for SQLite compatibility)
+        var allXpAwards = await _context.XpAwards
+            .Where(xa => xa.UserId == clientProfileId)
+            .ToListAsync();
+
+        var weeklyXpAwards = allXpAwards
+            .Where(xa => xa.CreatedAt >= startOfWeekOffset && xa.CreatedAt <= endOfWeekOffset)
+            .Sum(xa => xa.XpAwarded);
 
         // Get total gamification data
         var gamification = await GetOrCreateGamificationAsync(clientProfileId);

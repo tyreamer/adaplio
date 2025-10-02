@@ -499,22 +499,495 @@ var clients = activeGrants
 }
 ```
 
+### 7. **LINQ OrderBy Translation Error in GetTrainerTemplates**
+
+**Issue**: SQLite provider couldn't translate `OrderByDescending` with `DateTimeOffset` fields in LINQ queries.
+
+**Error Message**:
+```
+The LINQ expression could not be translated with OrderByDescending(pt => pt.UpdatedAt)
+```
+
+**File Modified**:
+- `src/Api/Adaplio.Api/Services/PlanService.cs` (Lines 35-46)
+
+**Fix Applied**: Client-side evaluation for ordering:
+```csharp
+// Before
+var templates = await _context.PlanTemplates
+    .Include(pt => pt.PlanTemplateItems)
+    .ThenInclude(pti => pti.Exercise)
+    .Where(pt => pt.TrainerProfileId == trainerProfileId && !pt.IsDeleted)
+    .OrderByDescending(pt => pt.UpdatedAt)
+    .ToListAsync();
+
+// After
+var allTemplates = await _context.PlanTemplates
+    .Include(pt => pt.PlanTemplateItems)
+    .ThenInclude(pti => pti.Exercise)
+    .Where(pt => pt.TrainerProfileId == trainerProfileId && !pt.IsDeleted)
+    .ToListAsync();
+
+var templates = allTemplates.OrderByDescending(pt => pt.UpdatedAt).ToList();
+```
+
+**Status**: ✅ Fixed
+
+## Phase 3: Plan Templates Testing Results
+
+### ✅ Create Plan Template
+- Trainer can create templates with multiple exercises
+- Template metadata captured: name, description, category, duration, public/private
+- Exercise items properly ordered
+- Exercises auto-created if they don't exist in library
+- Each item stores: sets, reps, hold seconds, frequency, days of week, notes
+
+**Test Data**:
+```json
+{
+  "name": "Lower Back Rehabilitation",
+  "description": "6-week program for lower back pain recovery",
+  "category": "Rehabilitation",
+  "durationWeeks": 6,
+  "isPublic": false,
+  "items": [
+    {
+      "exerciseName": "Cat-Cow Stretch",
+      "exerciseDescription": "Spinal mobility exercise on hands and knees",
+      "exerciseCategory": "Mobility",
+      "targetSets": 3,
+      "targetReps": 10,
+      "frequencyPerWeek": 5,
+      "days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+      "notes": "Focus on smooth movement"
+    },
+    {
+      "exerciseName": "Bird Dog",
+      "exerciseDescription": "Core stability exercise",
+      "exerciseCategory": "Core Stability",
+      "targetSets": 3,
+      "targetReps": 8,
+      "holdSeconds": 5,
+      "frequencyPerWeek": 3,
+      "days": ["Monday", "Wednesday", "Friday"],
+      "notes": "Keep hips level"
+    }
+  ]
+}
+```
+
+**Response**: Template created with ID 2, timestamps set, items properly linked
+
+### ✅ List Plan Templates
+- Returns all non-deleted templates for the trainer
+- Ordered by UpdatedAt (most recent first)
+- Includes full template details with nested items
+- Each item includes exercise information
+
+**Response Format**:
+```json
+{
+  "templates": [{
+    "id": 2,
+    "name": "Lower Back Rehabilitation",
+    "description": "6-week program for lower back pain recovery",
+    "category": "Rehabilitation",
+    "durationWeeks": 6,
+    "isPublic": false,
+    "createdAt": "2025-10-02T12:38:57.5077665+00:00",
+    "updatedAt": "2025-10-02T12:38:57.5380664+00:00",
+    "items": [...]
+  }]
+}
+```
+
+### ✅ Update Plan Template
+- Can modify all template fields
+- Can add/remove/modify exercises
+- Old template items properly removed
+- New template items created with correct order
+- UpdatedAt timestamp refreshed
+
+**Test Changes**:
+- Name: "Lower Back Rehabilitation" → "Lower Back Rehabilitation - UPDATED"
+- Duration: 6 weeks → 8 weeks
+- IsPublic: false → true
+- Reps increased: 10 → 12
+- Added 3rd exercise: "Plank"
+
+**Result**: All changes applied successfully, UpdatedAt changed from 12:38:57 to 12:41:14
+
+### ✅ Delete Plan Template
+- Soft delete (IsDeleted = true, not physically removed)
+- UpdatedAt timestamp refreshed on deletion
+- Deleted templates excluded from list results
+- Returns success message
+
+**Response**: `{"message":"Template deleted successfully"}`
+
+**Verification**: List templates returns empty array after deletion
+
+### 8. **JSON Null Handling in MapProposalToResponse**
+
+**Issue**: When deserializing JSON from `CustomPlanJson`, nullable integer fields (`Sets`, `Reps`, `HoldSeconds`) caused errors when calling `GetInt32()` on null values.
+
+**Error Message**:
+```
+The requested operation requires an element of type 'Number', but the target element has type 'Null'.
+```
+
+**File Modified**:
+- `src/Api/Adaplio.Api/Services/PlanService.cs` (Lines 565-567)
+
+**Fix Applied**: Added null check before calling `GetInt32()`:
+```csharp
+// Before
+itemJson.TryGetProperty("Sets", out var setsElement) ? setsElement.GetInt32() : null
+
+// After
+itemJson.TryGetProperty("Sets", out var setsElement) && setsElement.ValueKind != JsonValueKind.Null ? setsElement.GetInt32() : null
+```
+
+**Status**: ✅ Fixed for Sets, Reps, and HoldSeconds
+
+### 9. **LINQ OrderBy Translation Error in Proposal Queries**
+
+**Issue**: SQLite provider couldn't translate `OrderByDescending` with `DateTimeOffset` field (ProposedAt) in proposal queries.
+
+**Error Message**:
+```
+SQLite does not support expressions of type 'DateTimeOffset' in ORDER BY clauses.
+```
+
+**Files Modified**:
+- `src/Api/Adaplio.Api/Services/PlanService.cs` (Lines 285-300 and 302-317)
+
+**Fix Applied**: Client-side evaluation for both methods:
+```csharp
+// GetTrainerProposalsAsync
+var allProposals = await _context.PlanProposals
+    .Include(pp => pp.TrainerProfile)
+    .Include(pp => pp.ClientProfile)
+    .Include(pp => pp.PlanTemplate)
+    .ThenInclude(pt => pt!.PlanTemplateItems)
+    .ThenInclude(pti => pti.Exercise)
+    .Where(pp => pp.TrainerProfileId == trainerProfileId)
+    .ToListAsync();
+
+var proposals = allProposals.OrderByDescending(pp => pp.ProposedAt).ToList();
+
+// GetClientProposalsAsync - same pattern
+```
+
+**Status**: ✅ Fixed in both GetTrainerProposalsAsync and GetClientProposalsAsync
+
+## Phase 4: Plan Proposals Testing Results
+
+### ✅ Create Plan Proposal
+- Trainer can create proposals from templates
+- Requires active consent with `propose_plan` scope
+- Proposal validates client alias and template ownership
+- Creates immutable snapshot of template in `CustomPlanJson`
+- 30-day expiration set automatically
+- Start date defaults to next Monday if not specified
+
+**Test Data**:
+```json
+{
+  "clientAlias": "C-RABA",
+  "templateId": 3,
+  "startsOn": "2025-10-06",
+  "message": "This program will help strengthen your knee"
+}
+```
+
+**Response**:
+```json
+{
+  "id": 3,
+  "trainerName": "Dr. Test Trainer",
+  "clientAlias": "C-RABA",
+  "proposalName": "Knee Recovery Program",
+  "message": "This program will help strengthen your knee",
+  "status": "pending",
+  "proposedAt": "2025-10-02T13:06:18.080238+00:00",
+  "expiresAt": "2025-11-01T13:06:18.0802485+00:00",
+  "respondedAt": null,
+  "startsOn": "2025-10-06",
+  "items": [...]
+}
+```
+
+### ✅ List Trainer Proposals
+- Returns all proposals created by the trainer
+- Ordered by ProposedAt (most recent first)
+- Includes full proposal details with items
+- Shows all statuses (pending, accepted, rejected)
+
+**Response Format**:
+```json
+{
+  "proposals": [
+    {
+      "id": 3,
+      "trainerName": "Dr. Test Trainer",
+      "clientAlias": "C-RABA",
+      "proposalName": "Knee Recovery Program",
+      "status": "pending",
+      "items": [...]
+    },
+    ...
+  ]
+}
+```
+
+### ✅ List Client Proposals
+- Returns all proposals sent to the client
+- Ordered by ProposedAt (most recent first)
+- Client can see all proposals from different trainers
+- Includes proposal details and exercise items
+
+### ✅ Get Single Client Proposal
+- Client can retrieve individual proposal details
+- Returns full proposal with all exercise items
+- Validates client ownership before returning
+- Null handling for nullable integer fields (Sets, Reps, HoldSeconds)
+
+**Example**: `GET /api/client/proposals/3` returns single proposal with ID 3
+
+### 10. **JSON Null Handling in AcceptProposalAsync**
+
+**Issue**: Same JSON deserialization issue when creating exercise instances during proposal acceptance.
+
+**Error Message**:
+```
+The requested operation requires an element of type 'Number', but the target element has type 'Null'.
+```
+
+**File Modified**:
+- `src/Api/Adaplio.Api/Services/PlanService.cs` (Lines 402-405)
+
+**Fix Applied**: Added null checks for Sets, Reps, HoldSeconds, and FrequencyPerWeek in ExerciseInstance creation
+
+**Status**: ✅ Fixed
+
+### 11. **LINQ OrderBy Translation Error in GetClientPlansAsync**
+
+**Issue**: SQLite provider couldn't translate `OrderByDescending` with DateTimeOffset field (CreatedAt) in plan instance queries.
+
+**File Modified**:
+- `src/Api/Adaplio.Api/Services/PlanService.cs` (Lines 444-456)
+
+**Fix Applied**: Client-side evaluation:
+```csharp
+var allPlans = await _context.PlanInstances
+    .Include(pi => pi.ExerciseInstances)
+    .ThenInclude(ei => ei.ProgressEvents)
+    .Where(pi => pi.ClientProfileId == clientProfileId)
+    .ToListAsync();
+
+var plans = allPlans.OrderByDescending(pi => pi.CreatedAt).ToList();
+```
+
+**Status**: ✅ Fixed
+
+## Phase 5: Proposal Acceptance & Plan Instances Testing Results
+
+### ✅ Accept Proposal
+- Client can accept proposals (all items or selective)
+- Creates PlanInstance with proper metadata
+- Creates ExerciseInstance for each exercise on each scheduled day
+- Records acceptance in PlanItemAcceptance table
+- Updates proposal status to "accepted"
+- Sets RespondedAt timestamp
+
+**Test Request**:
+```json
+{
+  "acceptAll": true
+}
+```
+
+**Response**:
+```json
+{
+  "message": "Proposal accepted successfully",
+  "planInstanceId": 2,
+  "acceptedItems": 5,
+  "totalItems": 1
+}
+```
+
+**Details**: 1 exercise × 5 days = 5 exercise instances created
+
+### ✅ List Client Plans
+- Returns all plan instances for the client
+- Ordered by CreatedAt (most recent first)
+- Includes calculated statistics (total/completed exercises)
+- Shows plan status, start date, planned end date
+
+**Response**:
+```json
+{
+  "plans": [
+    {
+      "id": 2,
+      "name": "Knee Recovery Program",
+      "status": "active",
+      "startDate": "2025-10-06",
+      "plannedEndDate": "2025-11-03",
+      "actualEndDate": null,
+      "createdAt": "2025-10-02T13:26:50.4340375+00:00",
+      "totalExercises": 5,
+      "completedExercises": 0
+    }
+  ]
+}
+```
+
+### ✅ Client Board/Dashboard
+- Returns exercise schedule for a specific week
+- Organizes exercises by day of week
+- Shows exercise details (name, description, targets, status)
+- Handles missing days gracefully (empty arrays)
+- Correctly maps day indices (Sunday=0, Monday=1, etc.)
+
+**Example Request**: `GET /api/client/board?weekStart=2025-10-06`
+
+**Response Structure**:
+- weekStart, weekEnd
+- days[]: Array of 7 days
+  - dayName, date, dayOfWeek
+  - exercises[]: Array of exercises scheduled for that day
+
+### ✅ Quick Log Progress
+- Client can quickly mark exercises as completed
+- Creates ProgressEvent record
+- Updates ExerciseInstance status
+- Records completion timestamp
+- Stores sets, reps, hold seconds data
+
+**Request**:
+```json
+{
+  "exerciseInstanceId": 1,
+  "completed": true,
+  "sets": 3,
+  "reps": 15
+}
+```
+
+**Response**:
+```json
+{
+  "message": "Exercise marked as completed!",
+  "progressEventId": 1
+}
+```
+
 ## Conclusion
 
 **Phases Completed**:
 - ✅ **Phase 1**: Authentication System (magic link, trainer login, JWT)
 - ✅ **Phase 2**: Consent & Grant System (grant codes, client acceptance, trainer-client connection)
+- ✅ **Phase 3**: Plan Templates (create, list, update, delete)
+- ✅ **Phase 4**: Plan Proposals (create, list trainer/client, get single)
+- ✅ **Phase 5**: Proposal Acceptance & Plan Instances (accept, list plans, board, quick log)
+- ✅ **Phase 6**: Profile Management (get current user, update profile, set role)
 
-**Total Issues Fixed**: 6
+**Total Issues Fixed**: 11
 - 3 LINQ translation issues in AuthEndpoints
 - 1 JWT claim inconsistency
 - 2 LINQ translation issues in ConsentEndpoints
 - 1 LINQ translation issue in PlanEndpoints (with null handling)
+- 1 LINQ OrderBy translation issue in PlanService (templates)
+- 1 JSON null handling issue in MapProposalToResponse
+- 2 LINQ OrderBy translation issues in PlanService (proposals)
+- 1 JSON null handling issue in AcceptProposalAsync
+- 1 LINQ OrderBy translation issue in GetClientPlansAsync
 
-**Pattern Identified**: SQLite LINQ provider cannot translate `DateTimeOffset.UtcNow` in Where clauses. Solution is consistent: fetch to memory first, then filter with client-side LINQ.
+**Pattern Identified**:
+1. SQLite LINQ provider cannot translate `DateTimeOffset.UtcNow` in Where clauses or `OrderByDescending` with DateTimeOffset fields
+2. JSON deserialization requires explicit null checks before calling type-specific methods like `GetInt32()`
+3. Solution: fetch to memory first, then filter/sort with client-side LINQ
 
-**Next Steps**: Continue systematic testing:
-- Phase 3: Plan Templates
-- Phase 4: Plan Proposals
-- Phase 5: Progress Tracking
-- Phase 6: Gamification
+## Phase 6: Profile Management Testing Results
+
+### ✅ Get Current User (GET /auth/me)
+- Returns user information for authenticated users
+- Works for both trainers and clients
+- Returns user-specific fields based on role
+
+**Trainer Response**:
+```json
+{
+  "userId": "2",
+  "email": "trainer@test.com",
+  "userType": "trainer",
+  "alias": null,
+  "displayName": null,
+  "fullName": "Dr. Test Trainer",
+  "practiceName": "Test PT Clinic",
+  "isVerified": true
+}
+```
+
+**Client Response**:
+```json
+{
+  "userId": "4",
+  "email": "freshclient@test.com",
+  "userType": "client",
+  "alias": "C-RABA",
+  "displayName": "Jane Doe",
+  "fullName": null,
+  "practiceName": null,
+  "isVerified": true
+}
+```
+
+### ✅ Update Profile (PUT /auth/profile)
+- **Only available for clients** (trainers get error: "Only clients can update their profile.")
+- Clients can update displayName
+- Profile updates persist correctly
+
+**Request**:
+```json
+{
+  "displayName": "Jane Doe"
+}
+```
+
+**Response**:
+```json
+{
+  "message": "Profile updated successfully."
+}
+```
+
+### ✅ Set User Role (POST /auth/role)
+- Allows new users (empty userType) to set their role
+- Accepts "client" or "trainer" as valid roles
+- Automatically creates appropriate profile (ClientProfile or TrainerProfile)
+- Auto-generates alias for clients (e.g., "C-45IZ")
+- Prevents changing role once it's set
+
+**Request**:
+```json
+{
+  "role": "client"
+}
+```
+
+**Response**:
+```json
+{
+  "message": "Role set successfully."
+}
+```
+
+**Effect**: User's userType changes from "" to "client", ClientProfile created with generated alias
+
+**Remaining Features to Test**:
+- Progress Tracking (detailed history, adherence calculations)
+- Gamification (XP, levels, streaks, badges)

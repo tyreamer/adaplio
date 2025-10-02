@@ -35,12 +35,14 @@ public class PlanService : IPlanService
 
     public async Task<TemplateResponse[]> GetTrainerTemplatesAsync(int trainerProfileId)
     {
-        var templates = await _context.PlanTemplates
+        // Client-side evaluation for DateTimeOffset ordering (SQLite limitation)
+        var allTemplates = await _context.PlanTemplates
             .Include(pt => pt.PlanTemplateItems)
             .ThenInclude(pti => pti.Exercise)
             .Where(pt => pt.TrainerProfileId == trainerProfileId && !pt.IsDeleted)
-            .OrderByDescending(pt => pt.UpdatedAt)
             .ToListAsync();
+
+        var templates = allTemplates.OrderByDescending(pt => pt.UpdatedAt).ToList();
 
         return templates.Select(MapTemplateToResponse).ToArray();
     }
@@ -282,30 +284,34 @@ public class PlanService : IPlanService
 
     public async Task<ProposalResponse[]> GetTrainerProposalsAsync(int trainerProfileId)
     {
-        var proposals = await _context.PlanProposals
+        // Client-side evaluation for DateTimeOffset ordering (SQLite limitation)
+        var allProposals = await _context.PlanProposals
             .Include(pp => pp.TrainerProfile)
             .Include(pp => pp.ClientProfile)
             .Include(pp => pp.PlanTemplate)
             .ThenInclude(pt => pt!.PlanTemplateItems)
             .ThenInclude(pti => pti.Exercise)
             .Where(pp => pp.TrainerProfileId == trainerProfileId)
-            .OrderByDescending(pp => pp.ProposedAt)
             .ToListAsync();
+
+        var proposals = allProposals.OrderByDescending(pp => pp.ProposedAt).ToList();
 
         return proposals.Select(MapProposalToResponse).ToArray();
     }
 
     public async Task<ProposalResponse[]> GetClientProposalsAsync(int clientProfileId)
     {
-        var proposals = await _context.PlanProposals
+        // Client-side evaluation for DateTimeOffset ordering (SQLite limitation)
+        var allProposals = await _context.PlanProposals
             .Include(pp => pp.TrainerProfile)
             .Include(pp => pp.ClientProfile)
             .Include(pp => pp.PlanTemplate)
             .ThenInclude(pt => pt!.PlanTemplateItems)
             .ThenInclude(pti => pti.Exercise)
             .Where(pp => pp.ClientProfileId == clientProfileId)
-            .OrderByDescending(pp => pp.ProposedAt)
             .ToListAsync();
+
+        var proposals = allProposals.OrderByDescending(pp => pp.ProposedAt).ToList();
 
         return proposals.Select(MapProposalToResponse).ToArray();
     }
@@ -393,10 +399,10 @@ public class PlanService : IPlanService
                         ExerciseId = exerciseId,
                         WeekNumber = 1, // Start with week 1
                         OrderIndex = i,
-                        TargetSets = itemJson.TryGetProperty("Sets", out var setsElement) ? setsElement.GetInt32() : null,
-                        TargetReps = itemJson.TryGetProperty("Reps", out var repsElement) ? repsElement.GetInt32() : null,
-                        TargetHoldSeconds = itemJson.TryGetProperty("HoldSeconds", out var holdElement) ? holdElement.GetInt32() : null,
-                        FrequencyPerWeek = itemJson.TryGetProperty("FrequencyPerWeek", out var freqElement) ? freqElement.GetInt32() : null,
+                        TargetSets = itemJson.TryGetProperty("Sets", out var setsElement) && setsElement.ValueKind != JsonValueKind.Null ? setsElement.GetInt32() : null,
+                        TargetReps = itemJson.TryGetProperty("Reps", out var repsElement) && repsElement.ValueKind != JsonValueKind.Null ? repsElement.GetInt32() : null,
+                        TargetHoldSeconds = itemJson.TryGetProperty("HoldSeconds", out var holdElement) && holdElement.ValueKind != JsonValueKind.Null ? holdElement.GetInt32() : null,
+                        FrequencyPerWeek = itemJson.TryGetProperty("FrequencyPerWeek", out var freqElement) && freqElement.ValueKind != JsonValueKind.Null ? freqElement.GetInt32() : null,
                         DayOfWeek = dayOfWeek,
                         Status = "planned",
                         CreatedAt = DateTimeOffset.UtcNow,
@@ -437,12 +443,14 @@ public class PlanService : IPlanService
 
     public async Task<PlanInstanceResponse[]> GetClientPlansAsync(int clientProfileId)
     {
-        var plans = await _context.PlanInstances
+        // Client-side evaluation for DateTimeOffset ordering (SQLite limitation)
+        var allPlans = await _context.PlanInstances
             .Include(pi => pi.ExerciseInstances)
             .ThenInclude(ei => ei.ProgressEvents)
             .Where(pi => pi.ClientProfileId == clientProfileId)
-            .OrderByDescending(pi => pi.CreatedAt)
             .ToListAsync();
+
+        var plans = allPlans.OrderByDescending(pi => pi.CreatedAt).ToList();
 
         return plans.Select(MapPlanInstanceToResponse).ToArray();
     }
@@ -560,9 +568,9 @@ public class PlanService : IPlanService
                     itemJson.GetProperty("ExerciseId").GetInt32(),
                     itemJson.GetProperty("ExerciseName").GetString()!,
                     itemJson.TryGetProperty("ExerciseDescription", out var descElement) ? descElement.GetString() : null,
-                    itemJson.TryGetProperty("Sets", out var setsElement) ? setsElement.GetInt32() : null,
-                    itemJson.TryGetProperty("Reps", out var repsElement) ? repsElement.GetInt32() : null,
-                    itemJson.TryGetProperty("HoldSeconds", out var holdElement) ? holdElement.GetInt32() : null,
+                    itemJson.TryGetProperty("Sets", out var setsElement) && setsElement.ValueKind != JsonValueKind.Null ? setsElement.GetInt32() : null,
+                    itemJson.TryGetProperty("Reps", out var repsElement) && repsElement.ValueKind != JsonValueKind.Null ? repsElement.GetInt32() : null,
+                    itemJson.TryGetProperty("HoldSeconds", out var holdElement) && holdElement.ValueKind != JsonValueKind.Null ? holdElement.GetInt32() : null,
                     days,
                     itemJson.TryGetProperty("Notes", out var notesElement) ? notesElement.GetString() : null
                 );

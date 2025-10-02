@@ -491,6 +491,7 @@ public static class PlanEndpoints
     private static async Task<IResult> QuickLogProgress(
         QuickLogRequest request,
         AppDbContext context,
+        IGamificationService gamificationService,
         HttpContext httpContext)
     {
         try
@@ -541,6 +542,9 @@ public static class PlanEndpoints
             exerciseInstance.UpdatedAt = DateTimeOffset.UtcNow;
 
             await context.SaveChangesAsync();
+
+            // Award XP for this progress event
+            await gamificationService.AwardXpForProgressAsync(progressEvent.Id, clientProfile.Id);
 
             return Results.Ok(new QuickLogResponse(
                 request.Completed ? "Exercise marked as completed!" : "Progress logged!",
