@@ -57,11 +57,13 @@ public static class AuthEndpoints
                 IpAddress = httpContext.Connection.RemoteIpAddress?.ToString()
             };
 
-            // Clean up old expired links for this email
-            var expiredLinks = await context.MagicLinks
-                .Where(ml => ml.Email == request.Email.ToLowerInvariant() && ml.ExpiresAt < DateTimeOffset.UtcNow)
+            // Clean up old expired links for this email (client-side evaluation)
+            var now = DateTimeOffset.UtcNow;
+            var allLinksForEmail = await context.MagicLinks
+                .Where(ml => ml.Email == request.Email.ToLowerInvariant())
                 .ToListAsync();
 
+            var expiredLinks = allLinksForEmail.Where(ml => ml.ExpiresAt < now).ToList();
             context.MagicLinks.RemoveRange(expiredLinks);
             context.MagicLinks.Add(magicLink);
             await context.SaveChangesAsync();
@@ -88,12 +90,13 @@ public static class AuthEndpoints
     {
         try
         {
-            // Find valid magic link
-            var magicLink = await context.MagicLinks
-                .FirstOrDefaultAsync(ml =>
-                    ml.Code == request.Code &&
-                    ml.ExpiresAt > DateTimeOffset.UtcNow &&
-                    ml.UsedAt == null);
+            // Find valid magic link (client-side date evaluation)
+            var now = DateTimeOffset.UtcNow;
+            var magicLinks = await context.MagicLinks
+                .Where(ml => ml.Code == request.Code && ml.UsedAt == null)
+                .ToListAsync();
+
+            var magicLink = magicLinks.FirstOrDefault(ml => ml.ExpiresAt > now);
 
             if (magicLink == null)
             {
@@ -297,7 +300,7 @@ public static class AuthEndpoints
     {
         try
         {
-            var userIdClaim = httpContext.User.FindFirst("UserId")?.Value;
+            var userIdClaim = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
             {
                 return Results.Unauthorized();
@@ -340,7 +343,7 @@ public static class AuthEndpoints
     {
         try
         {
-            var userIdClaim = httpContext.User.FindFirst("UserId")?.Value;
+            var userIdClaim = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
             {
                 return Results.Unauthorized();
@@ -387,7 +390,7 @@ public static class AuthEndpoints
     {
         try
         {
-            var userIdClaim = httpContext.User.FindFirst("UserId")?.Value;
+            var userIdClaim = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
             {
                 return Results.Unauthorized();

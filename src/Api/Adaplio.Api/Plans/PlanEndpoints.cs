@@ -575,28 +575,28 @@ public static class PlanEndpoints
                 return Results.NotFound("Trainer profile not found");
             }
 
-            // Get clients that have granted consent to this trainer
-            var clients = await context.ConsentGrants
-                .Where(cg => cg.TrainerProfileId == trainerProfile.Id
-                    && cg.ExpiresAt > DateTimeOffset.UtcNow)
+            // Get clients that have granted consent to this trainer (client-side date evaluation)
+            var now = DateTimeOffset.UtcNow;
+            var allGrants = await context.ConsentGrants
+                .Where(cg => cg.TrainerProfileId == trainerProfile.Id)
                 .Include(cg => cg.ClientProfile)
                 .ThenInclude(cp => cp.User)
-                .Select(cg => new
-                {
-                    id = cg.ClientProfile.Id,
-                    alias = cg.ClientProfile.Alias,
-                    email = cg.ClientProfile.User.Email,
-                    createdAt = cg.ClientProfile.CreatedAt,
-                    scopes = context.ConsentGrants
-                        .Where(cg2 => cg2.ClientProfileId == cg.ClientProfile.Id
-                            && cg2.TrainerProfileId == trainerProfile.Id
-                            && cg2.ExpiresAt > DateTimeOffset.UtcNow)
-                        .Select(cg2 => cg2.Scope)
-                        .ToList()
-                })
-                .Distinct()
-                .OrderBy(c => c.alias)
                 .ToListAsync();
+
+            var activeGrants = allGrants.Where(cg => cg.ExpiresAt == null || cg.ExpiresAt > now).ToList();
+
+            var clients = activeGrants
+                .GroupBy(cg => cg.ClientProfile.Id)
+                .Select(g => new
+                {
+                    id = g.First().ClientProfile.Id,
+                    alias = g.First().ClientProfile.Alias,
+                    email = g.First().ClientProfile.User.Email,
+                    createdAt = g.First().ClientProfile.CreatedAt,
+                    scopes = g.Select(cg => cg.Scope).ToList()
+                })
+                .OrderBy(c => c.alias)
+                .ToList();
 
             return Results.Ok(new { clients });
         }

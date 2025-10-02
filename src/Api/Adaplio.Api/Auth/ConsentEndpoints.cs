@@ -102,9 +102,14 @@ public static class ConsentEndpoints
     {
         try
         {
-            var grantCode = await context.GrantCodes
+            // Client-side date evaluation
+            var now = DateTimeOffset.UtcNow;
+            var grantCodes = await context.GrantCodes
                 .Include(g => g.TrainerProfile)
-                .FirstOrDefaultAsync(g => g.Code == code && g.ExpiresAt > DateTimeOffset.UtcNow && g.UsedAt == null);
+                .Where(g => g.Code == code && g.UsedAt == null)
+                .ToListAsync();
+
+            var grantCode = grantCodes.FirstOrDefault(g => g.ExpiresAt > now);
 
             if (grantCode == null)
             {
@@ -151,14 +156,15 @@ public static class ConsentEndpoints
                 return Results.NotFound("Client profile not found");
             }
 
-            // Find valid grant code
-            var grantCode = await context.GrantCodes
+            // Find valid grant code (client-side date evaluation)
+            var now = DateTimeOffset.UtcNow;
+            var grantCodes = await context.GrantCodes
                 .Include(gc => gc.TrainerProfile)
                     .ThenInclude(tp => tp.User)
-                .FirstOrDefaultAsync(gc =>
-                    gc.Code == request.GrantCode &&
-                    gc.ExpiresAt > DateTimeOffset.UtcNow &&
-                    gc.UsedAt == null);
+                .Where(gc => gc.Code == request.GrantCode && gc.UsedAt == null)
+                .ToListAsync();
+
+            var grantCode = grantCodes.FirstOrDefault(gc => gc.ExpiresAt > now);
 
             if (grantCode == null)
             {
