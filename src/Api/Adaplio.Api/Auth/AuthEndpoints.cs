@@ -141,25 +141,39 @@ public static class AuthEndpoints
 
             if (user == null)
             {
-                // Create new user without role (for first-time role selection)
+                // Create new client user (magic link is client-specific)
                 user = new AppUser
                 {
                     Email = magicLink.Email,
-                    UserType = "", // Empty string to trigger role selection
+                    UserType = "client", // Automatically set as client
                     IsVerified = true
                 };
 
                 context.AppUsers.Add(user);
                 await context.SaveChangesAsync();
+
+                // Create client profile with alias
+                var clientProfile = new ClientProfile
+                {
+                    UserId = user.Id,
+                    Alias = GenerateClientAlias()
+                };
+
+                context.ClientProfiles.Add(clientProfile);
+                await context.SaveChangesAsync();
+
+                // Reload user with profile for JWT generation
+                user = await context.AppUsers
+                    .Include(u => u.ClientProfile)
+                    .FirstOrDefaultAsync(u => u.Id == user.Id);
             }
             else
             {
                 // Update existing user
                 user.IsVerified = true;
                 user.UpdatedAt = DateTimeOffset.UtcNow;
+                await context.SaveChangesAsync();
             }
-
-            await context.SaveChangesAsync();
 
             // Generate JWT
             var claims = new JwtClaims(

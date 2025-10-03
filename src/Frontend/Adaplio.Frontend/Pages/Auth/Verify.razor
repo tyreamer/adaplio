@@ -8,7 +8,6 @@
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
 @inject AuthStateService AuthState
-@inject IDialogService DialogService
 
 <PageTitle>Check your email - Adaplio</PageTitle>
 
@@ -147,21 +146,14 @@
                     };
                     await AuthState.SetUserAsync(userInfo, result.Token);
 
-                    // Check if user needs to select a role
-                    if (string.IsNullOrEmpty(result.UserType))
-                    {
-                        await ShowRoleSelectionDialog();
-                    }
-                    else
-                    {
-                        Snackbar.Add($"Welcome {result.Alias ?? "to Adaplio"}!", Severity.Success);
-                        Navigation.NavigateTo("/home");
-                    }
+                    // Client login - always go to client home
+                    Snackbar.Add($"Welcome {result.Alias ?? "to Adaplio"}!", Severity.Success);
+                    Navigation.NavigateTo("/home/client");
                 }
                 else
                 {
                     Snackbar.Add("Welcome to Adaplio!", Severity.Success);
-                    Navigation.NavigateTo("/home");
+                    Navigation.NavigateTo("/home/client");
                 }
             }
             else
@@ -177,48 +169,6 @@
         {
             _isLoading = false;
             StateHasChanged();
-        }
-    }
-
-    private async Task ShowRoleSelectionDialog()
-    {
-        // Get preferred role hint if available
-        var preferredRole = await AuthState.GetPreferredRoleAsync();
-
-        var parameters = new DialogParameters<Shared.RoleSelectionDialog>
-        {
-            { x => x.PreferredRole, preferredRole }
-        };
-
-        var options = new DialogOptions
-        {
-            CloseButton = false,
-            BackdropClick = false,
-            MaxWidth = MaxWidth.Medium,
-            FullWidth = true
-        };
-
-        var dialog = await DialogService.ShowAsync<Shared.RoleSelectionDialog>("Choose Your Role", parameters, options);
-        var result = await dialog.Result;
-
-        if (!result.Canceled && result.Data is string selectedRole)
-        {
-            // Role was successfully set, navigate to appropriate home
-            Snackbar.Add($"Welcome! You're all set as a {selectedRole}.", Severity.Success);
-
-            if (selectedRole == "client")
-            {
-                Navigation.NavigateTo("/home/client");
-            }
-            else
-            {
-                Navigation.NavigateTo("/home/trainer");
-            }
-        }
-        else
-        {
-            // User canceled or error occurred, redirect to landing
-            Navigation.NavigateTo("/");
         }
     }
 

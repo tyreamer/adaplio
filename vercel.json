@@ -7,22 +7,6 @@
       "dest": "https://adaplio-api-production.up.railway.app/api/$1"
     },
     {
-      "src": "/auth/(.*)",
-      "dest": "https://adaplio-api-production.up.railway.app/auth/$1"
-    },
-    {
-      "src": "/client/(.*)",
-      "dest": "https://adaplio-api-production.up.railway.app/client/$1"
-    },
-    {
-      "src": "/trainer/(.*)",
-      "dest": "https://adaplio-api-production.up.railway.app/trainer/$1"
-    },
-    {
-      "src": "/gamification/(.*)",
-      "dest": "https://adaplio-api-production.up.railway.app/gamification/$1"
-    },
-    {
       "src": "/health",
       "dest": "https://adaplio-api-production.up.railway.app/health"
     },
