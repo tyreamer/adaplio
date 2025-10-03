@@ -333,3 +333,6 @@ nul
 
 # Claude Code
 .claude/settings.local.json
+src/Api/Adaplio.Api/db.sqlite-shm
+src/Api/Adaplio.Api/db.sqlite-shm
+src/Api/Adaplio.Api/db.sqlite-wal
