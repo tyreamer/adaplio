@@ -1,34 +1,37 @@
 {
   "buildCommand": "chmod +x build.sh && ./build.sh",
   "outputDirectory": "src/Frontend/Adaplio.Frontend/bin/Release/net8.0/publish/wwwroot",
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/(.*)",
-      "destination": "https://adaplio-api-production.up.railway.app/api/$1"
+      "src": "/api/(.*)",
+      "dest": "https://adaplio-api-production.up.railway.app/api/$1"
     },
     {
-      "source": "/auth/(.*)",
-      "destination": "https://adaplio-api-production.up.railway.app/auth/$1"
+      "src": "/auth/(.*)",
+      "dest": "https://adaplio-api-production.up.railway.app/auth/$1"
     },
     {
-      "source": "/client/(.*)",
-      "destination": "https://adaplio-api-production.up.railway.app/client/$1"
+      "src": "/client/(.*)",
+      "dest": "https://adaplio-api-production.up.railway.app/client/$1"
     },
     {
-      "source": "/trainer/(.*)",
-      "destination": "https://adaplio-api-production.up.railway.app/trainer/$1"
+      "src": "/trainer/(.*)",
+      "dest": "https://adaplio-api-production.up.railway.app/trainer/$1"
     },
     {
-      "source": "/gamification/(.*)",
-      "destination": "https://adaplio-api-production.up.railway.app/gamification/$1"
+      "src": "/gamification/(.*)",
+      "dest": "https://adaplio-api-production.up.railway.app/gamification/$1"
     },
     {
-      "source": "/health",
-      "destination": "https://adaplio-api-production.up.railway.app/health"
+      "src": "/health",
+      "dest": "https://adaplio-api-production.up.railway.app/health"
     },
     {
-      "source": "/((?!api/|auth/|client/|trainer/|gamification/|health).*)",
-      "destination": "/index.html"
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ],
   "headers": [
