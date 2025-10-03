@@ -347,13 +347,14 @@
 
             if (response.IsSuccessStatusCode)
             {
-                _linkSent = true;
-                Snackbar.Add("Magic link sent! Check your email.", Severity.Success);
+                Snackbar.Add("Code sent! Check your email.", Severity.Success);
+                // Redirect to verification page with email
+                Navigation.NavigateTo($"/auth/verify?email={Uri.EscapeDataString(_model.Email)}");
             }
             else
             {
                 var error = await response.Content.ReadAsStringAsync();
-                Snackbar.Add("Failed to send magic link. Please try again.", Severity.Error);
+                Snackbar.Add("Failed to send code. Please try again.", Severity.Error);
             }
         }
         catch (Exception ex)

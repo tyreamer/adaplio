@@ -25,8 +25,8 @@
     <div class="verify-container">
         <div class="verify-form">
             <div class="form-header">
-                <h1 class="form-title">Check your email</h1>
-                <p class="form-subtitle">We've sent a magic link to your email. Click the link to sign in.</p>
+                <h1 class="form-title">Enter your code</h1>
+                <p class="form-subtitle">We've sent a 6-digit code to your email. Enter it below to sign in.</p>
             </div>
 
             <!-- Email Icon -->
@@ -43,16 +43,8 @@
                 </div>
             </div>
 
-            <!-- Waiting Status -->
-            <div class="waiting-status">
-                <h3 class="waiting-title">Waiting for verification...</h3>
-                <p class="waiting-subtitle">You'll be signed in automatically after clicking the link.</p>
-            </div>
-
-            <!-- Manual Code Entry -->
-            @if (_showCodeEntry)
-            {
-                <div class="code-entry-section">
+            <!-- Code Entry -->
+            <div class="code-entry-section">
                     <EditForm Model="@_model" OnValidSubmit="@VerifyCode" class="code-form">
                         <DataAnnotationsValidator />
 
@@ -84,24 +76,17 @@
                         </button>
                     </EditForm>
                 </div>
-            }
 
             <!-- Resend Options -->
             <div class="resend-section">
-                <p class="resend-text">Didn't receive the email?</p>
+                <p class="resend-text">Didn't receive the code?</p>
                 <div class="resend-actions">
-                    @if (!_showCodeEntry)
-                    {
-                        <button class="enter-code-btn" @onclick="ShowCodeEntry">
-                            Enter Code Manually
-                        </button>
-                    }
-                    <button class="resend-btn" @onclick="ResendMagicLink" disabled="@_resendLoading">
+                    <button class="resend-btn" @onclick="ResendCode" disabled="@_resendLoading">
                         @if (_resendLoading)
                         {
                             <span class="loading-spinner small"></span>
                         }
-                        Resend magic link
+                        Resend code
                     </button>
                 </div>
             </div>
@@ -112,9 +97,18 @@
 @code {
     private readonly VerifyModel _model = new();
     private bool _isLoading = false;
-    private bool _showCodeEntry = false;
+    private bool _showCodeEntry = true; // Always show code entry by default
     private bool _resendLoading = false;
     private readonly Dictionary<string, string> _validationErrors = new();
+    private string? _email;
+
+    protected override void OnInitialized()
+    {
+        // Get email from query parameters
+        var uri = new Uri(Navigation.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        _email = query["email"];
+    }
 
     private async Task VerifyCode()
     {
@@ -228,27 +222,27 @@
         }
     }
 
-    private void ShowCodeEntry()
+    private async Task ResendCode()
     {
-        _showCodeEntry = true;
-        StateHasChanged();
-    }
+        if (string.IsNullOrEmpty(_email))
+        {
+            Snackbar.Add("Email address not found. Please start over.", Severity.Error);
+            Navigation.NavigateTo("/auth/client/login");
+            return;
+        }
 
-    private async Task ResendMagicLink()
-    {
         _resendLoading = true;
         try
         {
-            // Get email from query parameters or session if available
-            var response = await Http.PostAsync("/auth/client/resend", null);
+            var response = await Http.PostAsJsonAsync("/auth/client/magic-link", new { Email = _email });
 
             if (response.IsSuccessStatusCode)
             {
-                Snackbar.Add("Magic link resent! Check your email.", Severity.Success);
+                Snackbar.Add("New code sent! Check your email.", Severity.Success);
             }
             else
             {
-                Snackbar.Add("Failed to resend magic link. Please try again.", Severity.Error);
+                Snackbar.Add("Failed to resend code. Please try again.", Severity.Error);
             }
         }
         catch (Exception ex)
