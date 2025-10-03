@@ -1,11 +1,18 @@
 @page "/trainer/proposals"
 @using System.Net.Http.Json
 @using System.Text.Json
+@using Adaplio.Frontend.Services
 @inject HttpClient HttpClient
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
+@inject AuthStateService AuthState
 
 <PageTitle>Proposals - Adaplio</PageTitle>
+
+@if (!_isAuthorized)
+{
+    return;
+}
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="my-8">
     @if (!string.IsNullOrEmpty(errorMessage))
@@ -128,34 +135,20 @@
     private List<ProposalDto> proposals = new();
     private bool isLoading = false;
     private string errorMessage = "";
+    private bool _isAuthorized = false;
 
     protected override async Task OnInitializedAsync()
     {
-        await CheckAuthAndRedirect();
+        await AuthState.InitializeAsync();
+
+        if (!AuthState.IsAuthenticated || !AuthState.IsTrainer)
+        {
+            NavigationManager.NavigateTo("/", replace: true);
+            return;
+        }
+
+        _isAuthorized = true;
         await LoadProposalsAsync();
-    }
-
-    private async Task CheckAuthAndRedirect()
-    {
-        try
-        {
-            var response = await HttpClient.GetAsync("/auth/me");
-            if (!response.IsSuccessStatusCode)
-            {
-                NavigationManager.NavigateTo("/auth/trainer/login");
-                return;
-            }
-
-            var userInfo = await response.Content.ReadFromJsonAsync<JsonElement>();
-            if (userInfo.GetProperty("userType").GetString() != "trainer")
-            {
-                NavigationManager.NavigateTo("/auth/trainer/login");
-            }
-        }
-        catch
-        {
-            NavigationManager.NavigateTo("/auth/trainer/login");
-        }
     }
 
     private async Task LoadProposalsAsync()

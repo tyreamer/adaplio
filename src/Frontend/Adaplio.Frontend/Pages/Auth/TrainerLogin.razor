@@ -10,6 +10,11 @@
 
 <PageTitle>Trainer Login - Adaplio</PageTitle>
 
+@if (_isCheckingAuth)
+{
+    return;
+}
+
 <MudContainer MaxWidth="MaxWidth.Small" Class="mt-16">
     <MudPaper Class="pa-8">
         <div class="d-flex flex-column align-center mb-6">
@@ -89,6 +94,29 @@
 @code {
     private readonly LoginModel _model = new();
     private bool _isLoading = false;
+    private bool _isCheckingAuth = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Check if user is already authenticated
+        await AuthState.InitializeAsync();
+
+        if (AuthState.IsAuthenticated)
+        {
+            // User is already logged in, redirect to their dashboard
+            if (AuthState.IsClient)
+            {
+                Navigation.NavigateTo("/home/client", replace: true);
+            }
+            else if (AuthState.IsTrainer)
+            {
+                Navigation.NavigateTo("/home/trainer", replace: true);
+            }
+            return;
+        }
+
+        _isCheckingAuth = false;
+    }
 
     private async Task LoginTrainer()
     {

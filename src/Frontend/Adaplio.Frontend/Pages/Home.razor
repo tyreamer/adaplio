@@ -1,7 +1,9 @@
 @page "/"
 @page "/home"
 @layout EmptyLayout
+@using Adaplio.Frontend.Services
 @inject NavigationManager Navigation
+@inject AuthStateService AuthState
 
 <PageTitle>Welcome to Adaplio</PageTitle>
 
@@ -262,6 +264,33 @@
 </style>
 
 @code {
+    protected override async Task OnInitializedAsync()
+    {
+        // Initialize auth state if needed
+        await AuthState.InitializeAsync();
+
+        // Redirect authenticated users to their appropriate dashboard
+        // unless they have a return URL
+        if (AuthState.IsAuthenticated)
+        {
+            var uri = new Uri(Navigation.Uri);
+            var returnUrl = System.Web.HttpUtility.ParseQueryString(uri.Query)["returnUrl"];
+
+            if (!string.IsNullOrEmpty(returnUrl))
+            {
+                Navigation.NavigateTo(returnUrl, replace: true);
+            }
+            else if (AuthState.IsClient)
+            {
+                Navigation.NavigateTo("/home/client", replace: true);
+            }
+            else if (AuthState.IsTrainer)
+            {
+                Navigation.NavigateTo("/home/trainer", replace: true);
+            }
+        }
+    }
+
     private void NavigateToTrainerSignup()
     {
         Navigation.NavigateTo("/auth/trainer/login");

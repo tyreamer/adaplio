@@ -2,11 +2,18 @@
 @layout EmptyLayout
 @using System.ComponentModel.DataAnnotations
 @using System.Net.Http.Json
+@using Adaplio.Frontend.Services
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
+@inject AuthStateService AuthState
 
 <PageTitle>Create your Therapist account - Adaplio</PageTitle>
+
+@if (_isCheckingAuth)
+{
+    return;
+}
 
 <div class="register-page">
     <!-- Header -->
@@ -512,7 +519,30 @@
     private bool _isLoading = false;
     private bool _showExistingAccountMessage = false;
     private bool _showPassword = false;
+    private bool _isCheckingAuth = true;
     private readonly Dictionary<string, string> _validationErrors = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Check if user is already authenticated
+        await AuthState.InitializeAsync();
+
+        if (AuthState.IsAuthenticated)
+        {
+            // User is already logged in, redirect to their dashboard
+            if (AuthState.IsClient)
+            {
+                Navigation.NavigateTo("/home/client", replace: true);
+            }
+            else if (AuthState.IsTrainer)
+            {
+                Navigation.NavigateTo("/home/trainer", replace: true);
+            }
+            return;
+        }
+
+        _isCheckingAuth = false;
+    }
 
     private async Task RegisterTrainer()
     {

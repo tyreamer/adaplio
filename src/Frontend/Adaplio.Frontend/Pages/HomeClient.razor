@@ -9,6 +9,11 @@
 
 <PageTitle>Dashboard - Adaplio</PageTitle>
 
+@if (!_isAuthorized)
+{
+    return;
+}
+
 <div class="client-dashboard">
     <!-- Header -->
     <div class="dashboard-header">
@@ -47,7 +52,7 @@
         {
             <!-- Welcome Section -->
             <div class="welcome-section">
-                <h1 class="welcome-title">Hi John 👋</h1>
+                <h1 class="welcome-title">@GetWelcomeMessage() 👋</h1>
                 <p class="welcome-subtitle">Ready for today's session?</p>
             </div>
 
@@ -163,7 +168,7 @@
                             </div>
                         </div>
                         <div class="trainer-note">
-                            <p>"Great job on your consistency, John! Remember to focus on your form with the squats today. Let's aim for a full range of motion."</p>
+                            <p>"Great job on your consistency! Remember to focus on your form with the squats today. Let's aim for a full range of motion."</p>
                         </div>
                     </div>
                 </div>
@@ -661,10 +666,22 @@
 
 @code {
     private bool _isLoading = true;
+    private bool _isAuthorized = false;
     private List<TodayExercise> _todaysExercises = new();
 
     protected override async Task OnInitializedAsync()
     {
+        await AuthState.InitializeAsync();
+
+        // Check if user is authenticated and is a client
+        if (!AuthState.IsAuthenticated || !AuthState.IsClient)
+        {
+            var returnUrl = Uri.EscapeDataString(new Uri(Navigation.Uri).PathAndQuery);
+            Navigation.NavigateTo($"/?returnUrl={returnUrl}", replace: true);
+            return;
+        }
+
+        _isAuthorized = true;
         await LoadData();
     }
 
@@ -702,6 +719,15 @@
     {
         // Navigate to exercise detail page
         Navigation.NavigateTo($"/exercise/{exercise.Id}");
+    }
+
+    private string GetWelcomeMessage()
+    {
+        if (!string.IsNullOrWhiteSpace(AuthState.DisplayName))
+        {
+            return $"Hi {AuthState.DisplayName}";
+        }
+        return "Welcome";
     }
 
     public class TodayExercise

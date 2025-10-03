@@ -11,6 +11,11 @@
 
 <PageTitle>Check your email - Adaplio</PageTitle>
 
+@if (_isCheckingAuth)
+{
+    return;
+}
+
 <div class="verify-page">
     <!-- Header -->
     <div class="verify-header">
@@ -98,15 +103,37 @@
     private bool _isLoading = false;
     private bool _showCodeEntry = true; // Always show code entry by default
     private bool _resendLoading = false;
+    private bool _isCheckingAuth = true;
     private readonly Dictionary<string, string> _validationErrors = new();
     private string? _email;
+    private string? _returnUrl;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        // Get email from query parameters
+        // Check if user is already authenticated
+        await AuthState.InitializeAsync();
+
+        if (AuthState.IsAuthenticated)
+        {
+            // User is already logged in, redirect to their dashboard
+            if (AuthState.IsClient)
+            {
+                Navigation.NavigateTo("/home/client", replace: true);
+            }
+            else if (AuthState.IsTrainer)
+            {
+                Navigation.NavigateTo("/home/trainer", replace: true);
+            }
+            return;
+        }
+
+        _isCheckingAuth = false;
+
+        // Get email and returnUrl from query parameters
         var uri = new Uri(Navigation.Uri);
         var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
         _email = query["email"];
+        _returnUrl = query["returnUrl"];
     }
 
     private async Task VerifyCode()
@@ -142,18 +169,25 @@
                         UserId = result.UserId ?? "",
                         Email = "", // Will be fetched if needed
                         UserType = result.UserType ?? "",
-                        Alias = result.Alias
+                        Alias = result.Alias,
+                        DisplayName = result.DisplayName
                     };
                     await AuthState.SetUserAsync(userInfo, result.Token);
 
-                    // Client login - always go to client home
-                    Snackbar.Add($"Welcome {result.Alias ?? "to Adaplio"}!", Severity.Success);
-                    Navigation.NavigateTo("/home/client");
+                    // Client login - redirect to returnUrl or dashboard
+                    var welcomeMessage = !string.IsNullOrWhiteSpace(result.DisplayName)
+                        ? $"Welcome {result.DisplayName}!"
+                        : "Welcome!";
+                    Snackbar.Add(welcomeMessage, Severity.Success);
+
+                    var destination = !string.IsNullOrEmpty(_returnUrl) ? _returnUrl : "/home/client";
+                    Navigation.NavigateTo(destination);
                 }
                 else
                 {
                     Snackbar.Add("Welcome to Adaplio!", Severity.Success);
-                    Navigation.NavigateTo("/home/client");
+                    var destination = !string.IsNullOrEmpty(_returnUrl) ? _returnUrl : "/home/client";
+                    Navigation.NavigateTo(destination);
                 }
             }
             else
@@ -220,6 +254,7 @@
         public string? UserType { get; set; }
         public string? UserId { get; set; }
         public string? Alias { get; set; }
+        public string? DisplayName { get; set; }
         public string? Token { get; set; }
     }
 }

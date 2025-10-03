@@ -57,7 +57,7 @@
                 </div>
                 <h2>Authentication Required</h2>
                 <p>Please sign in to access your profile settings.</p>
-                <button class="sign-in-btn" @onclick="@(() => Navigation.NavigateTo("/auth/client/login"))">
+                <button class="sign-in-btn" @onclick="SignInWithReturn">
                     Sign In
                 </button>
             </div>
@@ -660,6 +660,12 @@
         }
 
         await LoadProfile();
+    }
+
+    private void SignInWithReturn()
+    {
+        var returnUrl = Uri.EscapeDataString("/profile");
+        Navigation.NavigateTo($"/?returnUrl={returnUrl}");
     }
 
     private async Task LoadProfile()

@@ -1,11 +1,18 @@
 @page "/adherence"
 @using System.Net.Http.Json
 @using System.Text.Json
+@using Adaplio.Frontend.Services
 @inject HttpClient HttpClient
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
+@inject AuthStateService AuthState
 
 <PageTitle>My Adherence - Adaplio</PageTitle>
+
+@if (!_isAuthorized)
+{
+    return;
+}
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="my-8">
     @if (!string.IsNullOrEmpty(errorMessage))
@@ -185,6 +192,7 @@
     private AdherenceSummaryResponse? adherenceSummary;
     private bool isLoadingAdherence = false;
     private string errorMessage = "";
+    private bool _isAuthorized = false;
 
     private List<ChartSeries> chartSeries = new();
     private string[] xAxisLabels = Array.Empty<string>();
@@ -192,32 +200,17 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await CheckAuthAndRedirect();
+        await AuthState.InitializeAsync();
+
+        if (!AuthState.IsAuthenticated || !AuthState.IsClient)
+        {
+            NavigationManager.NavigateTo("/", replace: true);
+            return;
+        }
+
+        _isAuthorized = true;
         await LoadAdherenceSummary();
         SetupChart();
-    }
-
-    private async Task CheckAuthAndRedirect()
-    {
-        try
-        {
-            var response = await HttpClient.GetAsync("/auth/me");
-            if (!response.IsSuccessStatusCode)
-            {
-                NavigationManager.NavigateTo("/auth/client/login");
-                return;
-            }
-
-            var userInfo = await response.Content.ReadFromJsonAsync<JsonElement>();
-            if (userInfo.GetProperty("userType").GetString() != "client")
-            {
-                NavigationManager.NavigateTo("/auth/client/login");
-            }
-        }
-        catch
-        {
-            NavigationManager.NavigateTo("/auth/client/login");
-        }
     }
 
     private async Task LoadAdherenceSummary()

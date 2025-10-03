@@ -3,12 +3,19 @@
 @using System.Net.Http.Json
 @using System.Text.Json
 @using System.Linq
+@using Adaplio.Frontend.Services
 @inject HttpClient HttpClient
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
 @inject IJSRuntime JSRuntime
+@inject AuthStateService AuthState
 
 <PageTitle>Clients - Adaplio</PageTitle>
+
+@if (!_isAuthorized)
+{
+    return;
+}
 
 <div class="clients-page">
     <!-- Header with Navigation -->
@@ -1057,6 +1064,7 @@
     private string errorMessage = "";
     private bool _showNewClientModal = false;
     private int _selectedExpiry = 14;
+    private bool _isAuthorized = false;
 
     private string _generatedGrantCode = "ADAP-2024-XYZ";
     private string generatedGrantUrl = "";
@@ -1064,31 +1072,16 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await CheckAuthAndRedirect();
+        await AuthState.InitializeAsync();
+
+        if (!AuthState.IsAuthenticated || !AuthState.IsTrainer)
+        {
+            NavigationManager.NavigateTo("/", replace: true);
+            return;
+        }
+
+        _isAuthorized = true;
         await LoadClients();
-    }
-
-    private async Task CheckAuthAndRedirect()
-    {
-        try
-        {
-            var response = await HttpClient.GetAsync("/auth/me");
-            if (!response.IsSuccessStatusCode)
-            {
-                NavigationManager.NavigateTo("/auth/trainer/login");
-                return;
-            }
-
-            var userInfo = await response.Content.ReadFromJsonAsync<JsonElement>();
-            if (userInfo.GetProperty("userType").GetString() != "trainer")
-            {
-                NavigationManager.NavigateTo("/auth/trainer/login");
-            }
-        }
-        catch
-        {
-            NavigationManager.NavigateTo("/auth/trainer/login");
-        }
     }
 
     private async Task LoadClients()

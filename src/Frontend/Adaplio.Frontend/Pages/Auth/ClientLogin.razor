@@ -2,11 +2,18 @@
 @layout EmptyLayout
 @using System.ComponentModel.DataAnnotations
 @using System.Net.Http.Json
+@using Adaplio.Frontend.Services
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
+@inject AuthStateService AuthState
 
 <PageTitle>Client Sign In - Adaplio</PageTitle>
+
+@if (_isCheckingAuth)
+{
+    return;
+}
 
 <div class="login-page">
     <!-- Header -->
@@ -322,7 +329,36 @@
     private readonly LoginModel _model = new();
     private bool _isLoading = false;
     private bool _linkSent = false;
+    private bool _isCheckingAuth = true;
     private readonly Dictionary<string, string> _validationErrors = new();
+    private string? _returnUrl;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Check if user is already authenticated
+        await AuthState.InitializeAsync();
+
+        if (AuthState.IsAuthenticated)
+        {
+            // User is already logged in, redirect to their dashboard
+            if (AuthState.IsClient)
+            {
+                Navigation.NavigateTo("/home/client", replace: true);
+            }
+            else if (AuthState.IsTrainer)
+            {
+                Navigation.NavigateTo("/home/trainer", replace: true);
+            }
+            return;
+        }
+
+        _isCheckingAuth = false;
+
+        // Get returnUrl from query parameters
+        var uri = new Uri(Navigation.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        _returnUrl = query["returnUrl"];
+    }
 
     private async Task SendMagicLink()
     {
@@ -348,8 +384,13 @@
             if (response.IsSuccessStatusCode)
             {
                 Snackbar.Add("Code sent! Check your email.", Severity.Success);
-                // Redirect to verification page with email
-                Navigation.NavigateTo($"/auth/verify?email={Uri.EscapeDataString(_model.Email)}");
+                // Redirect to verification page with email and returnUrl
+                var verifyUrl = $"/auth/verify?email={Uri.EscapeDataString(_model.Email)}";
+                if (!string.IsNullOrEmpty(_returnUrl))
+                {
+                    verifyUrl += $"&returnUrl={Uri.EscapeDataString(_returnUrl)}";
+                }
+                Navigation.NavigateTo(verifyUrl);
             }
             else
             {
