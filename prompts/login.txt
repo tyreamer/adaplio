@@ -1,0 +1,27 @@
+Goal: Improve trainer & client login UX in Adaplio by keeping sessions alive longer.
+Stack: ASP.NET Core Minimal APIs backend + Blazor WASM frontend. 
+Auth today: passwordless magic link for clients (JWT in HttpOnly cookie).
+
+Task:
+- Add refresh token support so trainers and clients don’t have to request a new magic link/login every visit.
+- Store access tokens short-lived (e.g. 15m–1h), but issue a long-lived refresh token cookie (e.g. 30d).
+- Refresh token should be HttpOnly, Secure, SameSite=Strict.
+- On API startup, add endpoints:
+  POST /auth/refresh → exchanges valid refresh token for new access token + sets new refresh cookie.
+- On login (magic link verification), set both cookies: access (short), refresh (long).
+- On frontend, add silent refresh logic:
+  - Before API calls, check if access token is expired.
+  - If expired, call /auth/refresh automatically.
+  - If refresh token is expired/invalid, redirect to login.
+- Make sure refresh tokens are rotated (each refresh issues a new one, old one invalidated in DB).
+- Use EF Core: create RefreshToken table { id, userId, tokenHash, expiresAt, createdAt, revokedAt }.
+- Keep implementation minimal but production-safe (hash stored in DB, not raw token).
+- Update existing client auth middleware to validate tokens properly.
+
+Deliverables:
+- C# code for Minimal API endpoints (issue refresh token, verify magic link sets refresh token, refresh endpoint).
+- EF Core model + migration for RefreshToken.
+- Example of Blazor WASM silent refresh logic (using HttpClient).
+- Comments on security practices (token rotation, expiry).
+
+Do not rewrite whole auth system — extend the existing magic link flow.

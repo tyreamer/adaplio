@@ -44,19 +44,6 @@ public static class AuthEndpoints
     {
         try
         {
-            // Generate 6-digit code
-            var code = GenerateSecureCode();
-            var expiresAt = DateTimeOffset.UtcNow.AddMinutes(15);
-
-            // Save magic link to database
-            var magicLink = new MagicLink
-            {
-                Email = request.Email.ToLowerInvariant(),
-                Code = code,
-                ExpiresAt = expiresAt,
-                IpAddress = httpContext.Connection.RemoteIpAddress?.ToString()
-            };
-
             // Clean up old expired links for this email (client-side evaluation)
             var now = DateTimeOffset.UtcNow;
             var allLinksForEmail = await context.MagicLinks
@@ -65,15 +52,52 @@ public static class AuthEndpoints
 
             var expiredLinks = allLinksForEmail.Where(ml => ml.ExpiresAt < now).ToList();
             context.MagicLinks.RemoveRange(expiredLinks);
-            context.MagicLinks.Add(magicLink);
             await context.SaveChangesAsync();
 
-            // Send email (will log code to console if email service not configured)
-            await emailService.SendMagicLinkAsync(request.Email, code);
+            // Generate unique 6-digit code with retry logic
+            string code;
+            int maxRetries = 10;
+            int retryCount = 0;
 
-            return Results.Ok(new ClientMagicLinkResponse(
-                "Magic link sent successfully. Please check your email.",
-                expiresAt));
+            while (retryCount < maxRetries)
+            {
+                code = GenerateSecureCode();
+
+                // Check if code already exists in database
+                var existingCode = await context.MagicLinks
+                    .AnyAsync(ml => ml.Code == code && ml.UsedAt == null);
+
+                if (!existingCode)
+                {
+                    // Code is unique, proceed
+                    var expiresAt = DateTimeOffset.UtcNow.AddMinutes(15);
+
+                    var magicLink = new MagicLink
+                    {
+                        Email = request.Email.ToLowerInvariant(),
+                        Code = code,
+                        ExpiresAt = expiresAt,
+                        IpAddress = httpContext.Connection.RemoteIpAddress?.ToString()
+                    };
+
+                    context.MagicLinks.Add(magicLink);
+                    await context.SaveChangesAsync();
+
+                    // Send email (will log code to console if email service not configured)
+                    await emailService.SendMagicLinkAsync(request.Email, code);
+
+                    return Results.Ok(new ClientMagicLinkResponse(
+                        "Magic link sent successfully. Please check your email.",
+                        expiresAt));
+                }
+
+                retryCount++;
+                logger.LogWarning("Duplicate magic link code generated, retrying... (attempt {Retry}/{Max})", retryCount, maxRetries);
+            }
+
+            // If we couldn't generate a unique code after max retries
+            logger.LogError("Failed to generate unique magic link code after {MaxRetries} attempts", maxRetries);
+            return Results.Problem("Failed to send magic link. Please try again later.");
         }
         catch (Exception ex)
         {
