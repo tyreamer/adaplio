@@ -58,6 +58,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // Add authentication services
 builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 
 // Add HTTP clients with proper service registration
 builder.Services.AddHttpClient<IEmailService, EmailService>();

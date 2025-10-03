@@ -15,6 +15,7 @@ public class AppDbContext : DbContext
     public DbSet<TrainerProfile> TrainerProfiles { get; set; }
     public DbSet<ConsentGrant> ConsentGrants { get; set; }
     public DbSet<MagicLink> MagicLinks { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<GrantCode> GrantCodes { get; set; }
     public DbSet<InviteToken> InviteTokens { get; set; }
     public DbSet<MediaAsset> MediaAssets { get; set; }
@@ -46,6 +47,10 @@ public class AppDbContext : DbContext
 
             modelBuilder.Entity<MagicLink>()
                 .Property(ml => ml.Id)
+                .UseIdentityColumn();
+
+            modelBuilder.Entity<RefreshToken>()
+                .Property(rt => rt.Id)
                 .UseIdentityColumn();
 
             modelBuilder.Entity<GrantCode>()
@@ -164,6 +169,17 @@ public class AppDbContext : DbContext
                 .HasColumnType("timestamp with time zone");
             modelBuilder.Entity<MagicLink>()
                 .Property(ml => ml.CreatedAt)
+                .HasColumnType("timestamp with time zone");
+
+            // RefreshToken
+            modelBuilder.Entity<RefreshToken>()
+                .Property(rt => rt.ExpiresAt)
+                .HasColumnType("timestamp with time zone");
+            modelBuilder.Entity<RefreshToken>()
+                .Property(rt => rt.CreatedAt)
+                .HasColumnType("timestamp with time zone");
+            modelBuilder.Entity<RefreshToken>()
+                .Property(rt => rt.RevokedAt)
                 .HasColumnType("timestamp with time zone");
 
             // GrantCode
@@ -363,6 +379,12 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<MagicLink>()
             .HasIndex(ml => new { ml.Email, ml.CreatedAt });
+
+        modelBuilder.Entity<RefreshToken>()
+            .HasIndex(rt => rt.TokenHash);
+
+        modelBuilder.Entity<RefreshToken>()
+            .HasIndex(rt => new { rt.UserId, rt.CreatedAt });
 
         modelBuilder.Entity<GrantCode>()
             .HasIndex(gc => gc.Code)

@@ -22,6 +22,9 @@ public static class AuthEndpoints
         authGroup.MapPost("/trainer/register", RegisterTrainer);
         authGroup.MapPost("/trainer/login", LoginTrainer);
 
+        // Token refresh endpoint
+        authGroup.MapPost("/refresh", RefreshAccessToken);
+
         // Get current user info endpoint
         authGroup.MapGet("/me", GetCurrentUser).RequireAuthorization();
 
@@ -110,6 +113,7 @@ public static class AuthEndpoints
         ClientVerifyRequest request,
         AppDbContext context,
         IJwtService jwtService,
+        IRefreshTokenService refreshTokenService,
         HttpContext httpContext)
     {
         try
@@ -167,13 +171,27 @@ public static class AuthEndpoints
 
             var token = jwtService.GenerateToken(claims);
 
-            // Set HttpOnly cookie
+            // Generate refresh token
+            var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString();
+            var userAgent = httpContext.Request.Headers.UserAgent.ToString();
+            var refreshToken = await refreshTokenService.GenerateRefreshTokenAsync(user.Id, ipAddress, userAgent);
+
+            // Set access token cookie (short-lived)
             httpContext.Response.Cookies.Append("auth_token", token, new CookieOptions
             {
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.Strict,
-                Expires = DateTimeOffset.UtcNow.AddHours(24)
+                Expires = DateTimeOffset.UtcNow.AddHours(1)
+            });
+
+            // Set refresh token cookie (long-lived)
+            httpContext.Response.Cookies.Append("refresh_token", refreshToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTimeOffset.UtcNow.AddDays(30)
             });
 
             return Results.Ok(new AuthResponse(
@@ -265,6 +283,7 @@ public static class AuthEndpoints
         TrainerLoginRequest request,
         AppDbContext context,
         IJwtService jwtService,
+        IRefreshTokenService refreshTokenService,
         HttpContext httpContext)
     {
         try
@@ -296,13 +315,27 @@ public static class AuthEndpoints
 
             var token = jwtService.GenerateToken(claims);
 
-            // Set HttpOnly cookie
+            // Generate refresh token
+            var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString();
+            var userAgent = httpContext.Request.Headers.UserAgent.ToString();
+            var refreshToken = await refreshTokenService.GenerateRefreshTokenAsync(user.Id, ipAddress, userAgent);
+
+            // Set access token cookie (short-lived)
             httpContext.Response.Cookies.Append("auth_token", token, new CookieOptions
             {
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.Strict,
-                Expires = DateTimeOffset.UtcNow.AddHours(24)
+                Expires = DateTimeOffset.UtcNow.AddHours(1)
+            });
+
+            // Set refresh token cookie (long-lived)
+            httpContext.Response.Cookies.Append("refresh_token", refreshToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTimeOffset.UtcNow.AddDays(30)
             });
 
             return Results.Ok(new AuthResponse(
@@ -477,9 +510,100 @@ public static class AuthEndpoints
         }
     }
 
+    private static async Task<IResult> RefreshAccessToken(
+        HttpContext httpContext,
+        IRefreshTokenService refreshTokenService,
+        IJwtService jwtService,
+        AppDbContext context)
+    {
+        try
+        {
+            // Get refresh token from cookie
+            if (!httpContext.Request.Cookies.TryGetValue("refresh_token", out var refreshToken) || string.IsNullOrEmpty(refreshToken))
+            {
+                return Results.Unauthorized();
+            }
+
+            // Get IP address and user agent
+            var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString();
+            var userAgent = httpContext.Request.Headers.UserAgent.ToString();
+
+            // Rotate the refresh token (invalidate old, generate new)
+            var newRefreshToken = await refreshTokenService.RotateRefreshTokenAsync(refreshToken, ipAddress, userAgent);
+
+            if (newRefreshToken == null)
+            {
+                // Invalid or expired refresh token
+                httpContext.Response.Cookies.Delete("auth_token");
+                httpContext.Response.Cookies.Delete("refresh_token");
+                return Results.Unauthorized();
+            }
+
+            // Get user ID from old token to generate new access token
+            var userId = await refreshTokenService.ValidateRefreshTokenAsync(refreshToken);
+            if (userId == null)
+            {
+                // This shouldn't happen as RotateRefreshTokenAsync already validated it
+                return Results.Unauthorized();
+            }
+
+            // Get user info to generate JWT
+            var user = await context.AppUsers
+                .Include(u => u.ClientProfile)
+                .Include(u => u.TrainerProfile)
+                .FirstOrDefaultAsync(u => u.Id == userId.Value);
+
+            if (user == null)
+            {
+                return Results.Unauthorized();
+            }
+
+            // Generate new access token
+            var claims = new JwtClaims(
+                UserId: user.Id.ToString(),
+                Email: user.Email,
+                UserType: user.UserType,
+                Alias: user.ClientProfile?.Alias
+            );
+
+            var newAccessToken = jwtService.GenerateToken(claims);
+
+            // Set new access token cookie (short-lived)
+            httpContext.Response.Cookies.Append("auth_token", newAccessToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTimeOffset.UtcNow.AddHours(1)
+            });
+
+            // Set new refresh token cookie (long-lived)
+            httpContext.Response.Cookies.Append("refresh_token", newRefreshToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTimeOffset.UtcNow.AddDays(30)
+            });
+
+            return Results.Ok(new AuthResponse(
+                "Token refreshed successfully",
+                UserType: user.UserType,
+                UserId: user.Id.ToString(),
+                Alias: user.ClientProfile?.Alias,
+                Token: newAccessToken
+            ));
+        }
+        catch (Exception ex)
+        {
+            return Results.Problem("Failed to refresh token. Please login again.");
+        }
+    }
+
     private static IResult Logout(HttpContext httpContext)
     {
         httpContext.Response.Cookies.Delete("auth_token");
+        httpContext.Response.Cookies.Delete("refresh_token");
         return Results.Ok(new AuthResponse("Logged out successfully."));
     }
 
