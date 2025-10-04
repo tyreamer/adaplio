@@ -211,10 +211,16 @@ public class AppDbContext : DbContext
 
             // ConsentGrant
             modelBuilder.Entity<ConsentGrant>()
-                .Property(cg => cg.CreatedAt)
+                .Property(cg => cg.GrantedAt)
+                .HasColumnType("timestamp with time zone");
+            modelBuilder.Entity<ConsentGrant>()
+                .Property(cg => cg.ExpiresAt)
                 .HasColumnType("timestamp with time zone");
             modelBuilder.Entity<ConsentGrant>()
                 .Property(cg => cg.RevokedAt)
+                .HasColumnType("timestamp with time zone");
+            modelBuilder.Entity<ConsentGrant>()
+                .Property(cg => cg.CreatedAt)
                 .HasColumnType("timestamp with time zone");
 
             // Configure all other entities with DateTimeOffset properties (using correct property names)
@@ -281,6 +287,11 @@ public class AppDbContext : DbContext
 
             // Gamification
             modelBuilder.Entity<Domain.Gamification>()
+                .Property(g => g.LastActivityDate)
+                .HasConversion(
+                    v => v.HasValue ? v.Value.ToString("yyyy-MM-dd") : null,
+                    v => !string.IsNullOrEmpty(v) ? DateOnly.Parse(v) : null);
+            modelBuilder.Entity<Domain.Gamification>()
                 .Property(g => g.CreatedAt)
                 .HasColumnType("timestamp with time zone");
             modelBuilder.Entity<Domain.Gamification>()
@@ -294,12 +305,39 @@ public class AppDbContext : DbContext
 
             // ExtractionResult
             modelBuilder.Entity<ExtractionResult>()
+                .Property(er => er.ConfirmedAt)
+                .HasColumnType("timestamp with time zone");
+            modelBuilder.Entity<ExtractionResult>()
                 .Property(er => er.CreatedAt)
                 .HasColumnType("timestamp with time zone");
 
             // AdherenceWeek
             modelBuilder.Entity<AdherenceWeek>()
+                .Property(aw => aw.CalculatedAt)
+                .HasColumnType("timestamp with time zone");
+            modelBuilder.Entity<AdherenceWeek>()
                 .Property(aw => aw.UpdatedAt)
+                .HasColumnType("timestamp with time zone");
+
+            // InviteToken
+            modelBuilder.Entity<InviteToken>()
+                .Property(it => it.ExpiresAt)
+                .HasColumnType("timestamp with time zone");
+            modelBuilder.Entity<InviteToken>()
+                .Property(it => it.UsedAt)
+                .HasColumnType("timestamp with time zone");
+            modelBuilder.Entity<InviteToken>()
+                .Property(it => it.CreatedAt)
+                .HasColumnType("timestamp with time zone");
+
+            // PlanItemAcceptance
+            modelBuilder.Entity<PlanItemAcceptance>()
+                .Property(pia => pia.AcceptedAt)
+                .HasColumnType("timestamp with time zone");
+
+            // Transcript
+            modelBuilder.Entity<Transcript>()
+                .Property(t => t.CreatedAt)
                 .HasColumnType("timestamp with time zone");
 
             // Configure JSON columns for PostgreSQL (using correct property names)

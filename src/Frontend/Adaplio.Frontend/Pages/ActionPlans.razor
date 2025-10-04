@@ -1,12 +1,19 @@
 @page "/action-plans"
 @using System.ComponentModel.DataAnnotations
 @using System.Net.Http.Json
+@using Adaplio.Frontend.Services
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
 @inject IJSRuntime JSRuntime
 @inject HttpClient Http
+@inject AuthStateService AuthState
 
 <PageTitle>Action Plan Invites - Adaplio</PageTitle>
+
+@if (!_isAuthorized)
+{
+    return;
+}
 
 <div class="action-plans-page">
     <!-- Navigation Header -->
@@ -798,10 +805,20 @@
     private bool _isLoading = true;
     private bool _showNewInviteModal = false;
     private bool _isCreating = false;
+    private bool _isAuthorized = false;
     private readonly NewInviteModel _newInviteModel = new();
 
     protected override async Task OnInitializedAsync()
     {
+        await AuthState.InitializeAsync();
+
+        if (!AuthState.IsAuthenticated || !AuthState.IsTrainer)
+        {
+            Navigation.NavigateTo("/", replace: true);
+            return;
+        }
+
+        _isAuthorized = true;
         await LoadActionPlans();
         _isLoading = false;
     }

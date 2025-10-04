@@ -1,8 +1,15 @@
 @page "/exercise/{exerciseId}"
+@using Adaplio.Frontend.Services
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
+@inject AuthStateService AuthState
 
 <PageTitle>@ExerciseName - Adaplio</PageTitle>
+
+@if (!_isAuthorized)
+{
+    return;
+}
 
 <div class="exercise-detail-page">
     <!-- Header -->
@@ -474,9 +481,20 @@
 
     private bool _isCompleting = false;
     private ExerciseData? _exercise;
+    private bool _isAuthorized = false;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        await AuthState.InitializeAsync();
+
+        if (!AuthState.IsAuthenticated || !AuthState.IsClient)
+        {
+            var returnUrl = Uri.EscapeDataString(new Uri(Navigation.Uri).PathAndQuery);
+            Navigation.NavigateTo($"/?returnUrl={returnUrl}", replace: true);
+            return;
+        }
+
+        _isAuthorized = true;
         LoadExerciseData();
     }
 

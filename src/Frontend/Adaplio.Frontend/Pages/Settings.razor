@@ -2,12 +2,19 @@
 @layout EmptyLayout
 @using System.ComponentModel.DataAnnotations
 @using System.Net.Http.Json
+@using Adaplio.Frontend.Services
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
 @inject IJSRuntime JSRuntime
+@inject AuthStateService AuthState
 
 <PageTitle>Settings - Adaplio</PageTitle>
+
+@if (!_isAuthorized)
+{
+    return;
+}
 
 <div class="settings-page">
     <!-- Header -->
@@ -527,6 +534,21 @@ input:checked + .toggle-slider:before {
     private bool _exerciseReminders = true;
     private bool _messageAlerts = false;
     private bool _darkMode = false;
+    private bool _isAuthorized = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await AuthState.InitializeAsync();
+
+        if (!AuthState.IsAuthenticated || !AuthState.IsClient)
+        {
+            var returnUrl = Uri.EscapeDataString(new Uri(Navigation.Uri).PathAndQuery);
+            Navigation.NavigateTo($"/?returnUrl={returnUrl}", replace: true);
+            return;
+        }
+
+        _isAuthorized = true;
+    }
 
     private async Task ToggleExerciseReminders()
     {

@@ -654,6 +654,9 @@
 
     protected override async Task OnInitializedAsync()
     {
+        // Initialize auth state first
+        await AuthState.InitializeAsync();
+
         if (!AuthState.IsAuthenticated)
         {
             return;

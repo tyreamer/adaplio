@@ -11,6 +11,11 @@
 
 <PageTitle>Quick Setup - Adaplio</PageTitle>
 
+@if (!_isAuthorized)
+{
+    return;
+}
+
 <div class="onboarding-page">
     <MudContainer MaxWidth="MaxWidth.Medium" Class="py-8">
         <MudStack Spacing="6" AlignItems="AlignItems.Center">
@@ -242,6 +247,7 @@
 
     private OnboardingStep _currentStep = OnboardingStep.Auth;
     private bool _isProcessing = false;
+    private bool _isAuthorized = false;
     private string? _grantCode;
     private string? _trainerName;
     private string? _clinicName;
@@ -251,6 +257,15 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await AuthState.InitializeAsync();
+
+        if (!AuthState.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/", replace: true);
+            return;
+        }
+
+        _isAuthorized = true;
         AuthState.OnAuthStateChanged += HandleAuthStateChanged;
 
         // Parse URL parameters
