@@ -322,14 +322,6 @@
         await LoadGamificationData();
     }
 
-    private async Task OldCheckAuthMethod()
-    {
-        // Removed - using AuthState instead
-        try
-        {
-            NavigationManager.NavigateTo("/auth/client/login");
-        }
-    }
 
     private async Task LoadGamificationData()
     {
