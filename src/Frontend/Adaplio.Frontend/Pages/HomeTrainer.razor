@@ -847,7 +847,7 @@
 
             ApplyFilter();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             Snackbar.Add("Failed to load patients", Severity.Error);
         }
@@ -901,7 +901,7 @@
             Snackbar.Add($"Invite sent to {_inviteModel.Email}!", Severity.Success);
             CloseInviteModal();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             Snackbar.Add("Failed to send invite. Please try again.", Severity.Error);
         }

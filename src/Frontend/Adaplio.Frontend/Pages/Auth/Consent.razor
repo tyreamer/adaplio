@@ -215,7 +215,7 @@
             var returnUrl = $"/auth/consent?invite={Invite}";
             Navigation.NavigateTo($"/auth/magic-link?returnUrl={Uri.EscapeDataString(returnUrl)}");
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             _authError = "Failed to initiate magic link authentication";
         }
@@ -229,7 +229,7 @@
             var returnUrl = $"/auth/consent?invite={Invite}";
             Navigation.NavigateTo($"/auth/google?returnUrl={Uri.EscapeDataString(returnUrl)}");
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             _authError = "Failed to initiate Google authentication";
         }
@@ -243,7 +243,7 @@
             var returnUrl = $"/auth/consent?invite={Invite}";
             Navigation.NavigateTo($"/auth/passkey?returnUrl={Uri.EscapeDataString(returnUrl)}");
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             _authError = "Failed to initiate passkey authentication";
         }
@@ -289,7 +289,7 @@
                 Snackbar.Add("Failed to accept invitation. Please try again.", Severity.Error);
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             Snackbar.Add("An error occurred. Please try again.", Severity.Error);
         }

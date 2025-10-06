@@ -287,11 +287,6 @@ public class AppDbContext : DbContext
 
             // Gamification
             modelBuilder.Entity<Domain.Gamification>()
-                .Property(g => g.LastActivityDate)
-                .HasConversion(
-                    v => v.HasValue ? v.Value.ToString("yyyy-MM-dd") : null,
-                    v => !string.IsNullOrEmpty(v) ? DateOnly.Parse(v) : null);
-            modelBuilder.Entity<Domain.Gamification>()
                 .Property(g => g.CreatedAt)
                 .HasColumnType("timestamp with time zone");
             modelBuilder.Entity<Domain.Gamification>()
@@ -500,6 +495,10 @@ public class AppDbContext : DbContext
 
             modelBuilder.Entity<Domain.Gamification>()
                 .Property(g => g.LastActivityDate)
+                .HasConversion<DateOnlyConverter>();
+
+            modelBuilder.Entity<PlanProposal>()
+                .Property(pp => pp.StartsOn)
                 .HasConversion<DateOnlyConverter>();
         }
         else if (Database.ProviderName == "Npgsql.EntityFrameworkCore.PostgreSQL")

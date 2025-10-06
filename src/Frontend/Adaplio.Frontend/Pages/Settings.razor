@@ -573,7 +573,7 @@ input:checked + .toggle-slider:before {
             await Task.Delay(100); // Simulate API call
             Snackbar.Add("Notification settings updated", Severity.Success);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             Snackbar.Add("Failed to update settings", Severity.Error);
         }
@@ -587,7 +587,7 @@ input:checked + .toggle-slider:before {
             await Task.Delay(100); // Simulate API call
             Snackbar.Add("App preferences updated", Severity.Success);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             Snackbar.Add("Failed to update settings", Severity.Error);
         }
@@ -626,7 +626,7 @@ input:checked + .toggle-slider:before {
             Snackbar.Add("Logged out successfully", Severity.Success);
             Navigation.NavigateTo("/");
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             Snackbar.Add("Failed to log out", Severity.Error);
         }

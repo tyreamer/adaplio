@@ -195,7 +195,7 @@
                 _validationErrors["Code"] = "Invalid or expired code. Please try again.";
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             _validationErrors["Code"] = "Network error. Please check your connection.";
         }
@@ -229,7 +229,7 @@
                 Snackbar.Add("Failed to resend code. Please try again.", Severity.Error);
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             Snackbar.Add("Network error. Please check your connection.", Severity.Error);
         }

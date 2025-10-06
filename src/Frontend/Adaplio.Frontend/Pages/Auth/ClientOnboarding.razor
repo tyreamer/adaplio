@@ -608,7 +608,7 @@
                 _validationErrors["Code"] = "Invalid code. Please check with your therapist.";
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             _validationErrors["Code"] = "Network error. Please check your connection.";
         }
@@ -656,7 +656,7 @@
                 _validationErrors["Phone"] = "Failed to send invite. Please try again.";
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             _validationErrors["Phone"] = "Network error. Please check your connection.";
         }

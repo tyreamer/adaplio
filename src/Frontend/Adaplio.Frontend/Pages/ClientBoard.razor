@@ -818,9 +818,9 @@
                 Snackbar.Add($"Failed to start exercise: {error}", Severity.Error);
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Snackbar.Add($"Network error: {ex.Message}", Severity.Error);
+            Snackbar.Add("Network error occurred", Severity.Error);
         }
     }
 
