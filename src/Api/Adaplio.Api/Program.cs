@@ -121,7 +121,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 
 // Add CORS
-var corsOrigins = Environment.GetEnvironmentVariable("CORS__ORIGINS") ?? "https://localhost:5001,http://localhost:5000";
+var corsOrigins = Environment.GetEnvironmentVariable("CORS__ORIGINS") ?? "https://localhost:5001,http://localhost:5000,http://localhost:5268";
 var allowedOrigins = corsOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries)
                                .Select(origin => origin.Trim())
                                .ToArray();

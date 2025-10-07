@@ -213,7 +213,8 @@ public static class AuthEndpoints
                 UserType: user.UserType,
                 UserId: user.Id.ToString(),
                 Alias: user.ClientProfile?.Alias,
-                Token: token
+                Token: token,
+                RefreshToken: refreshToken
             ));
         }
         catch (Exception ex)
@@ -224,7 +225,10 @@ public static class AuthEndpoints
 
     private static async Task<IResult> RegisterTrainer(
         TrainerRegisterRequest request,
-        AppDbContext context)
+        AppDbContext context,
+        IJwtService jwtService,
+        IRefreshTokenService refreshTokenService,
+        HttpContext httpContext)
     {
         try
         {
@@ -250,7 +254,7 @@ public static class AuthEndpoints
             if (existingUser != null)
             {
                 Console.WriteLine($"Registration failed: Email already exists - {request.Email}");
-                return Results.BadRequest(new AuthResponse("Email already registered."));
+                return Results.Conflict(new AuthResponse("Email already registered."));
             }
 
             // Hash password
@@ -279,11 +283,49 @@ public static class AuthEndpoints
             };
 
             context.TrainerProfiles.Add(trainerProfile);
-            await context.SaveChangesAsync();  
+            await context.SaveChangesAsync();
 
             Console.WriteLine($"Created trainer profile for user: {user.Id}");
 
-            return Results.Ok(new AuthResponse("Trainer registered successfully."));
+            // Generate JWT
+            var claims = new JwtClaims(
+                UserId: user.Id.ToString(),
+                Email: user.Email,
+                UserType: user.UserType
+            );
+
+            var token = jwtService.GenerateToken(claims);
+
+            // Generate refresh token
+            var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString();
+            var userAgent = httpContext.Request.Headers.UserAgent.ToString();
+            var refreshToken = await refreshTokenService.GenerateRefreshTokenAsync(user.Id, ipAddress, userAgent);
+
+            // Set access token cookie (short-lived)
+            httpContext.Response.Cookies.Append("auth_token", token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTimeOffset.UtcNow.AddHours(1)
+            });
+
+            // Set refresh token cookie (long-lived)
+            httpContext.Response.Cookies.Append("refresh_token", refreshToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTimeOffset.UtcNow.AddDays(30)
+            });
+
+            return Results.Ok(new AuthResponse(
+                "Trainer registered successfully.",
+                UserType: user.UserType,
+                UserId: user.Id.ToString(),
+                Token: token,
+                RefreshToken: refreshToken
+            ));
         }
         catch (Exception ex)
         {
@@ -356,7 +398,8 @@ public static class AuthEndpoints
                 "Login successful",
                 UserType: user.UserType,
                 UserId: user.Id.ToString(),
-                Token: token
+                Token: token,
+                RefreshToken: refreshToken
             ));
         }
         catch (Exception ex)
@@ -605,7 +648,8 @@ public static class AuthEndpoints
                 UserType: user.UserType,
                 UserId: user.Id.ToString(),
                 Alias: user.ClientProfile?.Alias,
-                Token: newAccessToken
+                Token: newAccessToken,
+                RefreshToken: newRefreshToken
             ));
         }
         catch (Exception ex)

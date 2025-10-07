@@ -1,0 +1,1 @@
+TRAINER_TOKEN = "None"

@@ -34,7 +34,8 @@ public record AuthResponse(
     string? UserType = null,
     string? UserId = null,
     string? Alias = null,
-    string? Token = null
+    string? Token = null,
+    string? RefreshToken = null
 );
 
 public record UpdateProfileRequest(
