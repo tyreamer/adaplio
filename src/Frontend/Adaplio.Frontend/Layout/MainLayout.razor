@@ -64,6 +64,7 @@
 
                 <!-- Profile Menu -->
                 <MudMenu Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit" aria-label="User menu">
+                    <MudMenuItem Icon="@Icons.Material.Filled.Person" OnClick="@(() => Navigation.NavigateTo("/profile"))">Profile</MudMenuItem>
                     <MudMenuItem Icon="@Icons.Material.Filled.Settings" OnClick="@(() => Navigation.NavigateTo("/settings"))">Settings</MudMenuItem>
                     <MudDivider />
                     <MudMenuItem Icon="@Icons.Material.Filled.Logout" OnClick="@LogoutAsync">Sign Out</MudMenuItem>
@@ -147,6 +148,45 @@
                            Color="Color.Primary"
                            Class="bottom-nav-item">
                     Rewards
+                </MudButton>
+                <MudButton Href="/profile"
+                           StartIcon="@Icons.Material.Filled.Person"
+                           Variant="Variant.Text"
+                           Color="Color.Primary"
+                           Class="bottom-nav-item">
+                    Profile
+                </MudButton>
+            </MudStack>
+        </MudPaper>
+    </div>
+}
+
+<!-- Bottom Navigation for Mobile (Trainer Role) -->
+@if (_isSmallScreen && AuthState.IsTrainer)
+{
+    <div class="bottom-nav elevation-3">
+        <MudPaper Class="bottom-nav-paper" Elevation="0">
+            <MudStack Row Justify="Justify.SpaceAround" AlignItems="AlignItems.Center" Class="bottom-nav-items">
+                <MudButton Href="/home/trainer"
+                           StartIcon="@Icons.Material.Filled.Dashboard"
+                           Variant="Variant.Text"
+                           Color="Color.Primary"
+                           Class="bottom-nav-item">
+                    Dashboard
+                </MudButton>
+                <MudButton Href="/clients"
+                           StartIcon="@Icons.Material.Filled.People"
+                           Variant="Variant.Text"
+                           Color="Color.Primary"
+                           Class="bottom-nav-item">
+                    Patients
+                </MudButton>
+                <MudButton Href="/trainer/templates"
+                           StartIcon="@Icons.Material.Filled.Assignment"
+                           Variant="Variant.Text"
+                           Color="Color.Primary"
+                           Class="bottom-nav-item">
+                    Templates
                 </MudButton>
                 <MudButton Href="/profile"
                            StartIcon="@Icons.Material.Filled.Person"
