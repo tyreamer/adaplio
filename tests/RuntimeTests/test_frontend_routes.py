@@ -156,8 +156,8 @@ def test_blazor_app_loads():
             # Check for Blazor markers
             checks = [
                 ("Blazor script tag", "_framework/blazor.webassembly.js" in html),
-                ("App component", 'id="app"' in html or 'id=\\'app\\'' in html),
-                ("Base tag", '<base href="/">' in html or '<base href=\\'/\\' />' in html),
+                ("App component", 'id="app"' in html or "id='app'" in html),
+                ("Base tag", '<base href="/">' in html or "<base href='/' />" in html),
             ]
 
             print(f"\n2. Checking Blazor components in HTML...")
