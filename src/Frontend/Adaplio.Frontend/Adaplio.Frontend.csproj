@@ -8,7 +8,6 @@
 
     <!-- Suppress source map warnings -->
     <BlazorWebAssemblyEnableDebugging Condition="'$(Configuration)' != 'Debug'">false</BlazorWebAssemblyEnableDebugging>
-    <BlazorWebAssemblyLoadBootResource>false</BlazorWebAssemblyLoadBootResource>
   </PropertyGroup>
 
   <ItemGroup>
