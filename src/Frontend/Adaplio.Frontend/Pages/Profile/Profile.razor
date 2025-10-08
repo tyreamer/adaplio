@@ -1,5 +1,6 @@
 @page "/profile"
 @using Adaplio.Frontend.Services
+@using Adaplio.Frontend.Components.Common
 @using System.Net.Http.Json
 @using System.Linq
 @inject AuthStateService AuthState
@@ -11,37 +12,8 @@
 <PageTitle>Profile - Adaplio</PageTitle>
 
 <div class="profile-page">
-    <!-- Header -->
-    <div class="profile-header">
-        <div class="header-content">
-            <div class="brand-logo">
-                <span class="logo-icon">🧡</span>
-                <span class="brand-name">Adaplio</span>
-            </div>
-
-            <!-- Navigation Tabs -->
-            <div class="nav-tabs">
-                <button class="nav-tab" @onclick="@(() => Navigation.NavigateTo("/home"))">Overview</button>
-                <button class="nav-tab" @onclick="@(() => Navigation.NavigateTo("/exercises"))">Exercises</button>
-                <button class="nav-tab" @onclick="@(() => Navigation.NavigateTo("/progress"))">Progress</button>
-                <button class="nav-tab" @onclick="@(() => Navigation.NavigateTo("/messages"))">Messages</button>
-            </div>
-
-            <div class="header-actions">
-                <div class="notification-btn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2">
-                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-                    </svg>
-                </div>
-                <div class="profile-avatar-small">
-                    <div class="avatar-circle-small">
-                        <span>S</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Navigation -->
+    <AppNavigation ShowNavLinks="false" />
 
     <!-- Main Content -->
     <div class="profile-container">
@@ -179,109 +151,6 @@
     min-height: 100vh;
     background: #F9F7F4; /* Cream background */
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
-
-/* Header */
-.profile-header {
-    background: white;
-    border-bottom: 1px solid #E5E7EB;
-    padding: 16px 24px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-}
-
-.header-content {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-.brand-logo {
-    display: flex;
-    align-items: center;
-}
-
-.logo-icon {
-    font-size: 24px;
-    margin-right: 8px;
-}
-
-.brand-name {
-    font-size: 24px;
-    font-weight: 600;
-    color: #1F2937; /* Navy */
-}
-
-.nav-tabs {
-    display: flex;
-    gap: 32px;
-}
-
-.nav-tab {
-    background: none;
-    border: none;
-    color: #6B7280;
-    font-size: 16px;
-    font-weight: 500;
-    cursor: pointer;
-    padding: 8px 0;
-    transition: color 0.2s ease;
-    position: relative;
-}
-
-.nav-tab:hover {
-    color: #374151;
-}
-
-.nav-tab.active {
-    color: #FF6B35;
-}
-
-.nav-tab.active::after {
-    content: '';
-    position: absolute;
-    bottom: -16px;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: #FF6B35;
-}
-
-.header-actions {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-}
-
-.notification-btn {
-    padding: 8px;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-    border-radius: 8px;
-}
-
-.notification-btn:hover {
-    background: #F3F4F6;
-}
-
-.profile-avatar-small {
-    cursor: pointer;
-}
-
-.avatar-circle-small {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: #FF6B35;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: 600;
-    font-size: 14px;
 }
 
 /* Main Content */
@@ -594,17 +463,6 @@
 
 /* Responsive Design */
 @@media (max-width: 768px) {
-    .header-content {
-        flex-direction: column;
-        gap: 16px;
-        align-items: stretch;
-    }
-
-    .nav-tabs {
-        justify-content: space-between;
-        gap: 16px;
-    }
-
     .profile-container {
         padding: 20px 16px;
     }
