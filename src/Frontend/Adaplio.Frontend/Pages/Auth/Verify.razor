@@ -181,13 +181,13 @@
                     Snackbar.Add(welcomeMessage, Severity.Success);
 
                     var destination = !string.IsNullOrEmpty(_returnUrl) ? _returnUrl : "/home/client";
-                    Navigation.NavigateTo(destination);
+                    Navigation.NavigateTo(destination, replace: true);
                 }
                 else
                 {
                     Snackbar.Add("Welcome to Adaplio!", Severity.Success);
                     var destination = !string.IsNullOrEmpty(_returnUrl) ? _returnUrl : "/home/client";
-                    Navigation.NavigateTo(destination);
+                    Navigation.NavigateTo(destination, replace: true);
                 }
             }
             else

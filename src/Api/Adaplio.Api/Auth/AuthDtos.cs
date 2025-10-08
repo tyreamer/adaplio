@@ -34,6 +34,7 @@ public record AuthResponse(
     string? UserType = null,
     string? UserId = null,
     string? Alias = null,
+    string? DisplayName = null,
     string? Token = null,
     string? RefreshToken = null
 );
@@ -44,6 +45,21 @@ public record UpdateProfileRequest(
 
 public record SetUserRoleRequest(
     [Required] string Role
+);
+
+// Password reset DTOs
+public record PasswordResetRequest(
+    [Required, EmailAddress, MaxLength(255)] string Email
+);
+
+public record PasswordResetVerifyRequest(
+    [Required, MaxLength(20)] string Code,
+    [Required, MinLength(8), MaxLength(100)] string NewPassword
+);
+
+public record PasswordResetResponse(
+    string Message,
+    DateTimeOffset? ExpiresAt = null
 );
 
 // JWT Claims

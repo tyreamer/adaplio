@@ -6,6 +6,8 @@
 
 <PageTitle>Welcome to Adaplio</PageTitle>
 
+@if (!_isCheckingAuth)
+{
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -79,6 +81,7 @@
 </div>
 </body>
 </html>
+}
 
 <style>
 /* Base Styles */
@@ -263,6 +266,8 @@
 </style>
 
 @code {
+    private bool _isCheckingAuth = true;
+
     protected override async Task OnInitializedAsync()
     {
         // Initialize auth state if needed
@@ -278,16 +283,23 @@
             if (!string.IsNullOrEmpty(returnUrl))
             {
                 Navigation.NavigateTo(returnUrl, replace: true);
+                return;
             }
             else if (AuthState.IsClient)
             {
                 Navigation.NavigateTo("/home/client", replace: true);
+                return;
             }
             else if (AuthState.IsTrainer)
             {
                 Navigation.NavigateTo("/home/trainer", replace: true);
+                return;
             }
         }
+
+        // Only show the landing page if not authenticated
+        _isCheckingAuth = false;
+        StateHasChanged();
     }
 
     private void NavigateToTrainerSignup()

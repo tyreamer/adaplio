@@ -596,7 +596,7 @@
                     await AuthState.SetUserAsync(userInfo, result.Token);
 
                     Snackbar.Add($"Connected to {result.TrainerName}!", Severity.Success);
-                    Navigation.NavigateTo("/home/client");
+                    Navigation.NavigateTo("/home/client", replace: true);
                 }
                 else
                 {

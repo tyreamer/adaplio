@@ -45,7 +45,14 @@
 
     <!-- Main Content -->
     <div class="profile-container">
-        @if (!AuthState.IsAuthenticated)
+        @if (!_isInitialized)
+        {
+            <div class="loading-state">
+                <div class="loading-spinner"></div>
+                <p>Loading...</p>
+            </div>
+        }
+        else if (!AuthState.IsAuthenticated)
         {
             <div class="auth-required">
                 <div class="auth-icon">
@@ -648,6 +655,7 @@
 </style>
 
 @code {
+    private bool _isInitialized = false;
     private bool _isLoading = true;
     private bool _isSaving = false;
     private ProfileData _profileData = new();
@@ -656,6 +664,7 @@
     {
         // Initialize auth state first
         await AuthState.InitializeAsync();
+        _isInitialized = true;
 
         if (!AuthState.IsAuthenticated)
         {

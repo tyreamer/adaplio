@@ -32,6 +32,7 @@ public class AppDbContext : DbContext
     public DbSet<AdherenceWeek> AdherenceWeeks { get; set; }
     public DbSet<Domain.Gamification> Gamifications { get; set; }
     public DbSet<XpAward> XpAwards { get; set; }
+    public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -128,6 +129,10 @@ public class AppDbContext : DbContext
 
             modelBuilder.Entity<XpAward>()
                 .Property(xa => xa.Id)
+                .UseIdentityColumn();
+
+            modelBuilder.Entity<PasswordResetToken>()
+                .Property(prt => prt.Id)
                 .UseIdentityColumn();
 
             // Boolean to integer conversions for all boolean columns
@@ -325,6 +330,17 @@ public class AppDbContext : DbContext
                 .Property(it => it.CreatedAt)
                 .HasColumnType("timestamp with time zone");
 
+            // PasswordResetToken
+            modelBuilder.Entity<PasswordResetToken>()
+                .Property(prt => prt.ExpiresAt)
+                .HasColumnType("timestamp with time zone");
+            modelBuilder.Entity<PasswordResetToken>()
+                .Property(prt => prt.UsedAt)
+                .HasColumnType("timestamp with time zone");
+            modelBuilder.Entity<PasswordResetToken>()
+                .Property(prt => prt.CreatedAt)
+                .HasColumnType("timestamp with time zone");
+
             // PlanItemAcceptance
             modelBuilder.Entity<PlanItemAcceptance>()
                 .Property(pia => pia.AcceptedAt)
@@ -425,6 +441,13 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<GrantCode>()
             .HasIndex(gc => new { gc.TrainerProfileId, gc.CreatedAt });
+
+        modelBuilder.Entity<PasswordResetToken>()
+            .HasIndex(prt => prt.Code)
+            .IsUnique();
+
+        modelBuilder.Entity<PasswordResetToken>()
+            .HasIndex(prt => new { prt.Email, prt.CreatedAt });
 
         // Configure decimal precision for PostgreSQL compatibility
         modelBuilder.Entity<Transcript>()

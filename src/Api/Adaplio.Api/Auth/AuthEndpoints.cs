@@ -21,6 +21,8 @@ public static class AuthEndpoints
         // Trainer auth endpoints
         authGroup.MapPost("/trainer/register", RegisterTrainer);
         authGroup.MapPost("/trainer/login", LoginTrainer);
+        authGroup.MapPost("/trainer/forgot-password", RequestPasswordReset);
+        authGroup.MapPost("/trainer/reset-password", ResetPassword);
 
         // Token refresh endpoint
         authGroup.MapPost("/refresh", RefreshAccessToken);
@@ -213,6 +215,7 @@ public static class AuthEndpoints
                 UserType: user.UserType,
                 UserId: user.Id.ToString(),
                 Alias: user.ClientProfile?.Alias,
+                DisplayName: user.ClientProfile?.DisplayName,
                 Token: token,
                 RefreshToken: refreshToken
             ));
@@ -405,6 +408,155 @@ public static class AuthEndpoints
         catch (Exception ex)
         {
             return Results.Problem("Login failed. Please try again.");
+        }
+    }
+
+    private static async Task<IResult> RequestPasswordReset(
+        PasswordResetRequest request,
+        AppDbContext context,
+        IEmailService emailService,
+        HttpContext httpContext,
+        ILogger<Program> logger)
+    {
+        try
+        {
+            // Clean up old expired reset tokens for this email
+            var now = DateTimeOffset.UtcNow;
+            var allTokensForEmail = await context.PasswordResetTokens
+                .Where(prt => prt.Email == request.Email.ToLowerInvariant())
+                .ToListAsync();
+
+            var expiredTokens = allTokensForEmail.Where(prt => prt.ExpiresAt < now).ToList();
+            context.PasswordResetTokens.RemoveRange(expiredTokens);
+            await context.SaveChangesAsync();
+
+            // Find user with this email (trainer only)
+            var user = await context.AppUsers
+                .FirstOrDefaultAsync(u =>
+                    u.Email == request.Email.ToLowerInvariant() &&
+                    u.UserType == "trainer");
+
+            // Security: Always return success even if user doesn't exist
+            // This prevents email enumeration attacks
+            var expiresAt = DateTimeOffset.UtcNow.AddHours(1);
+
+            if (user != null)
+            {
+                // Generate unique 6-digit code
+                string code;
+                int maxRetries = 10;
+                int retryCount = 0;
+
+                do
+                {
+                    code = GenerateSecureCode();
+                    var existingCode = await context.PasswordResetTokens
+                        .FirstOrDefaultAsync(prt => prt.Code == code && prt.UsedAt == null);
+
+                    if (existingCode == null)
+                        break;
+
+                    retryCount++;
+                } while (retryCount < maxRetries);
+
+                if (retryCount >= maxRetries)
+                {
+                    logger.LogError("Failed to generate unique password reset code after {MaxRetries} attempts", maxRetries);
+                    return Results.Problem("Unable to generate reset code. Please try again.");
+                }
+
+                // Create password reset token
+                var resetToken = new PasswordResetToken
+                {
+                    UserId = user.Id,
+                    Email = user.Email,
+                    Code = code,
+                    ExpiresAt = expiresAt,
+                    IpAddress = httpContext.Connection.RemoteIpAddress?.ToString()
+                };
+
+                context.PasswordResetTokens.Add(resetToken);
+                await context.SaveChangesAsync();
+
+                // Send password reset email
+                await emailService.SendPasswordResetAsync(user.Email, code);
+
+                logger.LogInformation("Password reset requested for user {UserId}", user.Id);
+            }
+            else
+            {
+                // Log for monitoring, but still return success
+                logger.LogInformation("Password reset requested for non-existent email: {Email}", request.Email);
+            }
+
+            // Always return success to prevent email enumeration
+            return Results.Ok(new PasswordResetResponse(
+                "If an account exists with that email, a password reset code has been sent.",
+                ExpiresAt: expiresAt
+            ));
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error processing password reset request");
+            return Results.Problem("Failed to process password reset request. Please try again.");
+        }
+    }
+
+    private static async Task<IResult> ResetPassword(
+        PasswordResetVerifyRequest request,
+        AppDbContext context,
+        IRefreshTokenService refreshTokenService,
+        ILogger<Program> logger)
+    {
+        try
+        {
+            // Find valid reset token
+            var now = DateTimeOffset.UtcNow;
+            var resetTokens = await context.PasswordResetTokens
+                .Include(prt => prt.User)
+                .Where(prt => prt.Code == request.Code && prt.UsedAt == null)
+                .ToListAsync();
+
+            var resetToken = resetTokens.FirstOrDefault(prt => prt.ExpiresAt > now);
+
+            if (resetToken == null || resetToken.User == null)
+            {
+                return Results.BadRequest(new PasswordResetResponse("Invalid or expired reset code."));
+            }
+
+            // Validate password strength
+            if (request.NewPassword.Length < 8)
+            {
+                return Results.BadRequest(new PasswordResetResponse("Password must be at least 8 characters long."));
+            }
+
+            // Update user password
+            resetToken.User.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+            resetToken.User.UpdatedAt = DateTimeOffset.UtcNow;
+
+            // Mark token as used
+            resetToken.UsedAt = DateTimeOffset.UtcNow;
+
+            // Invalidate all existing refresh tokens for security
+            var existingTokens = await context.RefreshTokens
+                .Where(rt => rt.UserId == resetToken.UserId && rt.RevokedAt == null)
+                .ToListAsync();
+
+            foreach (var token in existingTokens)
+            {
+                token.RevokedAt = DateTimeOffset.UtcNow;
+            }
+
+            await context.SaveChangesAsync();
+
+            logger.LogInformation("Password successfully reset for user {UserId}", resetToken.UserId);
+
+            return Results.Ok(new PasswordResetResponse("Password successfully reset. Please log in with your new password."));
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error resetting password");
+            return Results.Problem("Failed to reset password. Please try again.");
         }
     }
 

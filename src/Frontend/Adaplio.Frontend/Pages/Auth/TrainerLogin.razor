@@ -43,6 +43,14 @@
                               InputType="InputType.Password"
                               Disabled="@_isLoading" />
 
+                <div class="d-flex justify-end">
+                    <MudLink Href="/auth/trainer/forgot-password"
+                             Typo="Typo.body2"
+                             Color="Color.Primary">
+                        Forgot password?
+                    </MudLink>
+                </div>
+
                 <MudButton ButtonType="ButtonType.Submit"
                            Variant="Variant.Filled"
                            Color="Color.Primary"
@@ -142,7 +150,7 @@
                 }
 
                 Snackbar.Add("Welcome back!", Severity.Success);
-                Navigation.NavigateTo("/home/trainer");
+                Navigation.NavigateTo("/home/trainer", replace: true);
             }
             else
             {

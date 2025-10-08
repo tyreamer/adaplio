@@ -240,4 +240,5 @@ public class UserInfo
     public string? FullName { get; set; }
     public string? PracticeName { get; set; }
     public bool IsVerified { get; set; }
+    public string? ProfileImageUrl { get; set; }
 }
