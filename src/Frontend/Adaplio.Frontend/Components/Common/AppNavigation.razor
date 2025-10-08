@@ -14,10 +14,9 @@
         @if (ShowNavLinks && AuthState.IsTrainer)
         {
             <div class="nav-links">
-                <a href="/home/trainer" class="nav-link @(IsActive("/home/trainer") ? "active" : "")">Dashboard</a>
-                <a href="/exercises" class="nav-link @(IsActive("/exercises") ? "active" : "")">Exercises</a>
-                <a href="/home/trainer" class="nav-link @(IsActive("/patients") ? "active" : "")">Patients</a>
-                <a href="/messages" class="nav-link @(IsActive("/messages") ? "active" : "")">Messages</a>
+                <a href="/home/trainer" class="nav-link @(IsActive("/home/trainer") ? "active" : "")">Patients</a>
+                <a href="/trainer/templates" class="nav-link @(IsActive("/trainer/templates") ? "active" : "")">Templates</a>
+                <a href="/trainer/proposals" class="nav-link @(IsActive("/trainer/proposals") ? "active" : "")">Proposals</a>
             </div>
         }
 
