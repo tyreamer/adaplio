@@ -1,21 +1,18 @@
 {
   "buildCommand": "chmod +x build.sh && ./build.sh",
   "outputDirectory": "src/Frontend/Adaplio.Frontend/bin/Release/net8.0/publish/wwwroot",
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "https://adaplio-api-production.up.railway.app/api/$1"
+      "source": "/api/:path*",
+      "destination": "https://adaplio-api-production.up.railway.app/api/:path*"
     },
     {
-      "src": "/health",
-      "dest": "https://adaplio-api-production.up.railway.app/health"
+      "source": "/health",
+      "destination": "https://adaplio-api-production.up.railway.app/health"
     },
     {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/:path*",
+      "destination": "/index.html"
     }
   ],
   "headers": [
