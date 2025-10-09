@@ -69,6 +69,32 @@
                         </MudStack>
                     </MudPaper>
 
+                    <!-- Email Option -->
+                    <MudPaper Class="pa-4" Elevation="2">
+                        <MudText Typo="Typo.subtitle1" Class="mb-3">Send via Email (Optional)</MudText>
+                        <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                            <MudTextField @bind-Value="_email"
+                                        Label="Email Address"
+                                        Variant="Variant.Outlined"
+                                        Placeholder="patient@example.com"
+                                        Class="flex-grow-1" />
+                            <MudButton Variant="Variant.Filled"
+                                     Color="Color.Primary"
+                                     StartIcon="@Icons.Material.Filled.Email"
+                                     OnClick="SendEmail"
+                                     Disabled="_isSendingEmail">
+                                @if (_isSendingEmail)
+                                {
+                                    <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                                }
+                                else
+                                {
+                                    <span>Send Email</span>
+                                }
+                            </MudButton>
+                        </MudStack>
+                    </MudPaper>
+
                     <!-- SMS Option -->
                     <MudPaper Class="pa-4" Elevation="2">
                         <MudText Typo="Typo.subtitle1" Class="mb-3">Send via SMS (Optional)</MudText>
@@ -131,8 +157,10 @@
 
     private bool _isLoading = true;
     private bool _isSendingSMS = false;
+    private bool _isSendingEmail = false;
     private string? _error;
     private string? _phoneNumber;
+    private string? _email;
     private CreateInviteTokenResponse? _inviteData;
     private string? _qrCodeDataUrl;
     private string _formattedCode = string.Empty;
@@ -188,6 +216,45 @@
     {
         await GenerateInvite();
         Snackbar.Add("New invite generated!", Severity.Success);
+    }
+
+    private async Task SendEmail()
+    {
+        if (string.IsNullOrWhiteSpace(_email))
+        {
+            Snackbar.Add("Please enter an email address", Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            _isSendingEmail = true;
+
+            var emailRequest = new
+            {
+                Email = _email
+            };
+
+            var response = await Http.PostAsJsonAsync("/api/invites/email", emailRequest);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add("Email invite sent successfully!", Severity.Success);
+                _email = string.Empty;
+            }
+            else
+            {
+                Snackbar.Add("Failed to send email. Please try again.", Severity.Error);
+            }
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Failed to send email. Please try again.", Severity.Error);
+        }
+        finally
+        {
+            _isSendingEmail = false;
+        }
     }
 
     private async Task SendSMS()

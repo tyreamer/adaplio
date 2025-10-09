@@ -5,6 +5,7 @@
 ### Production (Resend API)
 
 The application uses [Resend](https://resend.com) for email delivery in production.
+email: tyreamer.dev
 
 #### Required Environment Variables
 

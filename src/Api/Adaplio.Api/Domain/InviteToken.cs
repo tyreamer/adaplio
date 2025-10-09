@@ -22,6 +22,10 @@ public class InviteToken
     [MaxLength(20)]
     public string? PhoneNumber { get; set; }
 
+    [Column("email")]
+    [MaxLength(255)]
+    public string? Email { get; set; }
+
     [Column("expires_at")]
     public DateTimeOffset ExpiresAt { get; set; }
 

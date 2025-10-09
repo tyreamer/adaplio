@@ -17,6 +17,11 @@ public static class InviteEndpoints
         inviteGroup.MapPost("/sms", SendSMSInvite)
             .WithName("SendSMSInvite");
 
+        // Email invite endpoint (trainer only)
+        inviteGroup.MapPost("/email", SendEmailInvite)
+            .RequireAuthorization()
+            .WithName("SendEmailInvite");
+
         // Create invite token endpoint (trainer only)
         inviteGroup.MapPost("/token", CreateInviteToken)
             .RequireAuthorization()
@@ -105,6 +110,76 @@ public static class InviteEndpoints
         }
     }
 
+    private static async Task<IResult> SendEmailInvite(
+        EmailInviteRequest request,
+        AppDbContext context,
+        IEmailService emailService,
+        IAliasService aliasService,
+        HttpContext httpContext)
+    {
+        try
+        {
+            // Get trainer info from authenticated user
+            var userId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userType = httpContext.User.FindFirst("user_type")?.Value;
+
+            if (string.IsNullOrEmpty(userId) || userType != "trainer")
+            {
+                return Results.Forbid();
+            }
+
+            var trainerProfile = await context.TrainerProfiles
+                .FirstOrDefaultAsync(tp => tp.UserId == int.Parse(userId));
+
+            if (trainerProfile == null)
+            {
+                return Results.NotFound(new { error = "Trainer profile not found" });
+            }
+
+            // Get or create grant code for this trainer
+            var now = DateTimeOffset.UtcNow;
+            var grantCodes = await context.GrantCodes
+                .Where(gc => gc.TrainerProfileId == trainerProfile.Id && gc.UsedAt == null)
+                .ToListAsync();
+
+            var grantCode = grantCodes.FirstOrDefault(gc => gc.ExpiresAt > now);
+
+            if (grantCode == null)
+            {
+                return Results.BadRequest(new { error = "No valid grant code found. Please create a new invitation code first." });
+            }
+
+            // Generate invite token
+            var inviteToken = aliasService.GenerateUniqueCode();
+
+            var inviteTokenRecord = new InviteToken
+            {
+                Token = inviteToken,
+                GrantCodeId = grantCode.Id,
+                Email = request.Email,
+                ExpiresAt = DateTimeOffset.UtcNow.AddHours(24),
+                CreatedAt = DateTimeOffset.UtcNow
+            };
+
+            context.InviteTokens.Add(inviteTokenRecord);
+            await context.SaveChangesAsync();
+
+            // Build invite URL
+            var baseUrl = $"{httpContext.Request.Scheme}://{httpContext.Request.Host}";
+            var inviteUrl = $"{baseUrl}/?invite={inviteToken}";
+
+            // Send email
+            var trainerName = trainerProfile.FullName ?? "Your Physical Therapist";
+            await emailService.SendInviteEmailAsync(request.Email, inviteUrl, trainerName);
+
+            return Results.Ok(new { message = "Invite email sent successfully!" });
+        }
+        catch (Exception ex)
+        {
+            return Results.Problem("Failed to send invite email. Please try again.");
+        }
+    }
+
     private static async Task<IResult> CreateInviteToken(
         CreateInviteTokenRequest request,
         AppDbContext context,
@@ -181,6 +256,10 @@ public static class InviteEndpoints
 public record SMSInviteRequest(
     [Required] string PhoneNumber,
     string? InviteCode = null
+);
+
+public record EmailInviteRequest(
+    [Required, EmailAddress] string Email
 );
 
 public record CreateInviteTokenRequest(
