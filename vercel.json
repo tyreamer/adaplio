@@ -3,6 +3,10 @@
   "outputDirectory": "src/Frontend/Adaplio.Frontend/bin/Release/net8.0/publish/wwwroot",
   "rewrites": [
     {
+      "source": "/auth/:path*",
+      "destination": "https://adaplio-api-production.up.railway.app/auth/:path*"
+    },
+    {
       "source": "/api/:path*",
       "destination": "https://adaplio-api-production.up.railway.app/api/:path*"
     },
