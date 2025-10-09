@@ -545,24 +545,34 @@
 
         try
         {
-            // Simulate API call to load profile data
-            await Task.Delay(1000);
+            // Load profile data from API
+            var response = await HttpClient.GetAsync("/auth/me");
 
-            // Mock data - replace with actual API call
-            _profileData = new ProfileData
+            if (response.IsSuccessStatusCode)
             {
-                FullName = "Sarah Miller",
-                Nickname = "Sarah",
-                Email = "sarah.m@example.com",
-                PhoneNumber = "+1 (555) 123-4567",
-                UserType = "client",
-                Language = "en",
-                AvatarUrl = "" // Empty for placeholder
-            };
+                var userData = await response.Content.ReadFromJsonAsync<UserMeResponse>();
+                if (userData != null)
+                {
+                    _profileData = new ProfileData
+                    {
+                        FullName = userData.FullName ?? userData.Email ?? "User",
+                        Nickname = userData.DisplayName ?? userData.Alias ?? "",
+                        Email = userData.Email ?? "",
+                        PhoneNumber = "", // Add phone number to API response if needed
+                        UserType = userData.UserType ?? "",
+                        Language = "en",
+                        AvatarUrl = "" // Add avatar URL to API response if needed
+                    };
+                }
+            }
+            else
+            {
+                Snackbar.Add("Failed to load profile data", Severity.Error);
+            }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            Snackbar.Add("Failed to load profile data", Severity.Error);
+            Snackbar.Add($"Failed to load profile: {ex.Message}", Severity.Error);
         }
         finally
         {
@@ -633,5 +643,17 @@
         public string UserType { get; set; } = "";
         public string Language { get; set; } = "en";
         public string AvatarUrl { get; set; } = "";
+    }
+
+    public class UserMeResponse
+    {
+        public string UserId { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string UserType { get; set; } = "";
+        public string? Alias { get; set; }
+        public string? DisplayName { get; set; }
+        public string? FullName { get; set; }
+        public string? PracticeName { get; set; }
+        public bool IsVerified { get; set; }
     }
 }
