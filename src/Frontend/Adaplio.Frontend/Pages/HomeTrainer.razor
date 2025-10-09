@@ -683,50 +683,60 @@
     {
         try
         {
-            // Simulate loading delay
-            await Task.Delay(1000);
+            // Load real patient data from API
+            var response = await Http.GetAsync("/api/trainer/clients");
 
-            // Mock patient data
-            _patients = new List<PatientData>
+            if (response.IsSuccessStatusCode)
             {
-                new()
+                var clients = await response.Content.ReadFromJsonAsync<List<ClientResponse>>();
+                if (clients != null)
                 {
-                    Id = 1,
-                    Name = "Sarah Miller",
-                    LastActiveText = "2 days ago",
-                    Level = 3,
-                    StreakDays = 12,
-                    ProgressPercentage = 75,
-                    AvatarUrl = null
-                },
-                new()
-                {
-                    Id = 2,
-                    Name = "David Lee",
-                    LastActiveText = "1 week ago",
-                    Level = 3,
-                    StreakDays = 0,
-                    ProgressPercentage = 45,
-                    AvatarUrl = null
-                },
-                new()
-                {
-                    Id = 3,
-                    Name = "Emily Chen",
-                    LastActiveText = "3 days ago",
-                    Level = 4,
-                    StreakDays = 8,
-                    ProgressPercentage = 88,
-                    AvatarUrl = null
+                    _patients = clients.Select(c => new PatientData
+                    {
+                        Id = c.ClientProfileId,
+                        Name = c.DisplayName ?? c.Alias ?? "Unknown",
+                        LastActiveText = FormatLastActive(c.LastActivity),
+                        Level = c.Level ?? 1,
+                        StreakDays = c.CurrentStreak ?? 0,
+                        ProgressPercentage = c.AdherencePercent ?? 0,
+                        AvatarUrl = c.AvatarUrl
+                    }).ToList();
                 }
-            };
+            }
+            else
+            {
+                // No clients yet or error
+                _patients = new List<PatientData>();
+            }
 
             ApplyFilter();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             Snackbar.Add("Failed to load patients", Severity.Error);
+            _patients = new List<PatientData>();
         }
+    }
+
+    private string FormatLastActive(DateTime? lastActivity)
+    {
+        if (!lastActivity.HasValue)
+            return "Never";
+
+        var diff = DateTime.UtcNow - lastActivity.Value;
+
+        if (diff.TotalMinutes < 1)
+            return "Just now";
+        if (diff.TotalMinutes < 60)
+            return $"{(int)diff.TotalMinutes} minutes ago";
+        if (diff.TotalHours < 24)
+            return $"{(int)diff.TotalHours} hours ago";
+        if (diff.TotalDays < 7)
+            return $"{(int)diff.TotalDays} days ago";
+        if (diff.TotalDays < 30)
+            return $"{(int)(diff.TotalDays / 7)} weeks ago";
+
+        return lastActivity.Value.ToString("MMM dd, yyyy");
     }
 
     private void SetFilter(string filter)
@@ -771,15 +781,22 @@
 
         try
         {
-            // TODO: Send invite via API
-            await Task.Delay(2000); // Simulate API call
+            var response = await Http.PostAsJsonAsync("/api/invites/email", new { Email = _inviteModel.Email });
 
-            Snackbar.Add($"Invite sent to {_inviteModel.Email}!", Severity.Success);
-            CloseInviteModal();
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add($"Invite sent to {_inviteModel.Email}!", Severity.Success);
+                CloseInviteModal();
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                Snackbar.Add($"Failed to send invite: {error}", Severity.Error);
+            }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            Snackbar.Add("Failed to send invite. Please try again.", Severity.Error);
+            Snackbar.Add($"Failed to send invite: {ex.Message}", Severity.Error);
         }
         finally
         {
@@ -834,5 +851,17 @@
         public string Email { get; set; } = "";
 
         public string Message { get; set; } = "";
+    }
+
+    public class ClientResponse
+    {
+        public int ClientProfileId { get; set; }
+        public string? DisplayName { get; set; }
+        public string? Alias { get; set; }
+        public DateTime? LastActivity { get; set; }
+        public int? Level { get; set; }
+        public int? CurrentStreak { get; set; }
+        public int? AdherencePercent { get; set; }
+        public string? AvatarUrl { get; set; }
     }
 }

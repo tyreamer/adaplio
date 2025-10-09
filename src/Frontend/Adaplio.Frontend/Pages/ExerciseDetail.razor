@@ -1,8 +1,10 @@
 @page "/exercise/{exerciseId}"
 @using Adaplio.Frontend.Services
+@using System.Net.Http.Json
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
 @inject AuthStateService AuthState
+@inject HttpClient HttpClient
 
 <PageTitle>@ExerciseName - Adaplio</PageTitle>
 
@@ -498,62 +500,90 @@
         LoadExerciseData();
     }
 
-    private void LoadExerciseData()
+    private async void LoadExerciseData()
     {
-        // Mock data based on exercise ID
-        _exercise = ExerciseId switch
+        try
         {
-            "1" => new ExerciseData
+            // Fetch exercise instance details from API
+            // For now, we'll use the board endpoint to get exercise instances
+            var response = await HttpClient.GetAsync("/api/client/board");
+
+            if (response.IsSuccessStatusCode)
             {
-                Name = "Squats",
-                VideoUrl = "",
-                Sets = "10 reps",
-                HoldDuration = "2 seconds",
-                RestDuration = "30 seconds",
-                Instructions = "Stand with your feet shoulder-width apart. Lower your body as if sitting back into a chair, keeping your chest up and knees behind your toes. Push through your heels to return to standing position.",
-                Cautions = "Keep your knees aligned with your toes and avoid letting them cave inward. Don't lean too far forward."
-            },
-            "2" => new ExerciseData
-            {
-                Name = "Lunges",
-                VideoUrl = "",
-                Sets = "15 reps",
-                HoldDuration = "1 second",
-                RestDuration = "20 seconds",
-                Instructions = "Step forward with one leg, lowering your hips until both knees are bent at about a 90-degree angle. Make sure your front knee is directly above your ankle. Push back to the starting position and repeat with the other leg.",
-                Cautions = "Keep your upper body straight and avoid leaning forward. Don't let your front knee go past your toes."
-            },
-            "3" => new ExerciseData
-            {
-                Name = "Calf Raises",
-                VideoUrl = "",
-                Sets = "20 reps",
-                HoldDuration = "2 seconds",
-                RestDuration = "15 seconds",
-                Instructions = "Stand with your feet hip-width apart. Slowly rise up onto your toes, lifting your heels as high as possible. Hold for 2 seconds, then slowly lower back down.",
-                Cautions = "Move slowly and controlled. Avoid bouncing or using momentum."
-            },
-            "4" => new ExerciseData
-            {
-                Name = "Hamstring Curls",
-                VideoUrl = "",
-                Sets = "12 reps",
-                HoldDuration = "1 second",
-                RestDuration = "25 seconds",
-                Instructions = "Lie face down on a flat surface. Slowly curl your heels toward your buttocks, contracting your hamstring muscles. Hold for 1 second, then slowly lower your legs back to the starting position.",
-                Cautions = "Keep your hips pressed to the floor and avoid arching your back."
-            },
-            _ => new ExerciseData
-            {
-                Name = "Shoulder Blade Squeeze",
-                VideoUrl = "",
-                Sets = "10 reps",
-                HoldDuration = "10 seconds",
-                RestDuration = "10 seconds",
-                Instructions = "Sit or stand with your back straight. Squeeze your shoulder blades together as if you're trying to hold a pencil between them. Hold for 10 seconds, then relax. Repeat for 10 reps.",
-                Cautions = "Avoid shrugging your shoulders up towards your ears. Keep your neck relaxed and your gaze forward."
+                var boardData = await response.Content.ReadFromJsonAsync<ClientBoardResponse>();
+
+                if (boardData?.Days != null)
+                {
+                    // Find the exercise instance across all days
+                    foreach (var day in boardData.Days)
+                    {
+                        var exerciseInstance = day.Exercises?.FirstOrDefault(e =>
+                            e.ExerciseInstanceId.ToString() == ExerciseId);
+
+                        if (exerciseInstance != null)
+                        {
+                            _exercise = new ExerciseData
+                            {
+                                Name = exerciseInstance.ExerciseName ?? "Exercise",
+                                VideoUrl = "", // TODO: Add video URL support
+                                Sets = FormatSets(exerciseInstance.TargetSets, exerciseInstance.TargetReps),
+                                HoldDuration = FormatDuration(exerciseInstance.HoldSeconds),
+                                RestDuration = FormatDuration(exerciseInstance.RestSeconds),
+                                Instructions = exerciseInstance.Instructions ?? "No instructions available.",
+                                Cautions = exerciseInstance.Cautions ?? ""
+                            };
+                            StateHasChanged();
+                            return;
+                        }
+                    }
+                }
             }
-        };
+
+            // Fallback if exercise not found
+            _exercise = new ExerciseData
+            {
+                Name = "Exercise Not Found",
+                Sets = "N/A",
+                HoldDuration = "N/A",
+                RestDuration = "N/A",
+                Instructions = "This exercise could not be found. Please return to your dashboard.",
+                Cautions = ""
+            };
+            StateHasChanged();
+        }
+        catch (Exception)
+        {
+            _exercise = new ExerciseData
+            {
+                Name = "Error Loading Exercise",
+                Sets = "N/A",
+                HoldDuration = "N/A",
+                RestDuration = "N/A",
+                Instructions = "An error occurred while loading this exercise.",
+                Cautions = ""
+            };
+            StateHasChanged();
+        }
+    }
+
+    private string FormatSets(int? sets, int? reps)
+    {
+        if (sets.HasValue && reps.HasValue)
+            return $"{sets} sets × {reps} reps";
+        if (reps.HasValue)
+            return $"{reps} reps";
+        if (sets.HasValue)
+            return $"{sets} sets";
+        return "As prescribed";
+    }
+
+    private string FormatDuration(int? seconds)
+    {
+        if (!seconds.HasValue || seconds == 0)
+            return "N/A";
+        if (seconds < 60)
+            return $"{seconds} seconds";
+        return $"{seconds / 60} min {seconds % 60} sec";
     }
 
     // Properties for binding
@@ -611,4 +641,30 @@
         public string Instructions { get; set; } = "";
         public string Cautions { get; set; } = "";
     }
+
+    public record ClientBoardResponse(
+        DateOnly WeekStart,
+        DayExerciseDto[] Days
+    );
+
+    public record DayExerciseDto(
+        DateOnly Date,
+        string DayName,
+        BoardExerciseDto[]? Exercises
+    );
+
+    public record BoardExerciseDto(
+        int ExerciseInstanceId,
+        int ExerciseId,
+        string? ExerciseName,
+        string? Instructions,
+        string? Cautions,
+        int? TargetSets,
+        int? TargetReps,
+        int? HoldSeconds,
+        int? RestSeconds,
+        string Status,
+        int? SetsCompleted,
+        int? RepsCompleted
+    );
 }

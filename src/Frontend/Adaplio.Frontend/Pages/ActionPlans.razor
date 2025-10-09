@@ -827,58 +827,50 @@
     {
         try
         {
-            // Simulate loading delay
-            await Task.Delay(1000);
+            var response = await Http.GetAsync("/api/trainer/proposals");
 
-            // Mock action plan data
-            _actionPlans = new List<ActionPlanInvite>
+            if (response.IsSuccessStatusCode)
             {
-                new()
+                var data = await response.Content.ReadFromJsonAsync<ProposalListResponse>();
+
+                if (data?.Proposals != null)
                 {
-                    Id = 1,
-                    Status = "Draft",
-                    DateCreated = new DateTime(2024, 7, 26),
-                    ClientEmail = "sarah@example.com",
-                    Title = "Knee Recovery Plan"
-                },
-                new()
-                {
-                    Id = 2,
-                    Status = "Sent",
-                    DateCreated = new DateTime(2024, 7, 20),
-                    ClientEmail = "david@example.com",
-                    Title = "Shoulder Rehabilitation"
-                },
-                new()
-                {
-                    Id = 3,
-                    Status = "Approved",
-                    DateCreated = new DateTime(2024, 7, 15),
-                    ClientEmail = "emily@example.com",
-                    Title = "Back Pain Management"
-                },
-                new()
-                {
-                    Id = 4,
-                    Status = "Rejected",
-                    DateCreated = new DateTime(2024, 7, 10),
-                    ClientEmail = "john@example.com",
-                    Title = "Ankle Sprain Recovery"
-                },
-                new()
-                {
-                    Id = 5,
-                    Status = "Draft",
-                    DateCreated = new DateTime(2024, 7, 5),
-                    ClientEmail = "lisa@example.com",
-                    Title = "Hip Mobility Plan"
+                    _actionPlans = data.Proposals.Select(p => new ActionPlanInvite
+                    {
+                        Id = p.Id,
+                        Status = MapProposalStatus(p.Status),
+                        DateCreated = p.ProposedAt.DateTime,
+                        ClientEmail = p.ClientAlias ?? "Unknown",
+                        Title = !string.IsNullOrEmpty(p.Message) ? p.Message.Substring(0, Math.Min(50, p.Message.Length)) : "Untitled Plan"
+                    }).ToList();
                 }
-            };
+                else
+                {
+                    _actionPlans = new List<ActionPlanInvite>();
+                }
+            }
+            else
+            {
+                _actionPlans = new List<ActionPlanInvite>();
+                Snackbar.Add("Failed to load action plans", Severity.Warning);
+            }
         }
         catch (Exception)
         {
+            _actionPlans = new List<ActionPlanInvite>();
             Snackbar.Add("Failed to load action plans", Severity.Error);
         }
+    }
+
+    private string MapProposalStatus(string status)
+    {
+        return status?.ToLower() switch
+        {
+            "pending" => "Sent",
+            "accepted" => "Approved",
+            "rejected" => "Rejected",
+            _ => "Draft"
+        };
     }
 
     private string GetStatusClass(string status)
@@ -989,8 +981,7 @@
 
     private string GetInitials()
     {
-        // Mock initials - in real app would come from user service
-        return "PT";
+        return AuthState.User?.Email?.Substring(0, 2).ToUpper() ?? "PT";
     }
 
     public class ActionPlanInvite
@@ -1014,4 +1005,15 @@
 
         public string? Description { get; set; }
     }
+
+    public record ProposalListResponse(ProposalDto[] Proposals);
+
+    public record ProposalDto(
+        int Id,
+        int TemplateId,
+        string? ClientAlias,
+        string Status,
+        string? Message,
+        DateTimeOffset ProposedAt
+    );
 }

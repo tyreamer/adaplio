@@ -599,21 +599,41 @@
 
         try
         {
-            // Simulate API call
-            await Task.Delay(1000);
+            // Load real exercise data from API
+            var response = await HttpClient.GetAsync("/api/client/plans");
 
-            // Mock data for today's exercises
-            _todaysExercises = new List<TodayExercise>
+            if (response.IsSuccessStatusCode)
             {
-                new() { Id = "1", Name = "Squats", Reps = "10 reps", Progress = 100, IsCompleted = true },
-                new() { Id = "2", Name = "Lunges", Reps = "15 reps", Progress = 60, IsCompleted = false },
-                new() { Id = "3", Name = "Calf Raises", Reps = "20 reps", Progress = 0, IsCompleted = false },
-                new() { Id = "4", Name = "Hamstring Curls", Reps = "12 reps", Progress = 0, IsCompleted = false }
-            };
+                var plans = await response.Content.ReadFromJsonAsync<List<PlanResponse>>();
+                if (plans != null && plans.Any())
+                {
+                    // Get today's exercises from active plans
+                    _todaysExercises = plans
+                        .SelectMany(p => p.Exercises ?? new List<ExerciseResponse>())
+                        .Select(e => new TodayExercise
+                        {
+                            Id = e.Id.ToString(),
+                            Name = e.Name ?? "Exercise",
+                            Reps = e.Description ?? "",
+                            Progress = e.CompletionPercent ?? 0,
+                            IsCompleted = e.IsCompleted ?? false
+                        })
+                        .ToList();
+                }
+                else
+                {
+                    _todaysExercises = new List<TodayExercise>();
+                }
+            }
+            else
+            {
+                _todaysExercises = new List<TodayExercise>();
+            }
         }
-        catch
+        catch (Exception ex)
         {
-            // Handle error
+            Snackbar.Add($"Failed to load exercises: {ex.Message}", Severity.Error);
+            _todaysExercises = new List<TodayExercise>();
         }
         finally
         {
@@ -644,5 +664,21 @@
         public string Reps { get; set; } = "";
         public int Progress { get; set; }
         public bool IsCompleted { get; set; }
+    }
+
+    public class PlanResponse
+    {
+        public int Id { get; set; }
+        public string? Name { get; set; }
+        public List<ExerciseResponse>? Exercises { get; set; }
+    }
+
+    public class ExerciseResponse
+    {
+        public int Id { get; set; }
+        public string? Name { get; set; }
+        public string? Description { get; set; }
+        public int? CompletionPercent { get; set; }
+        public bool? IsCompleted { get; set; }
     }
 }

@@ -747,13 +747,13 @@
     private string errorMessage = "";
     private bool _isAuthorized = false;
 
-    // Mock data for the UI
-    private int _currentLevel = 3;
-    private int _currentLevelProgress = 60;
-    private int _xpToNextLevel = 120;
-    private int _totalXP = 350;
-    private int _daysActive = 25;
-    private int _exercisesCompleted = 150;
+    // Progress data from API
+    private int _currentLevel = 1;
+    private int _currentLevelProgress = 0;
+    private int _xpToNextLevel = 100;
+    private int _totalXP = 0;
+    private int _daysActive = 0;
+    private int _exercisesCompleted = 0;
 
     private int? selectedExerciseId;
     private LogProgressRequest logRequest = new()
@@ -775,6 +775,7 @@
         await LoadExercises();
         await LoadWeeklyProgress();
         await LoadAdherenceSummary();
+        await LoadGamificationData();
     }
 
     private async Task LoadExercises()
@@ -784,17 +785,41 @@
 
         try
         {
-            // For now, create mock exercise instances since we don't have plan/exercise management yet
-            exerciseInstances = new List<ExerciseInfo>
+            // Load from client board API
+            var response = await HttpClient.GetAsync("/api/client/board");
+
+            if (response.IsSuccessStatusCode)
             {
-                new() { Id = 1, ExerciseName = "Wall Push-ups", TargetSets = 3, TargetReps = 10 },
-                new() { Id = 2, ExerciseName = "Shoulder Rolls", TargetSets = 2, TargetReps = 15 },
-                new() { Id = 3, ExerciseName = "Neck Stretches", TargetSets = 1, TargetReps = 5 }
-            };
+                var boardData = await response.Content.ReadFromJsonAsync<ClientBoardResponse>();
+
+                if (boardData?.Days != null)
+                {
+                    exerciseInstances = boardData.Days
+                        .SelectMany(day => day.Exercises ?? Array.Empty<BoardExerciseDto>())
+                        .Select(e => new ExerciseInfo
+                        {
+                            Id = e.ExerciseInstanceId,
+                            ExerciseName = e.ExerciseName ?? "Unknown Exercise",
+                            TargetSets = e.TargetSets,
+                            TargetReps = e.TargetReps
+                        })
+                        .Distinct()
+                        .ToList();
+                }
+                else
+                {
+                    exerciseInstances = new List<ExerciseInfo>();
+                }
+            }
+            else
+            {
+                exerciseInstances = new List<ExerciseInfo>();
+            }
         }
         catch (Exception)
         {
             errorMessage = "Failed to load exercises.";
+            exerciseInstances = new List<ExerciseInfo>();
         }
         finally
         {
@@ -861,8 +886,64 @@
 
     private List<int> GetWeeklyData()
     {
-        // Mock weekly data - in real app, this would come from the API
-        return new List<int> { 80, 95, 60, 75, 100, 85, 70 };
+        // Extract weekly data from adherence summary if available
+        if (adherenceSummary?.WeeklyData != null && adherenceSummary.WeeklyData.Any())
+        {
+            // Get the last 7 weeks of data
+            return adherenceSummary.WeeklyData
+                .OrderByDescending(w => w.WeekStartDate)
+                .Take(7)
+                .OrderBy(w => w.WeekStartDate)
+                .Select(w => (int)w.AdherencePercentage)
+                .ToList();
+        }
+
+        // Default empty data if no API data available
+        return new List<int> { 0, 0, 0, 0, 0, 0, 0 };
+    }
+
+    private async Task LoadGamificationData()
+    {
+        try
+        {
+            var response = await HttpClient.GetAsync("/api/client/gamification");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var gamificationData = await response.Content.ReadFromJsonAsync<GamificationResponse>();
+
+                if (gamificationData != null)
+                {
+                    _currentLevel = gamificationData.CurrentLevel;
+                    _totalXP = gamificationData.TotalXp;
+
+                    // Calculate level progress
+                    var xpForCurrentLevel = gamificationData.XpForCurrentLevel;
+                    var xpForNextLevel = gamificationData.XpForNextLevel;
+                    _xpToNextLevel = xpForNextLevel - gamificationData.TotalXp;
+
+                    if (xpForNextLevel > xpForCurrentLevel)
+                    {
+                        var levelRange = xpForNextLevel - xpForCurrentLevel;
+                        var progressInLevel = gamificationData.TotalXp - xpForCurrentLevel;
+                        _currentLevelProgress = (int)((progressInLevel * 100.0) / levelRange);
+                    }
+
+                    // Set streak and achievement data
+                    _daysActive = gamificationData.DailyStreak;
+
+                    // Calculate exercises completed from adherence data
+                    if (adherenceSummary?.WeeklyData != null)
+                    {
+                        _exercisesCompleted = adherenceSummary.WeeklyData.Sum(w => w.CompletedCount);
+                    }
+                }
+            }
+        }
+        catch (Exception)
+        {
+            // Silently fail for gamification data
+        }
     }
 
     private async Task StartDailyChallenge()
@@ -934,4 +1015,41 @@
         public WeeklyAdherence[] WeeklyData { get; set; } = Array.Empty<WeeklyAdherence>();
         public decimal OverallAdherence { get; set; }
     }
+
+    public record GamificationResponse(
+        string ClientAlias,
+        int CurrentLevel,
+        int TotalXp,
+        int XpForCurrentLevel,
+        int XpForNextLevel,
+        int DailyStreak,
+        int WeeklyStreak,
+        BadgeDto[] Badges
+    );
+
+    public record ClientBoardResponse(
+        DateOnly WeekStart,
+        DayExerciseDto[] Days
+    );
+
+    public record DayExerciseDto(
+        DateOnly Date,
+        string DayName,
+        BoardExerciseDto[]? Exercises
+    );
+
+    public record BoardExerciseDto(
+        int ExerciseInstanceId,
+        int ExerciseId,
+        string? ExerciseName,
+        string? Instructions,
+        string? Cautions,
+        int? TargetSets,
+        int? TargetReps,
+        int? HoldSeconds,
+        int? RestSeconds,
+        string Status,
+        int? SetsCompleted,
+        int? RepsCompleted
+    );
 }
